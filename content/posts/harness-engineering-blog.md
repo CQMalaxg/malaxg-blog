@@ -37,6 +37,7 @@ title = 'Harness Engineering 实践指南：让 AI Agent 真正可用的那套�
 Phil Schmid 有个类比说得最到位：**模型是 CPU，Harness 是操作系统。** CPU 再强，OS 拉胯也白搭。你买了最新的芯片，装了个崩溃不断的系统，体验还不如老芯片配稳定的 OS。
 
 简单任务里，把 Prompt 写好就够了。但当任务变长、变复杂、容错率变低，Harness 才是决定成败的东西。LangChain、Anthropic、OpenAI 的工程团队，重心都已经放在 Harness 上。
+
 ![三层嵌套架构](/harness-engineering-blog-img/01-three-layers.png)
 ---
 
