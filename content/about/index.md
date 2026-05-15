@@ -12,13 +12,13 @@ layout: "page"
 ## 💼 个人履历 (Experience)
 
 ### 🏢 实习经历
-* **腾讯科技（深圳）有限公司** | **大模型应用算法实习生** `2025.01 ~ 至今`
-    * ![](https://img.shields.io/badge/Tencent-腾讯-0052D9?style=flat-square&logo=tencent&logoColor=white) 隶属于腾讯广告团队，负责大模型应用落地与算法优化。
+* **腾讯科技（深圳）有限公司** | **大模型应用算法实习生** `2025.01 ~ 至今`![](https://img.shields.io/badge/Tencent-腾讯-0052D9?style=flat-square&logo=tencent&logoColor=white)
+    *  隶属于腾讯广告团队，负责大模型应用落地与算法优化。
 
 ### 🎓 教育背景
-* **重庆邮电大学** | **计算机科学与技术 · 硕士** `2024.09 ~ 2027.06`
+* **重庆邮电大学** | **计算机科学与技术 · 硕士** `2024.09 ~ 2027.06`![](https://img.shields.io/badge/CQUPT-重庆邮电大学-800000?style=flat-square&logo=cqupt&logoColor=white)
     * 研究方向为**多模态情感分析**，主修大模型微调、智能体架构及多模态研究。
-* **重庆邮电大学** | **数据科学与大数据技术 · 学士** `2020.09 ~ 2024.06`
+* **重庆邮电大学** | **数据科学与大数据技术 · 学士** `2020.09 ~ 2024.06`![](https://img.shields.io/badge/CQUPT-重庆邮电大学-800000?style=flat-square&logo=cqupt&logoColor=white)
     * 专业成绩 **GPA 3.41/4 (Top 20%)**，具备扎实的数据结构与算法基础。
 
 ---
