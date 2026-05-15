@@ -4,6 +4,8 @@ draft = false
 title = 'Dreaming: 你以为在给 Agent 加记忆，其实是在教它学会忘记'
 +++
 
+![记忆碎片淹没 Agent](/dreaming-agent-blog-img/01-memory-flood.png)
+
 你用 Sublime Text 用了三年，它记得你的配置、你的快捷键、你的代码折叠习惯。你用 Chrome 浏览器，书签、历史记录、密码全都在——打开一个新标签页，它甚至知道你接下来最可能去哪里。
 
 我们对工具有一个朴素的期待：**越用越好用。** 不是因为工具本身变聪明了，而是因为它记住了你。
@@ -40,6 +42,8 @@ AI Agent 应该更强才对。它能理解语言，能执行复杂任务，比�
 
 ## 二、人类为什么越用越好用：REM 睡眠
 
+![REM 睡眠主动筛选记忆](/dreaming-agent-blog-img/02-rem-sleep.png)
+
 人类其实面对过同样的问题。
 
 每一天，我们接收的信息量是海量的。如果大脑把所有感知到的东西都以同等权重存下来，用不了多久就会崩溃。但我们没有崩溃——因为大脑有一套自动的整理机制。
@@ -59,6 +63,8 @@ REM 睡眠在做什么？神经科学的研究告诉我们，这个阶段大脑�
 那 Agent 呢？
 
 ## 三、Dreaming：Anthropic 给 Agent 造了一场梦
+
+![Dreaming 机制：混乱记忆到有序知识库](/dreaming-agent-blog-img/03-dreaming-mechanism.png)
 
 2026 年 5 月，Anthropic 在 Code with Claude 开发者大会上，给 Agent 引入了一个叫 **Dreaming** 的机制。
 
@@ -83,6 +89,8 @@ REM 睡眠在做什么？神经科学的研究告诉我们，这个阶段大脑�
 效果如何？法律 AI 公司 Harvey 是早期采用者之一。接入 Dreaming 之后，他们的任务完成率提升了大约 **6 倍**。
 
 ## 四、记忆技术全景图：Dreaming 在哪里
+
+![AI 记忆技术全景图](/dreaming-agent-blog-img/04-memory-landscape.png)
 
 Dreaming 不是凭空出现的。要真正理解它的价值，需要把 AI 记忆技术的全景图放出来看。
 
@@ -111,6 +119,8 @@ Dreaming 补的，是中间那一层。它是从"每天往笔记本里堆"到"�
 没有 Dreaming，Memory Store 是一个不断膨胀的负担。有了 Dreaming，它才真正开始发挥记忆应有的作用。
 
 ## 五、Dreaming 之后，这还是同一个 Agent 吗
+
+![数字版忒修斯之船](/dreaming-agent-blog-img/05-ship-of-theseus.png)
 
 Dreaming 每跑一次，Memory Store 就被重写一遍。连续运行三个月，这个 Agent 的"记忆"已经和最初的版本天壤之别。
 
