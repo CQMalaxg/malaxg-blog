@@ -1,0 +1,239 @@
+# Dreaming 文章 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** 写一篇关于 Dreaming 的中文博客文章，以"Agent 为什么不能越用越好用"为切入点，解读 Dreaming 机制，并引出 Agent 自我进化的前瞻思考。
+
+**Architecture:** 六节递进结构：开场痛点 → 记忆问题诊断 → 人类 REM 类比 → Dreaming 方案解读 → 三层学习框架对比 → 开放性结尾。概念解读 + 思想启发，不涉及实践操作。
+
+**Tech Stack:** Hugo 静态博客，Markdown，中文写作
+
+---
+
+### Task 1：创建文章文件并写入 frontmatter
+
+**Files:**
+- Create: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 创建文件，写入 frontmatter**
+
+```markdown
++++
+date = '2026-05-14T10:00:00+08:00'
+draft = false
+title = 'Dreaming：Agent 自我进化的第一步'
++++
+```
+
+- [ ] **Step 2: 提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: create dreaming article with frontmatter"
+```
+
+---
+
+### Task 2：写第一节——开场
+
+**Files:**
+- Modify: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 在 frontmatter 之后追加第一节内容**
+
+```markdown
+你用 Sublime Text 用了三年，它记得你的配置、你的快捷键、你的代码折叠习惯。你用 Chrome 浏览器，书签、历史记录、密码全都在——打开一个新标签页，它甚至知道你接下来最可能去哪里。
+
+我们对工具有一个朴素的期待：**越用越好用。** 不是因为工具本身变聪明了，而是因为它记住了你。
+
+AI Agent 应该更强才对。它能理解语言，能执行复杂任务，比任何一个传统软件都聪明。可是你有没有注意到——你用了三个月的 AI Agent，和第一天用它，感觉差不多。它不记得你上周跟它说过的话，不记得你修正过它三次的同一个错误，不记得你的偏好和习惯。
+
+每一次对话，都像是重新认识。
+
+更糟的是，时间长了，情况有时反而会更差。Agent 在长期运行过程中会积累记忆——但没有人整理这些记忆。重复的条目、矛盾的信息、早已过时的经验，全部堆在一起。Agent 读到它们，反而被干扰。越用越乱。
+
+这不是模型的问题，也不是 prompt 的问题。这是记忆架构的问题。
+```
+
+- [ ] **Step 2: 提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: add opening section"
+```
+
+---
+
+### Task 3：写第二节——问题在哪
+
+**Files:**
+- Modify: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 追加第二节**
+
+```markdown
+## 一、Agent 的记忆是怎么工作的
+
+要理解这个问题，先要搞清楚 Agent 的记忆是怎么运转的。
+
+现在主流的 Agent 记忆方案，大概是这样的：每次 Session 结束，Agent 把这次学到的东西写进一个 Memory Store——可以理解成一个外置的笔记本。下次启动，Agent 读一读这个笔记本，带着这些上下文继续工作。
+
+这个设计逻辑上没问题。但有一个致命的缺陷：**只有写入，没有整理。**
+
+想象一下，你有一本纸质笔记本，记了两年。每天都往里面加新条目，但从来没有翻回去看、整理、归纳。两年后这本笔记本是什么样的？
+
+第 3 页说"用户喜欢简洁风格"，第 47 页说"用户希望回复详细一点"，第 89 页说"用户说简洁就好"——哪条是对的？不知道。
+
+第 12 页记了一个处理方案，第 56 页记了同一个问题的改进方案，但两条都还在——重复的信息占据空间，读起来也费劲。
+
+Agent 的 Memory Store 就是这个状态。随着使用时间拉长，里面的条目越来越多，信噪比越来越低，Agent 每次启动读到的信息质量越来越差。不是没有记忆，是记忆太乱了。
+```
+
+- [ ] **Step 2: 提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: add memory problem diagnosis section"
+```
+
+---
+
+### Task 4：写第三节——人类为什么越用越好用
+
+**Files:**
+- Modify: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 追加第三节**
+
+```markdown
+## 二、人类为什么越用越好用：REM 睡眠
+
+人类其实面对过同样的问题。
+
+每一天，我们接收的信息量是海量的。如果大脑把所有感知到的东西都以同等权重存下来，用不了多久就会崩溃。但我们没有崩溃——因为大脑有一套自动的整理机制。
+
+这套机制的核心，发生在睡眠中，尤其是 **REM（快速眼动）睡眠阶段**。
+
+REM 睡眠在做什么？神经科学的研究告诉我们，这个阶段大脑并不是在休息，而是在忙碌地工作：回放白天的经历，把短期记忆巩固成长期记忆，过滤掉无关的噪音，提炼出有价值的规律和模式。
+
+注意这个关键点：REM 不是在**存储更多**，而是在**把已有的整理得更好**。白天你记住了 100 件事，经过一夜 REM，可能只有 20 件留下来——但这 20 件是真正重要的，而且以一种更结构化、更易检索的形式存在。
+
+这就是人类越用越好用的底层原因。不是因为大脑容量变大了，而是因为每天晚上都在做一次高质量的记忆整理。
+
+那 Agent 呢？
+```
+
+- [ ] **Step 2: 提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: add REM sleep analogy section"
+```
+
+---
+
+### Task 5：写第四节——Dreaming 方案解读
+
+**Files:**
+- Modify: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 追加第四节**
+
+```markdown
+## 三、Dreaming：Anthropic 给 Agent 造了一场梦
+
+2026 年 5 月，Anthropic 在 Code with Claude 开发者大会上，给 Agent 引入了一个叫 **Dreaming** 的机制。
+
+名字起得很直白。它做的事，就是让 Agent 做梦。
+
+具体来说，Dreaming 是一个异步后台任务。当 Agent 空闲的时候——比如一天的工作结束之后——Dreaming 会自动启动，读取最多 100 个历史 Session 的完整记录，加上现有的 Memory Store，然后做三件事：
+
+**去重合并**：把重复的记忆条目整合成一条。
+
+**更新替换**：用最新的信息替换掉已经过时或相互矛盾的旧条目。
+
+**规律提炼**：发现那些单个 Session 里看不到、只有跨越多个 Session 才能看出来的宏观模式。
+
+然后，Dreaming 输出一个全新的 Memory Store。
+
+注意它的设计细节：Dreaming **不修改原来的记忆**，而是生成一份全新的。开发者可以审查这份新的记忆，决定是否采纳，也可以随时中断这个过程。
+
+和人类 REM 睡眠的对位，一目了然：白天 Agent 干活，每次交互往 Memory 里写原始记录；晚上 Dreaming 跑起来，把这些碎片整理、提炼、压缩成真正有用的知识。
+
+效果如何？法律 AI 公司 Harvey 是早期采用者之一。接入 Dreaming 之后，他们的任务完成率提升了大约 **6 倍**。
+```
+
+- [ ] **Step 2: 提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: add Dreaming mechanism explanation"
+```
+
+---
+
+### Task 6：写第五节——解决了什么，还没解决什么
+
+**Files:**
+- Modify: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 追加第五节**
+
+```markdown
+## 四、Dreaming 解决了什么，还没解决什么
+
+Dreaming 是一个真正的进步。它证明了一件事：Agent 可以在不重新训练模型的前提下，通过整理经验来变得更好用。
+
+但我们可以把人类的学习过程拆成三个层次，对照着看 Agent 现在走到了哪里。
+
+**第一层：做中学。** 每次经历都在更新你的认知。你做了一个项目，学到了一些东西，下次遇到类似的情况，你会做得更好。Agent 的 Memory 机制对应的就是这一层——每次 Session 积累经验，写入记忆。这一层 Agent 已经有了。
+
+**第二层：睡眠整理。** 把碎片经验变成有结构的知识。把"我今天遇到了这个问题"变成"遇到这类问题，应该这样处理"。Dreaming 补的，正是这一层。
+
+**第三层：内化成本能。** 这一层最关键，也是 Agent 目前几乎空白的地方。
+
+人类经过足够多的练习，某些知识会被内化——你不再需要刻意去"想"，它就在那里。一个有二十年经验的医生，看到某个症状组合，直觉就会亮起警报，这个直觉不需要每次都去翻笔记。这种内化，发生在神经元的连接权重上，是物理性的改变。
+
+Agent 的 Dreaming 整理出来的记忆，本质上还是"外置的笔记本"。每次 Agent 启动，它需要去读这个笔记本，把记忆加载到上下文里，才能"想起来"。知识没有内化，还在外面。
+
+对应到 AI 的语言，第三层是 **fine-tuning**——把整理好的经验真正写进模型权重，让它成为模型的一部分。但 fine-tuning 成本高、周期长、风险大，现在没有任何一个方案能做到像 Dreaming 一样轻量、实时、可逆。
+
+所以现在的状态是：Agent 学会了做梦，但梦里整理出来的东西，还没有真正长进它的骨子里。
+```
+
+- [ ] **Step 2: 提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: add three-layer learning framework analysis"
+```
+
+---
+
+### Task 7：写第六节——结尾
+
+**Files:**
+- Modify: `content/posts/dreaming-agent-self-evolution.md`
+
+- [ ] **Step 1: 追加第六节**
+
+```markdown
+## 五、这只是开始
+
+Dreaming 是一个信号。
+
+它告诉我们，Agent 的自我进化不一定要等到下一个更强的模型，不一定要花几个月重训练——通过更好的记忆架构，现有的模型就能变得更好用。
+
+但它也在告诉我们，现在走到的，只是第二层。
+
+从"会整理记忆"到"真正越用越好用"，中间还有一层没有打通。那层通道打开之后，Agent 会是什么样的？它会不会在某一天，不再只是一个"很聪明的工具"，而是一个真正在积累、在成长的东西？
+
+我不知道答案。但 Dreaming 这个名字让我觉得，Anthropic 也在想这个问题。
+```
+
+- [ ] **Step 2: 最终提交**
+
+```bash
+git add content/posts/dreaming-agent-self-evolution.md
+git commit -m "feat: complete Dreaming article"
+```
