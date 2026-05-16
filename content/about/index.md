@@ -3,9 +3,79 @@ title: "关于"
 layout: "page"
 ---
 
-# 👋 你好，我是郭一贤 (malaxg)
+<div style="background:#0d0d0d; border:1px solid #00ff41; border-radius:12px; padding:32px 36px; margin-bottom:32px; font-family:'Courier New',Consolas,'Source Code Pro',monospace;">
 
-一名专注于 **大模型算法 (LLM Engineer)** 与 **数据挖掘** 的 AI 探索者。目前在腾讯负责大模型应用落地，热衷于将前沿 AI 技术转化为现实生产力。
+  <div style="color:#00ff41; font-size:0.8rem; margin-bottom:18px; opacity:0.6;">
+    $ whoami
+  </div>
+
+  <div id="terminal-text" style="color:#00ff41; font-size:1.05rem; line-height:2; min-height:6em;">
+    <span id="typed-output"></span><span id="cursor" style="display:inline-block;width:10px;background:#00ff41;animation:blink 0.8s step-end infinite;">&nbsp;</span>
+  </div>
+
+  <div id="tags-row" style="display:none; margin-top:24px; display:flex; flex-wrap:wrap; gap:8px; opacity:0;">
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.78rem;">#大模型算法</span>
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.78rem;">#Agent</span>
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.78rem;">#数据挖掘</span>
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.78rem;">#Kaggle Expert</span>
+  </div>
+
+</div>
+
+<style>
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+(function() {
+  var lines = [
+    "👋 你好，我是麻辣香郭 (malaxg)",
+    "",
+    "一名专注于大模型算法 (LLM Engineer)",
+    "与数据挖掘的 AI 探索者。",
+    "",
+    "目前在腾讯负责大模型应用落地，",
+    "热衷于将前沿 AI 技术转化为现实生产力。"
+  ];
+
+  var fullText = lines.join("\n");
+  var output = document.getElementById("typed-output");
+  var tagsRow = document.getElementById("tags-row");
+  var i = 0;
+
+  function type() {
+    if (i < fullText.length) {
+      var ch = fullText[i];
+      if (ch === "\n") {
+        output.innerHTML += "<br>";
+      } else {
+        output.innerHTML += ch;
+      }
+      i++;
+      setTimeout(type, ch === "\n" ? 120 : 45);
+    } else {
+      // 打字完成，显示标签行
+      document.getElementById("cursor").style.display = "none";
+      tagsRow.style.display = "flex";
+      tagsRow.style.animation = "fadeIn 0.6s ease forwards";
+    }
+  }
+
+  // 页面加载后延迟 400ms 开始
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function() { setTimeout(type, 400); });
+  } else {
+    setTimeout(type, 400);
+  }
+})();
+</script>
 
 ---
 
@@ -56,7 +126,6 @@ layout: "page"
 
 * **GitHub:** [malaxg](https://github.com/malaxg)
 * **Email:** guoyixian_01@163.com
-* **领域标签:** `#大模型算法` `#Agent` `#数据挖掘` `#KaggleExpert`
 
 ---
 <p align="center">欢迎技术交流与合作！ 🎯</p>

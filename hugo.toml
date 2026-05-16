@@ -4,6 +4,11 @@ title = "麻辣香郭的精神家园"
 theme = "PaperMod"
 paginate = 10
 
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
 [params]
   env = "production"
   author = "malaxg"
