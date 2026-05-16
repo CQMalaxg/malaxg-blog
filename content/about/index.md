@@ -32,6 +32,12 @@ layout: "page"
 
 ---
 
+## 📝 学术成果 (Publications)
+
+* **2026.05** | **Dual-Perspective Multimodal Sentiment Analysis with MoE Fusion: Representation Learning via Semantic Resonance and Divergence** — *ICASSP 2026* · [IEEE Xplore](https://ieeexplore.ieee.org/document/11462471)
+
+---
+
 ## 🏆 竞赛成果 (Milestones)
 
 > **Kaggle Expert (2银 2铜)** —— *“在数据世界里，用代码逼近最优解。”*
@@ -42,6 +48,7 @@ layout: "page"
 * **2025.06** | **Kaggle BirdCLEF-2025** —— **铜牌** (118/2025)
 * **2024.11** | **第四届中国移动“梧桐杯”大数据创新大赛** —— **一等奖**
 * **2022.10** | **重庆市首届人工智能创新大赛 (谣言核查)** —— **一等奖**
+
 
 ---
 
