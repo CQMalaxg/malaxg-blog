@@ -18,10 +18,10 @@ layout: "page"
   </div>
 
   <div id="tags-row" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:0; max-height:0; overflow:hidden; opacity:0; transition:max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease;">
-    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#大模型算法</span>
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#LLM</span>
     <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#Agent</span>
-    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#数据挖掘</span>
-    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#Kaggle Expert</span>
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#DataMining</span>
+    <span style="background:rgba(0,255,65,0.1); color:#00ff41; border:1px solid rgba(0,255,65,0.4); border-radius:4px; padding:3px 12px; font-size:0.85rem; font-family:'VT323','Noto Sans Mono',monospace;">#KaggleExpert</span>
   </div>
 
 </div>
