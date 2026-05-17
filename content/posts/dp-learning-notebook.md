@@ -2,7 +2,7 @@
 
 date = '2024-10-31T10:00:00+08:00'
 draft = false
-title = 'Dreaming: 你以为在给 Agent 加记忆，其实是在教它学会忘记'
+title = '动态规划学习笔记'
 
 +++
 
