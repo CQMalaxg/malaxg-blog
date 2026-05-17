@@ -2,6 +2,7 @@
 date = '2026-05-14T10:00:00+08:00'
 draft = false
 title = 'Dreaming: 你以为在给 Agent 加记忆，其实是在教它学会忘记'
+
 +++
 
 ![记忆碎片淹没 Agent](/dreaming-agent-blog-img/01-memory-flood.png)
