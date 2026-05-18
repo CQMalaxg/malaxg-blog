@@ -49,9 +49,9 @@ title = '动态规划学习笔记'
 
 不断这样下去就可以得到一个搜索树！
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/5adb9a63-25db-4bce-819c-f4468ee22f66/2aa8704c-741a-4edc-a032-c1b55e765d46/image.png)
-
-$$ dfs(i) = max(dfs(i-1),dfs(i-2)+nums[i]) $$
+$$ 
+dfs(i) = max(dfs(i-1),dfs(i-2)+nums[i]) 
+$$
 
 $dfs(i)$的含义指的是从前i个房子中得到的最大金额和。
 
@@ -77,9 +77,9 @@ class Solution(object):
 
 通过观察搜索树可以发现像dfs(2)这样的值会被重复计算，所以可以考虑将这样重复计算的值存入一个cache数组或者hash表中，这样在第二次算的时候就可以直接返回cache里面保存的结果了。优化后的搜索树长这样！
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/5adb9a63-25db-4bce-819c-f4468ee22f66/bc8fe2b1-809d-4550-9bbb-818ecb3cea9b/image.png)
-
-$$ 递归搜索+保存计算结果= 记忆化搜索 $$
+$$ 
+递归搜索+保存计算结果= 记忆化搜索
+$$
 
 ```python
 class Solution(object):
@@ -101,11 +101,15 @@ class Solution(object):
         return dfs(n-1)
 ```
 
-$$ 自顶向下算 = 记忆化搜索 \\ 自底向上算 = 递推 $$
+$$ 
+自顶向下算 = 记忆化搜索 \\ 自底向上算 = 递推 
+$$
 
 怎么把记忆化搜索改成递推呢？方法就是把dfs改成数组，把递归改成循环就好了，这样写需要对i=0，i=1的情况特殊处理！因为这里会产生负数下标
 
-$$ \begin{aligned}&dfs(i)=\max\left(dfs(i-1),dfs(i-2)+nums[i]\right)\\&f[i]=\max\left(f[i-1],f[i-2]+nums[i]\right)\\&f[i+2]=\max\left(f[i+1],f[i]+nums[i]\right)\end{aligned} $$
+$$ 
+\begin{aligned}&dfs(i)=\max\left(dfs(i-1),dfs(i-2)+nums[i]\right)\\&f[i]=\max\left(f[i-1],f[i-2]+nums[i]\right)\\&f[i+2]=\max\left(f[i+1],f[i]+nums[i]\right)\end{aligned} 
+$$
 
 ```python
 class Solution(object):
