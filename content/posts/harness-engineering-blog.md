@@ -3,9 +3,6 @@ date = '2026-05-12T20:52:27+08:00'
 draft = false
 title = 'Harness Engineering：理解 AI Agent 的工程底座'
 +++
-
-![封面图](/harness-engineering-blog-img/cover.png)
-
 ## 你用过的是模型，你要搭建的是系统
 
 如果你用过 ChatGPT 或 Claude，你大概知道它们能做什么——回答问题、写代码、分析文档。你输入一段话，它输出一段话。这种交互方式很自然，也很强大。
