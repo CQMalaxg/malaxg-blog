@@ -20,9 +20,22 @@ paginate = 10
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
 
-[params.homeInfoParams]
-  Title = "Hi, 我是malaxg👋"
-  Content = "这是一个关于malaxg的个人博客，记录一些碎碎念"
+[params.profileMode]
+  enabled = true
+  title = "Hi, 我是malaxg 👋"
+  subtitle = "这是一个关于malaxg的个人博客，记录一些碎碎念"
+  imageUrl = ""
+  imageWidth = 120
+  imageHeight = 120
+  imageTitle = "malaxg"
+
+  [[params.profileMode.buttons]]
+    name = "文章"
+    url = "/posts"
+
+  [[params.profileMode.buttons]]
+    name = "学习资料"
+    url = "/lab"
 
 [[params.socialIcons]]
   name = "github"

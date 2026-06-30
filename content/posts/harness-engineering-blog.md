@@ -2,6 +2,11 @@
 date = '2026-05-12T20:52:27+08:00'
 draft = false
 title = 'Harness Engineering：理解 AI Agent 的工程底座'
+
+[cover]
+  image = "/harness-engineering-blog-img/cover.png"
+  alt = "Harness Engineering 封面"
+  relative = false
 +++
 ## 你用过的是模型，你要搭建的是系统
 
