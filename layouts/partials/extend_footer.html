@@ -32,7 +32,7 @@
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     var targets = document.querySelectorAll(
-        '.post-content > h2, .post-content > h3, .post-content > img, .post-content > p > img, .post-content > figure'
+        '.post-content img, .post-content figure'
     );
     if (targets.length === 0) return;
 
