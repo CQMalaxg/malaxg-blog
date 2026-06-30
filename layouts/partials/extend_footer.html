@@ -25,4 +25,29 @@
     });
 })();
 </script>
+
+<script>
+(function () {
+    if (!('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var targets = document.querySelectorAll(
+        '.post-content > h2, .post-content > h3, .post-content > img, .post-content > p > img, .post-content > figure'
+    );
+    if (targets.length === 0) return;
+
+    targets.forEach(function (el) { el.classList.add('reveal'); });
+
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('reveal-in');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+    targets.forEach(function (el) { io.observe(el); });
+})();
+</script>
 {{ end }}

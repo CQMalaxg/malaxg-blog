@@ -56,3 +56,231 @@ h1, h2, h3, h4 {
 .post-content img:hover {
     transform: scale(1.02);
 }
+
+/* ========== 全站点阵背景 ========== */
+/* 暗色模式下浅淡光点，让纯黑背景有"颗粒感" */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+}
+
+body.light::before {
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+/* ========== Blockquote 引用块 ========== */
+.post-content blockquote {
+    position: relative;
+    margin: 1.6em 0;
+    padding: 1em 1.2em 1em 2.4em;
+    border: none;
+    border-left: 3px solid var(--primary);
+    background: linear-gradient(
+        90deg,
+        rgba(127, 127, 127, 0.08) 0%,
+        rgba(127, 127, 127, 0) 100%
+    );
+    border-radius: 4px;
+    font-style: italic;
+}
+
+.post-content blockquote::before {
+    content: "\201C";
+    position: absolute;
+    left: 0.5em;
+    top: -0.1em;
+    font-size: 3.2em;
+    line-height: 1;
+    color: var(--primary);
+    opacity: 0.35;
+    font-family: Georgia, serif;
+}
+
+/* ========== 代码块 ========== */
+.post-content pre {
+    position: relative;
+    border: 1px solid rgba(127, 127, 127, 0.18);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.post-content pre::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        var(--primary) 0%,
+        rgba(127, 127, 127, 0.3) 50%,
+        transparent 100%
+    );
+}
+
+.post-content code {
+    border-radius: 4px;
+}
+
+/* ========== 文章标题装饰线 ========== */
+.post-single .post-title::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 3px;
+    margin-top: 0.6em;
+    background: linear-gradient(90deg, var(--primary), transparent);
+    border-radius: 2px;
+}
+
+/* ========== 装饰性分隔符 hr ========== */
+.post-content hr {
+    border: none;
+    height: 24px;
+    margin: 2em 0;
+    background-image: radial-gradient(
+        circle,
+        rgba(127, 127, 127, 0.5) 1.5px,
+        transparent 1.5px
+    );
+    background-size: 16px 24px;
+    background-repeat: repeat-x;
+    background-position: center;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+}
+
+/* ========== Profile 模式头部增强 ========== */
+.profile {
+    position: relative;
+}
+
+.profile::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 420px;
+    height: 420px;
+    max-width: 90vw;
+    max-height: 90vw;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(120, 130, 200, 0.18) 0%,
+        rgba(120, 130, 200, 0) 70%
+    );
+    z-index: -1;
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+    50%      { opacity: 1;   transform: translateX(-50%) scale(1.08); }
+}
+
+/* ========== 头像柔和浮动 ========== */
+.profile_inner img {
+    animation: floatAvatar 5s ease-in-out infinite;
+}
+
+@keyframes floatAvatar {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+
+/* ========== Header 顶部滑入 ========== */
+.header {
+    animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== 文章卡片错峰入场（前 10 张） ========== */
+.post-entry {
+    animation: fadeInUp 0.5s ease backwards;
+}
+.post-entry:nth-child(1)  { animation-delay: 0.05s; }
+.post-entry:nth-child(2)  { animation-delay: 0.15s; }
+.post-entry:nth-child(3)  { animation-delay: 0.25s; }
+.post-entry:nth-child(4)  { animation-delay: 0.35s; }
+.post-entry:nth-child(5)  { animation-delay: 0.45s; }
+.post-entry:nth-child(6)  { animation-delay: 0.55s; }
+.post-entry:nth-child(7)  { animation-delay: 0.65s; }
+.post-entry:nth-child(8)  { animation-delay: 0.75s; }
+.post-entry:nth-child(9)  { animation-delay: 0.85s; }
+.post-entry:nth-child(10) { animation-delay: 0.95s; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== 主题切换按钮 hover 旋转 ========== */
+#theme-toggle svg {
+    transition: transform 0.4s ease;
+}
+
+#theme-toggle:hover svg {
+    transform: rotate(40deg) scale(1.15);
+}
+
+/* ========== 代码块 hover 微光 ========== */
+.post-content pre {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.post-content pre:hover {
+    border-color: rgba(127, 127, 127, 0.35);
+    box-shadow: 0 0 0 1px rgba(127, 127, 127, 0.1),
+                0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* ========== 阅读进度条流光 ========== */
+#reading-progress {
+    background: linear-gradient(
+        90deg,
+        var(--primary) 0%,
+        rgba(160, 170, 230, 0.9) 50%,
+        var(--primary) 100%
+    ) !important;
+    background-size: 200% 100% !important;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 0% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ========== 滚动入场（配合 JS 触发） ========== */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.reveal-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ========== 尊重系统 reduced-motion 偏好 ========== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
