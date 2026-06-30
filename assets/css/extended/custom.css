@@ -1,16 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/style.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
     --main-width: 960px;
+    --font-body: 'LXGW WenKai Screen', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    --font-ui:   'Inter', 'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
 }
 
 body {
-    font-family: 'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', serif;
+    font-family: var(--font-body);
+    letter-spacing: 0.01em;
 }
 
+.post-content {
+    line-height: 1.85;
+}
+
+/* 标题、导航、UI 用更现代的无衬线 */
 .post-title,
-h1, h2, h3, h4 {
-    font-family: 'Noto Serif SC', 'PingFang SC', sans-serif;
+h1, h2, h3, h4, h5, h6,
+.header, .nav, .menu,
+.post-meta, .meta,
+.entry-header, .entry-footer,
+.terms-tags, .post-tags,
+.profile h1, .profile_inner h1,
+button, input, .terms-link {
+    font-family: var(--font-ui);
+}
+
+/* 代码用等宽字体 */
+code, pre, kbd, samp,
+.highlight, .post-content code {
+    font-family: var(--font-mono);
 }
 
 /* 页面加载淡入 */
@@ -283,4 +305,195 @@ body.light::before {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* ========== 自定义文字选中颜色 ========== */
+::selection {
+    background: var(--primary);
+    color: var(--theme);
+}
+
+::-moz-selection {
+    background: var(--primary);
+    color: var(--theme);
+}
+
+/* ========== 首段首字下沉 Drop Cap ========== */
+.post-content > p:first-of-type::first-letter {
+    float: left;
+    font-size: 3.4em;
+    line-height: 0.95;
+    margin: 0.04em 0.12em 0 0;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    background: linear-gradient(135deg, var(--primary), rgba(160, 170, 230, 0.7));
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ========== Tag 胶囊样式 ========== */
+.post-tags li,
+.terms-tags li {
+    margin: 0.25em 0.4em 0.25em 0 !important;
+}
+
+.post-tags a,
+.terms-tags a {
+    display: inline-block;
+    padding: 0.32em 0.95em !important;
+    background: rgba(127, 127, 127, 0.1);
+    border: 1px solid rgba(127, 127, 127, 0.22);
+    border-radius: 999px !important;
+    font-size: 0.85em;
+    font-family: var(--font-ui);
+    text-decoration: none !important;
+    transition: all 0.25s ease;
+}
+
+.post-tags a:hover,
+.terms-tags a:hover {
+    background: var(--primary);
+    color: var(--theme);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(127, 127, 127, 0.25);
+    border-color: var(--primary);
+}
+
+/* ========== TOC 目录美化 ========== */
+.toc {
+    margin: 1.5em 0 2em;
+    padding: 1em 1.5em;
+    background: linear-gradient(
+        135deg,
+        rgba(127, 127, 127, 0.06),
+        rgba(127, 127, 127, 0.02)
+    );
+    border: 1px solid rgba(127, 127, 127, 0.15);
+    border-radius: 10px;
+    backdrop-filter: blur(8px);
+}
+
+.toc summary {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.3em 0;
+    color: var(--primary);
+}
+
+.toc .inner {
+    padding-left: 1em;
+    border-left: 2px solid rgba(127, 127, 127, 0.2);
+    margin-top: 0.5em;
+}
+
+.toc ul {
+    margin: 0;
+    padding-left: 1em;
+}
+
+.toc li {
+    margin: 0.25em 0;
+}
+
+.toc a {
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+    font-size: 0.95em;
+}
+
+.toc a:hover {
+    color: var(--primary);
+    opacity: 1;
+    padding-left: 4px;
+}
+
+/* ========== 鼠标跟随光斑 ========== */
+#mouse-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(120, 130, 200, 0.10) 0%,
+        rgba(120, 130, 200, 0.03) 35%,
+        rgba(120, 130, 200, 0) 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease-out;
+    will-change: transform;
+}
+
+@media (max-width: 768px) {
+    #mouse-glow { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #mouse-glow { display: none; }
+}
+
+/* ========== 图片 Lightbox ========== */
+#lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.94);
+    backdrop-filter: blur(6px);
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+
+#lightbox-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#lightbox-overlay img {
+    max-width: 92vw;
+    max-height: 92vh;
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    transform: scale(0.94);
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+#lightbox-overlay.active img {
+    transform: scale(1);
+}
+
+#lightbox-close {
+    position: fixed;
+    top: 1.5em;
+    right: 1.8em;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.2em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+#lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
 }

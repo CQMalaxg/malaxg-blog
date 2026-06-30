@@ -1,0 +1,114 @@
+{{- define "main" }}
+
+<style>
+.not-found-wrap {
+    text-align: center;
+    padding: 5em 1em 4em;
+    position: relative;
+    overflow: hidden;
+}
+
+.not-found-code {
+    font-size: clamp(6em, 18vw, 11em);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(
+        120deg,
+        var(--primary) 0%,
+        rgba(160, 170, 230, 0.85) 50%,
+        var(--primary) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: nf-shimmer 6s linear infinite, nf-float 4s ease-in-out infinite;
+    margin: 0;
+}
+
+@keyframes nf-shimmer {
+    to { background-position: 200% center; }
+}
+
+@keyframes nf-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+}
+
+.not-found-title {
+    font-size: 1.6em;
+    margin: 0.6em 0 0.3em;
+    font-family: var(--font-ui);
+    font-weight: 600;
+}
+
+.not-found-text {
+    opacity: 0.65;
+    margin-bottom: 2.4em;
+    font-size: 1em;
+    line-height: 1.8;
+}
+
+.not-found-actions {
+    display: inline-flex;
+    gap: 0.8em;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.not-found-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7em 1.6em;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: var(--font-ui);
+    font-size: 0.95em;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.not-found-btn.primary {
+    background: var(--primary);
+    color: var(--theme);
+    border-color: var(--primary);
+}
+
+.not-found-btn.primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(127, 127, 127, 0.3);
+}
+
+.not-found-btn.secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.not-found-decor {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(120,130,200,0.08), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(180,140,200,0.06), transparent 40%);
+    pointer-events: none;
+}
+</style>
+
+<div class="not-found-wrap">
+    <div class="not-found-decor"></div>
+    <div class="not-found-code">404</div>
+    <h1 class="not-found-title">这里什么也没有 ...</h1>
+    <p class="not-found-text">
+        也许 URL 写错了，也许这页面已经消失在记忆里。<br>
+        别担心，回家的路还在。
+    </p>
+    <div class="not-found-actions">
+        <a href="{{ "/" | absLangURL }}" class="not-found-btn primary">回到首页</a>
+        <a href="{{ "/posts/" | absLangURL }}" class="not-found-btn secondary">看看文章</a>
+    </div>
+</div>
+
+{{- end }}

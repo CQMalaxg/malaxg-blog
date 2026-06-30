@@ -51,3 +51,73 @@
 })();
 </script>
 {{ end }}
+
+{{/* ========== 全站：图片 Lightbox ========== */}}
+<div id="lightbox-overlay" role="dialog" aria-hidden="true">
+    <button id="lightbox-close" aria-label="关闭">&times;</button>
+    <img alt="预览" />
+</div>
+<script>
+(function () {
+    var imgs = document.querySelectorAll('.post-content img');
+    if (imgs.length === 0) return;
+
+    var overlay = document.getElementById('lightbox-overlay');
+    var overlayImg = overlay.querySelector('img');
+    var closeBtn = document.getElementById('lightbox-close');
+
+    function open(src, alt) {
+        overlayImg.src = src;
+        overlayImg.alt = alt || '';
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    imgs.forEach(function (img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function () { open(img.src, img.alt); });
+    });
+
+    overlay.addEventListener('click', function (e) {
+        if (e.target === overlay || e.target === overlayImg) close();
+    });
+    closeBtn.addEventListener('click', close);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') close();
+    });
+})();
+</script>
+
+{{/* ========== 全站：鼠标跟随光斑 ========== */}}
+<div id="mouse-glow" aria-hidden="true"></div>
+<script>
+(function () {
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!('ontouchstart' in window) === false) return;
+
+    var glow = document.getElementById('mouse-glow');
+    var x = window.innerWidth / 2;
+    var y = window.innerHeight / 2;
+    var raf = null;
+
+    function update() {
+        glow.style.transform = 'translate(' + x + 'px, ' + y + 'px) translate(-50%, -50%)';
+        raf = null;
+    }
+
+    document.addEventListener('mousemove', function (e) {
+        x = e.clientX;
+        y = e.clientY;
+        if (!raf) raf = requestAnimationFrame(update);
+    });
+    update();
+})();
+</script>

@@ -19,6 +19,10 @@ paginate = 10
   ShowPostNavLinks = true
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
+  ShowToc = true
+  TocOpen = false
+  ShowWordCount = true
+  ShowRssButtonInSectionTermList = true
 
 [params.profileMode]
   enabled = true
