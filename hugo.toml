@@ -41,3 +41,7 @@ paginate = 10
     name = "关于"
     url = "/about/"
     weight = 3
+  [[menu.main]]
+    name = "学习资料"
+    url = "/lab/"
+    weight = 4
