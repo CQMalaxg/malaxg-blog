@@ -1,0 +1,28 @@
+{{ if .IsPage }}
+<style>
+#reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: var(--primary);
+    z-index: 9999;
+    transition: width 0.08s linear;
+}
+</style>
+
+<div id="reading-progress"></div>
+
+<script>
+(function () {
+    var bar = document.getElementById('reading-progress');
+    window.addEventListener('scroll', function () {
+        var doc = document.documentElement;
+        var scrolled = doc.scrollTop || document.body.scrollTop;
+        var total = doc.scrollHeight - doc.clientHeight;
+        bar.style.width = total > 0 ? (scrolled / total * 100) + '%' : '0%';
+    });
+})();
+</script>
+{{ end }}
