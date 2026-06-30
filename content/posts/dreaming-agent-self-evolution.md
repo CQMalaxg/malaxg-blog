@@ -9,8 +9,6 @@ title = 'Dreaming: 你以为在给 Agent 加记忆，其实是在教它学会忘
   relative = false
 +++
 
-![记忆碎片淹没 Agent](/dreaming-agent-blog-img/01-memory-flood.png)
-
 你用 Sublime Text 用了三年，它记得你的配置、你的快捷键、你的代码折叠习惯。你用 Chrome 浏览器，书签、历史记录、密码全都在——打开一个新标签页，它甚至知道你接下来最可能去哪里。
 
 我们对工具有一个朴素的期待：**越用越好用。** 不是因为工具本身变聪明了，而是因为它记住了你。
