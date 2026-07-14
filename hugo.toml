@@ -1,5 +1,5 @@
 baseURL = "https://malaxg.top/"
-languageCode = "zh-cn"
+locale = "zh-CN"
 title = "麻辣香郭的精神家园"
 theme = "PaperMod"
 paginate = 10
@@ -12,7 +12,8 @@ paginate = 10
 [params]
   env = "production"
   author = "malaxg"
-  description = "这是一个关于malaxg的个人博客，记录一些碎碎念"
+  description = "记录 LLM 工程、Agent 系统、数据挖掘，以及一个普通人的成长路径。"
+  keywords = ["LLM", "AI Agent", "数据挖掘", "推荐系统", "个人博客"]
   defaultTheme = "auto" # auto / light / dark
   ShowReadingTime = true
   ShowShareButtons = false
@@ -23,9 +24,12 @@ paginate = 10
   TocOpen = false
   ShowWordCount = true
   ShowRssButtonInSectionTermList = true
+  ShowFullTextinRSS = true
+  DateFormat = "2006 年 01 月 02 日"
+  displayFullLangName = true
 
 [params.profileMode]
-  enabled = true
+  enabled = false
   title = "Hi, 我是malaxg 👋"
   subtitle = "这是一个关于malaxg的个人博客，记录一些碎碎念"
   imageUrl = ""

@@ -1,28 +1,25 @@
-{{ if .IsPage }}
-<style>
-#reading-progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 0%;
-    height: 3px;
-    background: var(--primary);
-    z-index: 9999;
-    transition: width 0.08s linear;
-}
-</style>
-
-<div id="reading-progress"></div>
-
+{{- if .IsPage }}
+<div id="reading-progress" aria-hidden="true"></div>
 <script>
 (function () {
     var bar = document.getElementById('reading-progress');
-    window.addEventListener('scroll', function () {
+    var ticking = false;
+
+    function updateProgress() {
         var doc = document.documentElement;
-        var scrolled = doc.scrollTop || document.body.scrollTop;
         var total = doc.scrollHeight - doc.clientHeight;
-        bar.style.width = total > 0 ? (scrolled / total * 100) + '%' : '0%';
-    });
+        var progress = total > 0 ? doc.scrollTop / total * 100 : 0;
+        bar.style.width = progress + '%';
+        ticking = false;
+    }
+
+    window.addEventListener('scroll', function () {
+        if (!ticking) {
+            window.requestAnimationFrame(updateProgress);
+            ticking = true;
+        }
+    }, { passive: true });
+    updateProgress();
 })();
 </script>
 
@@ -31,93 +28,75 @@
     if (!('IntersectionObserver' in window)) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    var targets = document.querySelectorAll(
-        '.post-content img, .post-content figure'
-    );
-    if (targets.length === 0) return;
+    var targets = document.querySelectorAll('.post-content img, .post-content figure');
+    if (!targets.length) return;
 
-    targets.forEach(function (el) { el.classList.add('reveal'); });
-
-    var io = new IntersectionObserver(function (entries) {
+    var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('reveal-in');
-                io.unobserve(entry.target);
-            }
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('reveal-in');
+            observer.unobserve(entry.target);
         });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
 
-    targets.forEach(function (el) { io.observe(el); });
+    targets.forEach(function (element) {
+        element.classList.add('reveal');
+        observer.observe(element);
+    });
 })();
 </script>
-{{ end }}
+{{- end }}
 
-{{/* ========== 全站：图片 Lightbox ========== */}}
-<div id="lightbox-overlay" role="dialog" aria-hidden="true">
-    <button id="lightbox-close" aria-label="关闭">&times;</button>
-    <img alt="预览" />
+<div id="lightbox-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-label="图片预览">
+    <button id="lightbox-close" type="button" aria-label="关闭图片预览">&times;</button>
+    <img alt="">
 </div>
+
 <script>
 (function () {
-    var imgs = document.querySelectorAll('.post-content img');
-    if (imgs.length === 0) return;
+    var images = document.querySelectorAll('.post-content img');
+    if (!images.length) return;
 
     var overlay = document.getElementById('lightbox-overlay');
-    var overlayImg = overlay.querySelector('img');
-    var closeBtn = document.getElementById('lightbox-close');
+    var preview = overlay.querySelector('img');
+    var closeButton = document.getElementById('lightbox-close');
+    var trigger = null;
 
-    function open(src, alt) {
-        overlayImg.src = src;
-        overlayImg.alt = alt || '';
+    function openLightbox(image) {
+        trigger = image;
+        preview.src = image.currentSrc || image.src;
+        preview.alt = image.alt || '文章图片预览';
         overlay.classList.add('active');
         overlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+        closeButton.focus();
     }
 
-    function close() {
+    function closeLightbox() {
         overlay.classList.remove('active');
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+        preview.removeAttribute('src');
+        if (trigger) trigger.focus({ preventScroll: true });
     }
 
-    imgs.forEach(function (img) {
-        img.style.cursor = 'zoom-in';
-        img.addEventListener('click', function () { open(img.src, img.alt); });
+    images.forEach(function (image) {
+        image.tabIndex = 0;
+        image.addEventListener('click', function () { openLightbox(image); });
+        image.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openLightbox(image);
+            }
+        });
     });
 
-    overlay.addEventListener('click', function (e) {
-        if (e.target === overlay || e.target === overlayImg) close();
+    overlay.addEventListener('click', function (event) {
+        if (event.target === overlay) closeLightbox();
     });
-    closeBtn.addEventListener('click', close);
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') close();
+    closeButton.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && overlay.classList.contains('active')) closeLightbox();
     });
-})();
-</script>
-
-{{/* ========== 全站：鼠标跟随光斑 ========== */}}
-<div id="mouse-glow" aria-hidden="true"></div>
-<script>
-(function () {
-    if (window.matchMedia('(max-width: 768px)').matches) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (!('ontouchstart' in window) === false) return;
-
-    var glow = document.getElementById('mouse-glow');
-    var x = window.innerWidth / 2;
-    var y = window.innerHeight / 2;
-    var raf = null;
-
-    function update() {
-        glow.style.transform = 'translate(' + x + 'px, ' + y + 'px) translate(-50%, -50%)';
-        raf = null;
-    }
-
-    document.addEventListener('mousemove', function (e) {
-        x = e.clientX;
-        y = e.clientY;
-        if (!raf) raf = requestAnimationFrame(update);
-    });
-    update();
 })();
 </script>

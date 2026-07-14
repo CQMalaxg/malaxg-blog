@@ -1,0 +1,107 @@
+{{- define "main" }}
+{{- $posts := (where site.RegularPages "Section" "posts").ByDate.Reverse }}
+{{- $featured := first 3 $posts }}
+
+<div class="home-shell">
+  <section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero__copy">
+      <p class="home-kicker"><span></span> AI ENGINEERING · DATA MINING</p>
+      <h1 id="home-title">把复杂系统想明白，<br><em>也把生活写下来。</em></h1>
+      <p class="home-lead">
+        我是 malaxg。这里记录 LLM 工程、Agent 系统、数据挖掘，
+        以及一个普通人在技术与成长之间留下的思考。
+      </p>
+      <div class="home-actions">
+        <a class="home-button home-button--primary" href="{{ "/posts/" | relURL }}">
+          浏览文章 <span aria-hidden="true">↗</span>
+        </a>
+        <a class="home-button home-button--ghost" href="{{ "/about/" | relURL }}">关于我</a>
+      </div>
+    </div>
+
+    <div class="home-hero__panel" aria-label="个人方向与成果">
+      <div class="signal-card signal-card--accent">
+        <span class="signal-card__index">01</span>
+        <span class="signal-card__label">CURRENTLY</span>
+        <strong>LLM Application</strong>
+        <p>让前沿模型真正进入业务系统。</p>
+      </div>
+      <div class="signal-card">
+        <span class="signal-card__index">02</span>
+        <span class="signal-card__label">EXPLORING</span>
+        <strong>Agent Systems</strong>
+        <p>记忆、评测、工具调用与工程底座。</p>
+      </div>
+      <div class="signal-card">
+        <span class="signal-card__index">03</span>
+        <span class="signal-card__label">MILESTONE</span>
+        <strong>Kaggle Expert</strong>
+        <p>在数据世界里，用代码逼近最优解。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-topics" aria-label="关注方向">
+    <span>关注方向</span>
+    <div class="home-topics__list">
+      <span>LLM Engineering</span>
+      <span>Agent</span>
+      <span>Data Mining</span>
+      <span>Recommendation</span>
+      <span>Personal Notes</span>
+    </div>
+  </section>
+
+  {{- with $featured }}
+  <section class="home-section home-featured" aria-labelledby="featured-title">
+    <div class="home-section__head">
+      <div>
+        <p class="section-kicker">SELECTED WRITING</p>
+        <h2 id="featured-title">最近在写</h2>
+      </div>
+      <a href="{{ "/posts/" | relURL }}">查看全部 <span aria-hidden="true">→</span></a>
+    </div>
+
+    <div class="featured-grid">
+      {{- range $index, $page := . }}
+      <article class="featured-card{{ if eq $index 0 }} featured-card--large{{ end }}">
+        <a class="featured-card__link" href="{{ $page.RelPermalink }}" aria-label="阅读《{{ $page.Title }}》"></a>
+        {{- with $page.Params.cover.image }}
+        <div class="featured-card__media">
+          <img src="{{ . | relURL }}" alt="{{ $page.Params.cover.alt | default $page.Title }}" loading="{{ if eq $index 0 }}eager{{ else }}lazy{{ end }}">
+        </div>
+        {{- else }}
+        <div class="featured-card__media featured-card__media--placeholder" aria-hidden="true">
+          <span>0{{ add $index 1 }}</span>
+        </div>
+        {{- end }}
+        <div class="featured-card__body">
+          <div class="featured-card__meta">
+            <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "2006.01.02" }}</time>
+            <span>{{ $page.ReadingTime }} MIN READ</span>
+          </div>
+          <h3>{{ $page.Title }}</h3>
+          <p>{{ $page.Summary | plainify | htmlUnescape | truncate 120 }}</p>
+          <span class="featured-card__arrow" aria-hidden="true">↗</span>
+        </div>
+      </article>
+      {{- end }}
+    </div>
+  </section>
+  {{- end }}
+
+  <section class="home-section home-about" aria-labelledby="home-about-title">
+    <div class="home-about__statement">
+      <p class="section-kicker">ABOUT THIS PLACE</p>
+      <h2 id="home-about-title">技术之外，<br>也记录来时的路。</h2>
+    </div>
+    <div class="home-about__copy">
+      <p>
+        博客不只是知识库，也是对生活的版本管理。这里既有 Agent 与算法的深入拆解，
+        也有竞赛、实习和成长路上的碎碎念。
+      </p>
+      <a href="{{ "/about/" | relURL }}">认识 malaxg <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</div>
+{{- end }}
