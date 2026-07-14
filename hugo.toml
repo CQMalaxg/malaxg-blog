@@ -28,6 +28,9 @@ paginate = 10
   DateFormat = "2006 年 01 月 02 日"
   displayFullLangName = true
 
+  [params.label]
+    text = "麻辣香郭"
+
 [params.profileMode]
   enabled = false
   title = "Hi, 我是malaxg 👋"

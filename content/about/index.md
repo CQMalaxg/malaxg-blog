@@ -1,14 +1,14 @@
 ---
 title: "关于"
-layout: "page"
+layout: "about"
 showToc: false
 hidemeta: true
 ---
 
 <section class="about-hero">
   <div>
-    <p class="about-hero__eyebrow">HELLO, I'M MALAXG</p>
-    <h2 id="about-intro">在模型、数据与真实世界之间搭桥。</h2>
+    <p class="about-hero__eyebrow">关于我</p>
+    <h1 id="about-intro">在模型、数据与真实世界之间搭桥。</h1>
     <p class="about-hero__intro">
       我是一名关注 LLM Engineering 与 Data Mining 的 AI 探索者。
       目前在腾讯从事大模型应用相关工作，喜欢把前沿技术拆成能落地、能评测、能持续迭代的系统。
@@ -18,9 +18,9 @@ hidemeta: true
     </div>
   </div>
   <div class="about-hero__facts">
-    <div class="about-fact"><span>CURRENT</span><strong>腾讯 · 大模型应用算法</strong></div>
-    <div class="about-fact"><span>RESEARCH</span><strong>多模态情感分析</strong></div>
-    <div class="about-fact"><span>MILESTONE</span><strong>Kaggle Expert · 2 银 2 铜</strong></div>
+    <div class="about-fact"><span>现在</span><strong>腾讯 · 大模型应用算法</strong></div>
+    <div class="about-fact"><span>研究</span><strong>多模态情感分析</strong></div>
+    <div class="about-fact"><span>里程碑</span><strong>Kaggle Expert · 2 银 2 铜</strong></div>
   </div>
 </section>
 
