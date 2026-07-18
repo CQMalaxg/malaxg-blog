@@ -9,7 +9,7 @@ hidemeta: true
   <div class="gh-avatar" aria-hidden="true">m</div>
   <div class="gh-profile-main">
     <p class="gh-kicker">@malaxg</p>
-    <h1>郭一宪</h1>
+    <h1>麻辣香郭</h1>
     <p class="gh-bio">计算机科学与技术硕士研究生 · 大模型应用实习生</p>
     <p class="gh-summary">来自小地方，正在读研、实习、写博客，学习怎么把模型做成真正有用的东西。</p>
     <div class="gh-actions">
