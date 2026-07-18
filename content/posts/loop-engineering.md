@@ -2,6 +2,10 @@
 date = '2026-07-18T10:00:00+08:00'
 draft = false
 title = 'Loop Engineering：让 Agent 的执行循环真正收敛'
+[cover]
+  image = "/loop-engineering-blog-img/cover.png"
+  alt = "AI Agent 的执行循环围绕稳定状态逐步收敛"
+  relative = false
 +++
 
 如果你用过几个 AI Agent，很容易产生一种错觉：Agent 的关键就是让模型多执行几轮。
