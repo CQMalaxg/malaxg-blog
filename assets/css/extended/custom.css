@@ -70,6 +70,27 @@ body {
     min-height: 64px;
 }
 
+/* Keep narrow screens from exposing native navigation scrollbars. */
+html {
+    overflow-y: auto;
+}
+
+.header-nav,
+.logo,
+.menu {
+    min-width: 0;
+}
+
+.menu {
+    max-width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.menu::-webkit-scrollbar {
+    display: none;
+}
+
 .logo a {
     font-family: var(--font-ui);
     font-size: 1.08rem;
