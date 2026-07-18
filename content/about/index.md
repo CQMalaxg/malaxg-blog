@@ -20,8 +20,14 @@ hidemeta: true
     </div>
   </div>
   <div class="gh-profile-side">
-    <div><span>现在</span><strong>腾讯广告团队</strong></div>
-    <div><span>研究</span><strong>多模态情感分析</strong></div>
+    <div class="gh-affiliation">
+      <img class="gh-org-logo" src="/tencent-ads-logo.ico" alt="腾讯广告 Logo">
+      <div><span>现在</span><strong>腾讯广告团队</strong></div>
+    </div>
+    <div class="gh-affiliation">
+      <img class="gh-org-logo" src="/cqupt-logo.ico" alt="重庆邮电大学 Logo">
+      <div><span>研究</span><strong>多模态情感分析</strong></div>
+    </div>
     <div><span>关注</span><strong>LLM · Agent · Text2SQL</strong></div>
   </div>
 </section>

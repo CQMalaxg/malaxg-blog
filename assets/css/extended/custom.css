@@ -1595,3 +1595,41 @@ samp,
         margin-top: 34px;
     }
 }
+
+.gh-profile-side .gh-affiliation {
+    display: grid !important;
+    grid-template-columns: 28px 1fr !important;
+    gap: 12px;
+    align-items: center;
+}
+
+.gh-profile-side .gh-affiliation > div {
+    display: block !important;
+    padding: 0;
+    border: 0;
+}
+
+.gh-org-logo {
+    display: block;
+    width: 28px;
+    height: 28px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--entry);
+    object-fit: contain;
+}
+
+@media (max-width: 900px) {
+    .gh-profile-side .gh-affiliation {
+        display: grid !important;
+        grid-template-columns: 28px 1fr !important;
+    }
+}
+
+@media (max-width: 680px) {
+    .gh-profile-side .gh-affiliation {
+        display: grid !important;
+        grid-template-columns: 28px 1fr !important;
+    }
+}
