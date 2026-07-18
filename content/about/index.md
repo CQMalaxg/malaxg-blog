@@ -6,7 +6,9 @@ hidemeta: true
 ---
 
 <section class="gh-profile">
-  <div class="gh-avatar" aria-hidden="true">m</div>
+  <div class="gh-avatar">
+    <img src="/about-avatar.jpg" alt="麻辣香郭头像">
+  </div>
   <div class="gh-profile-main">
     <p class="gh-kicker">@malaxg</p>
     <h1>麻辣香郭</h1>

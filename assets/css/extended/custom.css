@@ -1176,6 +1176,14 @@ samp,
     font-size: 4.4rem;
     font-style: italic;
     line-height: 1;
+    overflow: hidden;
+}
+
+.gh-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .gh-kicker,
