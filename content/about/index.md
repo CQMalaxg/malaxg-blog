@@ -12,7 +12,7 @@ hidemeta: true
   <div class="gh-profile-main">
     <p class="gh-kicker">@malaxg</p>
     <h1>麻辣香郭</h1>
-    <p class="gh-bio">计算机科学与技术硕士研究生 · 大模型应用实习生</p>
+    <p class="gh-bio">计算机科学与技术硕士研究生 · 腾讯广告大模型应用算法实习</p>
     <p class="gh-summary">来自小地方，正在读研、实习、写博客，学习怎么把模型做成真正有用的东西。</p>
     <div class="gh-actions">
       <a class="gh-button" href="https://github.com/CQMalaxg" target="_blank" rel="noopener">GitHub</a>
@@ -38,19 +38,19 @@ hidemeta: true
   </div>
   <div class="gh-card-grid gh-card-grid--three">
     <article class="gh-card">
-      <span class="gh-card-label">WORK</span>
-      <h3>大模型应用</h3>
-      <p>在腾讯广告团队实习，近期主要接触 Text2SQL 和数据查询场景。</p>
+      <span class="gh-card-label">CURRENT WORK</span>
+      <h3>Text2SQL Agent</h3>
+      <p>围绕多层记忆、Schema/RAG、提示词注入防护和 SQL 评测闭环，执行成功率 99%+。</p>
+    </article>
+    <article class="gh-card">
+      <span class="gh-card-label">PROJECT</span>
+      <h3>AI Harness</h3>
+      <p>探索多 Agent 编排、MCP 工具调用、动态路由和 Bias 分析，让 Agent 更容易被验证。</p>
     </article>
     <article class="gh-card">
       <span class="gh-card-label">RESEARCH</span>
       <h3>多模态情感分析</h3>
       <p>研究生阶段的研究方向，相关工作发表于 ICASSP 2026。</p>
-    </article>
-    <article class="gh-card">
-      <span class="gh-card-label">LEARNING</span>
-      <h3>评测与反馈</h3>
-      <p>关注 Agent 如何理解状态、利用工具、发现错误并持续改进。</p>
     </article>
   </div>
 </section>
@@ -82,7 +82,7 @@ hidemeta: true
       <div class="gh-timeline-item">
         <span class="gh-timeline-year">2026 — now</span>
         <strong>腾讯广告团队</strong>
-        <p>大模型应用算法实习</p>
+        <p>Text2SQL Agent · AI Harness</p>
       </div>
       <div class="gh-timeline-item">
         <span class="gh-timeline-year">2024 — 2027</span>
@@ -102,8 +102,8 @@ hidemeta: true
     </div>
     <ul class="gh-list">
       <li><span>论文</span><strong>ICASSP 2026</strong><small>多模态情感分析</small></li>
-      <li><span>竞赛</span><strong>Kaggle 银牌 / 铜牌</strong><small>以及几项国内竞赛奖项</small></li>
-      <li><span>方向</span><strong>LLM 应用与数据挖掘</strong><small>从实验走向可验证的系统</small></li>
+      <li><span>竞赛</span><strong>Kaggle Expert</strong><small>2 银 2 铜，以及几项国内竞赛奖项</small></li>
+      <li><span>技能</span><strong>Python · C/C++ · SQL</strong><small>LoRA / QLoRA · MCP · RAG</small></li>
     </ul>
   </div>
 </section>
