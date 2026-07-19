@@ -69,3 +69,7 @@ paginate = 10
     name = "学习资料"
     url = "/lab/"
     weight = 4
+  [[menu.main]]
+    name = "简历"
+    url = "/resume/"
+    weight = 5

@@ -1,0 +1,193 @@
+{{- define "main" }}
+<div class="resume-builder" id="resume-builder">
+  <header class="resume-toolbar">
+    <div>
+      <span class="resume-toolbar__eyebrow">Resume Builder</span>
+      <h1>简历制作</h1>
+      <p>填写左侧内容，右侧实时预览 A4 简历。</p>
+    </div>
+    <div class="resume-toolbar__actions">
+      <button type="button" class="resume-button resume-button--ghost" id="resume-reset">重置示例</button>
+      <button type="button" class="resume-button" id="resume-print">下载 PDF</button>
+    </div>
+  </header>
+
+  <div class="resume-workspace">
+    <aside class="resume-editor" aria-label="简历内容编辑区">
+      <section class="resume-form-section">
+        <h2>基本信息</h2>
+        <label>姓名<input data-field="name" type="text" value="郭一贤"></label>
+        <label>求职标题<input data-field="role" type="text" value="大模型应用算法实习生 · 计算机科学与技术硕士"></label>
+        <div class="resume-form-grid">
+          <label>所在地<input data-field="location" type="text" value="重庆"></label>
+          <label>电话<input data-field="phone" type="text" value=""></label>
+        </div>
+        <label>邮箱<input data-field="email" type="email" value="guoyixian_01@163.com"></label>
+      </section>
+
+      <section class="resume-form-section">
+        <h2>教育背景</h2>
+        <p class="resume-form-hint">每行一条，使用“学校｜专业｜时间”格式。</p>
+        <textarea data-field="education" rows="4">重庆邮电大学｜计算机科学与技术 · 硕士｜2024.09—2027.07
+重庆邮电大学｜数据科学与大数据技术 · 本科｜2020.09—2024.07</textarea>
+      </section>
+
+      <section class="resume-form-section">
+        <h2>专业技能</h2>
+        <p class="resume-form-hint">每行一条，导出后会显示为短条目。</p>
+        <textarea data-field="skills" rows="4">Python / C / C++ / SQL
+LoRA / QLoRA / Transformers
+RAG / MCP / Multi-Agent
+数据处理、实验设计与模型评测</textarea>
+      </section>
+
+      <section class="resume-form-section">
+        <h2>实习 / 工作经历</h2>
+        <p class="resume-form-hint">每行一条，建议先写公司与岗位，再写项目和结果。</p>
+        <textarea data-field="experience" rows="8">腾讯科技（深圳）有限公司｜大模型应用算法实习生｜2026.01—至今
+Text2SQL Agent：设计多层记忆、Schema/RAG、提示词注入防护与 SQL 评测闭环，执行成功率 99%+。
+AI Harness：设计 Master Agent 与 Skill 协同架构，接入 MCP 工具调用和动态路由，支持 Bias 分析与自动化报告。</textarea>
+      </section>
+
+      <section class="resume-form-section">
+        <h2>项目经历</h2>
+        <textarea data-field="projects" rows="6">Text2SQL Agent｜面向企业级数据流的自然语言查询
+多层记忆与 Schema 检索结合，针对字段理解、SQL 生成和结果语义进行评测。
+AI Harness｜面向广告数据洞察的 Agent 工作流
+通过 Master Agent、Skill 和 MCP Server 组合工具链，完成查询、分析与报告生成。</textarea>
+      </section>
+
+      <section class="resume-form-section">
+        <h2>论文 / 竞赛 / 其他</h2>
+        <textarea data-field="achievements" rows="6">论文：Dual-Perspective Multimodal Sentiment Analysis with MoE Fusion｜ICASSP 2026
+Kaggle Expert（2 银 2 铜）
+2025 腾讯广告算法大赛｜31 / 2800+
+Kaggle NFL Big Data Bowl 2026｜银牌（21 / 771）</textarea>
+      </section>
+    </aside>
+
+    <main class="resume-stage" aria-label="A4 简历预览">
+      <article class="resume-paper" id="resume-paper">
+        <header class="resume-paper__header">
+          <div>
+            <h2 data-preview="name">郭一贤</h2>
+            <p data-preview="role">大模型应用算法实习生 · 计算机科学与技术硕士</p>
+          </div>
+          <div class="resume-paper__contact" data-preview="contact"></div>
+        </header>
+
+        <section class="resume-paper__section" data-preview-section="education">
+          <h3>教育背景</h3>
+          <ul data-preview-list="education"></ul>
+        </section>
+        <section class="resume-paper__section" data-preview-section="skills">
+          <h3>专业技能</h3>
+          <ul data-preview-list="skills"></ul>
+        </section>
+        <section class="resume-paper__section" data-preview-section="experience">
+          <h3>实习 / 工作经历</h3>
+          <ul data-preview-list="experience"></ul>
+        </section>
+        <section class="resume-paper__section" data-preview-section="projects">
+          <h3>项目经历</h3>
+          <ul data-preview-list="projects"></ul>
+        </section>
+        <section class="resume-paper__section" data-preview-section="achievements">
+          <h3>论文 / 竞赛 / 其他</h3>
+          <ul data-preview-list="achievements"></ul>
+        </section>
+      </article>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('resume-builder');
+  if (!root) return;
+
+  var storageKey = 'malaxg-resume-builder-v1';
+  var fields = Array.prototype.slice.call(root.querySelectorAll('[data-field]'));
+  var initialValues = {};
+
+  fields.forEach(function (field) {
+    initialValues[field.dataset.field] = field.value;
+  });
+
+  function getLines(value) {
+    return value.split(/\n+/).map(function (line) {
+      return line.trim();
+    }).filter(Boolean);
+  }
+
+  function renderList(name, value) {
+    var section = root.querySelector('[data-preview-section="' + name + '"]');
+    var list = root.querySelector('[data-preview-list="' + name + '"]');
+    var lines = getLines(value);
+    list.replaceChildren();
+    lines.forEach(function (line) {
+      var item = document.createElement('li');
+      item.textContent = line;
+      list.appendChild(item);
+    });
+    section.hidden = lines.length === 0;
+  }
+
+  function render() {
+    var values = {};
+    fields.forEach(function (field) {
+      values[field.dataset.field] = field.value;
+    });
+
+    root.querySelector('[data-preview="name"]').textContent = values.name || '你的姓名';
+    root.querySelector('[data-preview="role"]').textContent = values.role || '求职方向';
+
+    var contact = [values.location, values.phone, values.email].filter(Boolean);
+    root.querySelector('[data-preview="contact"]').textContent = contact.join('  ·  ');
+
+    ['education', 'skills', 'experience', 'projects', 'achievements'].forEach(function (name) {
+      renderList(name, values[name] || '');
+    });
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(values));
+    } catch (error) {
+      // Local persistence is optional; the editor still works without it.
+    }
+  }
+
+  function restore() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      if (!saved) return;
+      fields.forEach(function (field) {
+        if (Object.prototype.hasOwnProperty.call(saved, field.dataset.field)) {
+          field.value = saved[field.dataset.field];
+        }
+      });
+    } catch (error) {
+      // Ignore malformed or unavailable local storage.
+    }
+  }
+
+  fields.forEach(function (field) {
+    field.addEventListener('input', render);
+  });
+
+  root.querySelector('#resume-print').addEventListener('click', function () {
+    render();
+    window.print();
+  });
+
+  root.querySelector('#resume-reset').addEventListener('click', function () {
+    fields.forEach(function (field) {
+      field.value = initialValues[field.dataset.field];
+    });
+    render();
+  });
+
+  restore();
+  render();
+})();
+</script>
+{{- end }}
