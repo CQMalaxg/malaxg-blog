@@ -1621,12 +1621,13 @@ samp,
 }
 
 .gh-profile-side .gh-affiliation--wide {
-    grid-template-columns: 84px 1fr !important;
+    grid-template-columns: 118px 1fr !important;
 }
 
 .gh-org-logo--wide {
-    width: 84px;
-    padding: 4px 3px;
+    width: 118px;
+    height: 58px;
+    padding: 3px;
 }
 
 @media (max-width: 900px) {
@@ -1636,7 +1637,7 @@ samp,
     }
 
     .gh-profile-side .gh-affiliation--wide {
-        grid-template-columns: 84px 1fr !important;
+        grid-template-columns: 118px 1fr !important;
     }
 }
 
@@ -1647,6 +1648,6 @@ samp,
     }
 
     .gh-profile-side .gh-affiliation--wide {
-        grid-template-columns: 84px 1fr !important;
+        grid-template-columns: 118px 1fr !important;
     }
 }
