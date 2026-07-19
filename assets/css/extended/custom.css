@@ -1620,25 +1620,12 @@ samp,
     object-fit: contain;
 }
 
-.gh-profile-side .gh-affiliation--wide {
-    grid-template-columns: 118px 1fr !important;
-}
-
-.gh-org-logo--wide {
-    width: 118px;
-    height: 58px;
-    padding: 3px;
-}
-
 @media (max-width: 900px) {
     .gh-profile-side .gh-affiliation {
         display: grid !important;
         grid-template-columns: 28px 1fr !important;
     }
 
-    .gh-profile-side .gh-affiliation--wide {
-        grid-template-columns: 118px 1fr !important;
-    }
 }
 
 @media (max-width: 680px) {
@@ -1647,7 +1634,4 @@ samp,
         grid-template-columns: 28px 1fr !important;
     }
 
-    .gh-profile-side .gh-affiliation--wide {
-        grid-template-columns: 118px 1fr !important;
-    }
 }
