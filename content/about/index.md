@@ -20,8 +20,8 @@ hidemeta: true
     </div>
   </div>
   <div class="gh-profile-side">
-    <div class="gh-affiliation">
-      <img class="gh-org-logo" src="/tencent-ads-logo.ico" alt="腾讯广告 Logo">
+    <div class="gh-affiliation gh-affiliation--wide">
+      <img class="gh-org-logo gh-org-logo--wide" src="/tencent-ads-logo.png" alt="腾讯广告 Logo">
       <div><span>现在</span><strong>腾讯广告团队</strong></div>
     </div>
     <div class="gh-affiliation">

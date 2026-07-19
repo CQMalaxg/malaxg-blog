@@ -1620,10 +1620,23 @@ samp,
     object-fit: contain;
 }
 
+.gh-profile-side .gh-affiliation--wide {
+    grid-template-columns: 84px 1fr !important;
+}
+
+.gh-org-logo--wide {
+    width: 84px;
+    padding: 4px 3px;
+}
+
 @media (max-width: 900px) {
     .gh-profile-side .gh-affiliation {
         display: grid !important;
         grid-template-columns: 28px 1fr !important;
+    }
+
+    .gh-profile-side .gh-affiliation--wide {
+        grid-template-columns: 84px 1fr !important;
     }
 }
 
@@ -1631,5 +1644,9 @@ samp,
     .gh-profile-side .gh-affiliation {
         display: grid !important;
         grid-template-columns: 28px 1fr !important;
+    }
+
+    .gh-profile-side .gh-affiliation--wide {
+        grid-template-columns: 84px 1fr !important;
     }
 }
