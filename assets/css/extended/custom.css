@@ -1067,7 +1067,7 @@ body.dark .post-content:has(.deepagents-hero) {
 
 .deepagents-roadmap__list {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 8px;
     margin: 26px 0 0;
     padding: 0;
@@ -1085,6 +1085,8 @@ body.dark .post-content:has(.deepagents-hero) {
 .deepagents-roadmap__list li:nth-child(3) { border-color: var(--deepagents-amber); }
 .deepagents-roadmap__list li:nth-child(4) { border-color: var(--deepagents-green); }
 .deepagents-roadmap__list li:nth-child(5) { border-color: var(--deepagents-coral); }
+.deepagents-roadmap__list li:nth-child(6) { border-color: var(--deepagents-blue); }
+.deepagents-roadmap__list li:nth-child(7) { border-color: var(--deepagents-green); }
 
 .deepagents-roadmap__list span {
     display: block;
@@ -1274,6 +1276,90 @@ body.dark .post-content:has(.deepagents-hero) {
     font-size: 0.64rem;
 }
 
+.deepagents-svg-lesson {
+    margin: 34px 0 28px;
+    padding: clamp(20px, 3.5vw, 32px);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--deepagents-blue);
+    background: color-mix(in srgb, var(--deepagents-blue) 9%, var(--surface-soft));
+}
+
+.deepagents-svg-lesson__intro {
+    max-width: 760px;
+}
+
+.deepagents-svg-lesson__title {
+    margin: 10px 0 0;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 1.12rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.deepagents-svg-lesson__intro > p:last-child {
+    margin: 11px 0 0;
+    color: var(--secondary);
+    font-size: 0.82rem;
+    line-height: 1.8;
+}
+
+.deepagents-svg-figure {
+    margin: 28px 0 0;
+}
+
+.deepagents-svg-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    background: #f6f3eb;
+}
+
+body.dark .deepagents-svg-figure img {
+    background: #1b2023;
+}
+
+.deepagents-svg-figure figcaption {
+    margin-top: 10px;
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.65;
+}
+
+.deepagents-svg-figure--anatomy {
+    margin-top: 24px;
+}
+
+.post-content .deepagents-svg-practice {
+    margin: 28px 0 34px;
+    padding: 18px 20px 20px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--deepagents-amber);
+    background: color-mix(in srgb, var(--deepagents-amber) 12%, var(--surface-soft));
+}
+
+.deepagents-svg-practice strong {
+    display: block;
+    margin-top: 9px;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+}
+
+.post-content .deepagents-svg-practice ol {
+    margin: 12px 0 0;
+    padding-left: 1.25rem;
+}
+
+.post-content .deepagents-svg-practice li {
+    margin: 7px 0;
+    color: var(--secondary);
+    font-size: 0.78rem;
+    line-height: 1.65;
+}
+
 .lab-featured-path {
     display: flex;
     align-items: center;
@@ -1336,12 +1422,7 @@ body.dark .post-content:has(.deepagents-hero) {
     }
 
     .deepagents-roadmap__list {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .deepagents-roadmap__list li:nth-child(4),
-    .deepagents-roadmap__list li:nth-child(5) {
-        grid-column: span 1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .deepagents-flow {
@@ -1409,6 +1490,10 @@ body.dark .post-content:has(.deepagents-hero) {
 
     .deepagents-capability-map__grid {
         grid-template-columns: 1fr;
+    }
+
+    .deepagents-svg-lesson {
+        border-left-width: 3px;
     }
 
     .post-content .lab-card--featured {

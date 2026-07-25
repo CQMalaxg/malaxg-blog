@@ -15,7 +15,7 @@ categories = ['学习资料']
   <div class="deepagents-hero__copy">
     <span class="deepagents-kicker">DEEP AGENTS / FIELD GUIDE</span>
     <p class="deepagents-hero__title">把复杂任务交给一个会规划、会协作、会记笔记的 Agent。</p>
-    <p class="deepagents-hero__lede">这不是 API 目录，而是一条从“跑通第一个 agent”到“设计生产系统”的学习路径。先看图，再读代码，最后用一个博客选题研究 Agent 把知识串起来。</p>
+    <p class="deepagents-hero__lede">这不是 API 目录，而是一条从“跑通第一个 agent”到“设计生产系统”的学习路径。先看 SVG 图，再读代码，最后用一个博客选题研究 Agent 把知识串起来。</p>
     <div class="deepagents-hero__actions">
       <a href="#deepagents-roadmap">查看学习路线 <span aria-hidden="true">&rarr;</span></a>
       <a class="deepagents-hero__action--quiet" href="#deepagents-architecture">先看架构图</a>
@@ -47,6 +47,8 @@ categories = ['学习资料']
     <li><span>03</span><strong>上下文</strong><small>文件、backend、权限</small></li>
     <li><span>04</span><strong>协作</strong><small>subagents 与 task</small></li>
     <li><span>05</span><strong>长期化</strong><small>skills、memory、HITL</small></li>
+    <li><span>06</span><strong>可视化</strong><small>SVG、拓扑与执行轨迹</small></li>
+    <li><span>07</span><strong>评测</strong><small>streaming、tracing、验收</small></li>
   </ol>
 </div>
 
@@ -98,6 +100,63 @@ categories = ['学习资料']
     <div><span>CONTROL</span><strong>危险动作谁批准？</strong><small>permissions / HITL</small></div>
     <div><span>OBSERVE</span><strong>过程如何被看见？</strong><small>streaming / tracing</small></div>
   </div>
+</div>
+
+## SVG 图解：把 Agent 过程变成可检查的图
+
+SVG 不只是网页上的一张配图，它是一种可以被阅读、修改和版本控制的文本格式。对 Deep Agents 来说，SVG 最适合表达三件事：**谁在做事、信息流向哪里、哪个动作需要人确认**。
+
+<div class="deepagents-svg-lesson" id="deepagents-svg">
+  <div class="deepagents-svg-lesson__intro">
+    <span class="deepagents-kicker">SVG STUDY / READ THE SYSTEM</span>
+    <p class="deepagents-svg-lesson__title">先读拓扑，再读 API，最后才写代码。</p>
+    <p>下面这张图把一个“研究并交付报告”的任务拆成主 agent、文件工作区、subagents、HITL 和最终输出。你可以沿着箭头复述整个执行过程，而不是只记住一串参数名。</p>
+  </div>
+  <figure class="deepagents-svg-figure">
+    <img src="/deepagents-learning/deepagents-execution-map.svg" alt="Deep Agents 执行拓扑图：用户目标经过主 Agent、文件工作区、子代理和人工批准后生成交付物" loading="lazy">
+    <figcaption>图 03：一个可控的 Deep Agents 任务，把对话变成有边界、有中间产物、有验收点的工作流。</figcaption>
+  </figure>
+</div>
+
+### 为什么用 SVG，而不是截图
+
+- **可解释**：节点、连线、标签都能对应到代码和运行时事件。
+- **可维护**：SVG 是纯文本，可以和文章、代码一起进入 Git diff。
+- **可复用**：同一张图可以嵌入博客、课程笔记、README 或演示页面。
+- **可访问**：`title`、`desc`、`text` 和 `alt` 可以帮助读屏和搜索理解图的语义。
+
+<figure class="deepagents-svg-figure deepagents-svg-figure--anatomy">
+  <img src="/deepagents-learning/svg-anatomy.svg" alt="SVG 三个基本元素：rect 表示节点，path 表示关系，text 表示解释" loading="lazy">
+  <figcaption>图 04：一张学习图通常可以先拆成 `rect`、`path`、`text` 三类 SVG 基元。</figcaption>
+</figure>
+
+| SVG 部件 | 图上表达什么 | Deep Agents 对应什么 |
+| --- | --- | --- |
+| `<rect>` | 一个稳定的对象或边界 | 主 agent、文件区、subagent、审批节点 |
+| `<path>` | 有方向的关系或数据流 | `write_todos`、`task`、工具调用、结果回传 |
+| `<text>` | 让读者知道节点的语义 | 工具名、路径、角色、交付物类型 |
+| `marker` | 箭头的方向 | 谁调用谁、谁等待谁、结果回到哪里 |
+
+### 从一行 SVG 回到一个 Agent 概念
+
+```xml
+<path class="edge" d="M 270 236 H 355" />
+<rect class="process" x="355" y="160" width="330" height="168" rx="10" />
+<text x="381" y="230">主 Agent</text>
+```
+
+把它翻译成人话：**一条 path 表示“目标进入主 agent”的关系，rect 表示主 agent 这个执行节点，text 给节点补上可读的解释**。如果你把 `path` 画反了，图就会误导读者；如果没有 `text`，图就只有形状，没有知识。
+
+<div class="deepagents-svg-practice">
+  <span class="deepagents-kicker">SVG PRACTICE / 15 MIN</span>
+  <strong>把一个真实任务画成 5 个节点</strong>
+  <ol>
+    <li>写下用户目标，标成 input。</li>
+    <li>画出主 agent，并在旁边写出它会调用的工具。</li>
+    <li>把大段研究资料放进 `/notes/`，把最终结果放进 `/outputs/`。</li>
+    <li>用一个 subagent 节点表示独立研究或审查。</li>
+    <li>给写入、发送、删除等副作用动作加一个 HITL 节点。</li>
+  </ol>
 </div>
 
 ## 1. 一句话理解
