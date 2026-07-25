@@ -17,4 +17,9 @@ showToc: false
     <strong>Agent Skills 指南</strong>
     <small>了解如何设计、组织并使用可复用的 Agent 技能。</small>
   </a>
+  <a class="lab-card" href="/posts/deepagents-learning-guide/">
+    <span class="lab-card__index">GUIDE / 03</span>
+    <strong>Deep Agents 学习文档</strong>
+    <small>从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。</small>
+  </a>
 </div>
