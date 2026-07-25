@@ -6,6 +6,14 @@ showToc: false
 
 <p class="lab-intro">把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。</p>
 
+<div class="lab-featured-path">
+  <div>
+    <span class="lab-featured-path__kicker">CURRENT PATH</span>
+    <strong>正在学习：Deep Agents</strong>
+  </div>
+  <span>架构图 &rarr; API &rarr; 小项目</span>
+</div>
+
 <div class="lab-grid">
   <a class="lab-card" href="/lab/claude-code-learning.html">
     <span class="lab-card__index">GUIDE / 01</span>
@@ -17,9 +25,10 @@ showToc: false
     <strong>Agent Skills 指南</strong>
     <small>了解如何设计、组织并使用可复用的 Agent 技能。</small>
   </a>
-  <a class="lab-card" href="/posts/deepagents-learning-guide/">
+  <a class="lab-card lab-card--featured" href="/posts/deepagents-learning-guide/">
     <span class="lab-card__index">GUIDE / 03</span>
     <strong>Deep Agents 学习文档</strong>
     <small>从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。</small>
+    <span class="lab-card__cta">进入可视化学习页 <span aria-hidden="true">&rarr;</span></span>
   </a>
 </div>

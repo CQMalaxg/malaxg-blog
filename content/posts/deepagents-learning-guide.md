@@ -11,6 +11,95 @@ categories = ['学习资料']
 
 > 说明：`deepagents` 仍在快速演进。本文按当前官方文档整理，写项目时应以官方文档和 API reference 为准。
 
+<div class="deepagents-hero" id="deepagents-start">
+  <div class="deepagents-hero__copy">
+    <span class="deepagents-kicker">DEEP AGENTS / FIELD GUIDE</span>
+    <p class="deepagents-hero__title">把复杂任务交给一个会规划、会协作、会记笔记的 Agent。</p>
+    <p class="deepagents-hero__lede">这不是 API 目录，而是一条从“跑通第一个 agent”到“设计生产系统”的学习路径。先看图，再读代码，最后用一个博客选题研究 Agent 把知识串起来。</p>
+    <div class="deepagents-hero__actions">
+      <a href="#deepagents-roadmap">查看学习路线 <span aria-hidden="true">&rarr;</span></a>
+      <a class="deepagents-hero__action--quiet" href="#deepagents-architecture">先看架构图</a>
+    </div>
+  </div>
+  <div class="deepagents-hero__signal" aria-label="Deep Agents 核心执行闭环">
+    <span class="deepagents-kicker">THE CORE LOOP</span>
+    <strong>Plan &rarr; Work &rarr; Delegate &rarr; Review</strong>
+    <div class="deepagents-hero__steps">
+      <span><b>01</b>规划</span>
+      <span><b>02</b>执行</span>
+      <span><b>03</b>委派</span>
+      <span><b>04</b>验收</span>
+    </div>
+  </div>
+</div>
+
+<div class="deepagents-roadmap" id="deepagents-roadmap">
+  <div class="deepagents-roadmap__head">
+    <div>
+      <span class="deepagents-kicker">LEARNING MAP / 07 DAYS</span>
+      <p class="deepagents-roadmap__title">从一个工具调用，走到一套可控的 Agent 系统</p>
+    </div>
+    <span class="deepagents-roadmap__status">建议顺序：上到下</span>
+  </div>
+  <ol class="deepagents-roadmap__list">
+    <li><span>01</span><strong>基础</strong><small>安装、模型、最小 agent</small></li>
+    <li><span>02</span><strong>工具</strong><small>让模型知道何时调用</small></li>
+    <li><span>03</span><strong>上下文</strong><small>文件、backend、权限</small></li>
+    <li><span>04</span><strong>协作</strong><small>subagents 与 task</small></li>
+    <li><span>05</span><strong>长期化</strong><small>skills、memory、HITL</small></li>
+  </ol>
+</div>
+
+<div class="deepagents-visual" id="deepagents-architecture" aria-label="Deep Agents 分层架构图">
+  <div class="deepagents-visual__head">
+    <span class="deepagents-kicker">FIGURE 01 / ARCHITECTURE</span>
+    <span class="deepagents-visual__hint">先记住：Deep Agents 是上层 harness</span>
+  </div>
+  <div class="deepagents-stack">
+    <div class="deepagents-stack__layer deepagents-stack__layer--product"><span>你的业务层</span><strong>Tools &middot; Skills &middot; Memory</strong><small>把领域知识、权限和业务动作接入 agent</small></div>
+    <div class="deepagents-stack__connector" aria-hidden="true">&darr;</div>
+    <div class="deepagents-stack__layer deepagents-stack__layer--deep"><span>Deep Agents</span><strong>Planning &middot; Filesystem &middot; Subagents</strong><small>复杂任务默认需要的工作台和护栏</small></div>
+    <div class="deepagents-stack__connector" aria-hidden="true">&darr;</div>
+    <div class="deepagents-stack__layer deepagents-stack__layer--runtime"><span>LangChain + LangGraph</span><strong>Agent loop &middot; State &middot; Runtime</strong><small>模型、工具调用、状态和执行图</small></div>
+    <div class="deepagents-stack__connector" aria-hidden="true">&darr;</div>
+    <div class="deepagents-stack__layer deepagents-stack__layer--model"><span>模型与基础设施</span><strong>LLM &middot; Checkpointer &middot; Store</strong><small>推理能力、会话恢复和持久化</small></div>
+  </div>
+  <p class="deepagents-visual__caption">把它理解成“积木 + 运行时 + 工程脚手架”：你仍然拥有 LangChain/LangGraph 的控制力，但不用每次从零拼出复杂 agent 的基础能力。</p>
+</div>
+
+<div class="deepagents-visual deepagents-visual--flow" aria-label="Deep Agents 任务执行流程图">
+  <div class="deepagents-visual__head">
+    <span class="deepagents-kicker">FIGURE 02 / EXECUTION LOOP</span>
+    <span class="deepagents-visual__hint">大任务的中间产物要离开对话窗口</span>
+  </div>
+  <div class="deepagents-flow">
+    <div class="deepagents-flow__node deepagents-flow__node--input"><span>01</span><strong>目标</strong><small>用户提出一个复杂问题</small></div>
+    <span class="deepagents-flow__arrow" aria-hidden="true">&rarr;</span>
+    <div class="deepagents-flow__node deepagents-flow__node--plan"><span>02</span><strong>计划</strong><small><code>write_todos</code> 拆解步骤</small></div>
+    <span class="deepagents-flow__arrow" aria-hidden="true">&rarr;</span>
+    <div class="deepagents-flow__node deepagents-flow__node--work"><span>03</span><strong>工作区</strong><small>笔记与结果写入文件</small></div>
+    <span class="deepagents-flow__arrow" aria-hidden="true">&rarr;</span>
+    <div class="deepagents-flow__node deepagents-flow__node--delegate"><span>04</span><strong>委派</strong><small><code>task</code> 调用 subagent</small></div>
+    <span class="deepagents-flow__arrow" aria-hidden="true">&rarr;</span>
+    <div class="deepagents-flow__node deepagents-flow__node--review"><span>05</span><strong>交付</strong><small>主 agent 汇总并验收</small></div>
+  </div>
+</div>
+
+<div class="deepagents-capability-map" aria-label="Deep Agents 能力地图">
+  <div class="deepagents-capability-map__intro">
+    <span class="deepagents-kicker">CAPABILITY MAP</span>
+    <p>学习时可以把每个概念放回这六个问题里。</p>
+  </div>
+  <div class="deepagents-capability-map__grid">
+    <div><span>PLAN</span><strong>怎么拆任务？</strong><small><code>write_todos</code></small></div>
+    <div><span>CONTEXT</span><strong>信息放在哪里？</strong><small>filesystem / backend</small></div>
+    <div><span>DELEGATE</span><strong>谁来做子任务？</strong><small>subagents / <code>task</code></small></div>
+    <div><span>REUSE</span><strong>什么值得长期记住？</strong><small>skills / memory</small></div>
+    <div><span>CONTROL</span><strong>危险动作谁批准？</strong><small>permissions / HITL</small></div>
+    <div><span>OBSERVE</span><strong>过程如何被看见？</strong><small>streaming / tracing</small></div>
+  </div>
+</div>
+
 ## 1. 一句话理解
 
 `deepagents` 是 LangChain 生态里的一个 Agent harness：它不是替代 LangChain/LangGraph 的底层框架，而是在 LangChain agent 与 LangGraph runtime 之上，把复杂任务常用能力预装好。

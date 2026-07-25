@@ -879,6 +879,543 @@ samp,
     line-height: 1.65;
 }
 
+/* Deep Agents learning guide */
+.post-content:has(.deepagents-hero) {
+    --deepagents-coral: #c85b48;
+    --deepagents-green: #397b68;
+    --deepagents-blue: #3e6fa7;
+    --deepagents-amber: #b27a32;
+}
+
+body.dark .post-content:has(.deepagents-hero) {
+    --deepagents-coral: #ef987f;
+    --deepagents-green: #80c6aa;
+    --deepagents-blue: #8eb9e4;
+    --deepagents-amber: #e2b16d;
+}
+
+.deepagents-kicker {
+    display: block;
+    color: var(--brand);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.deepagents-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+    gap: clamp(28px, 6vw, 76px);
+    align-items: stretch;
+    margin: 32px 0 28px;
+    padding: clamp(24px, 4vw, 42px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background:
+        linear-gradient(120deg, color-mix(in srgb, var(--brand-soft) 75%, transparent), transparent 60%),
+        var(--entry);
+    box-shadow: var(--shadow);
+}
+
+.deepagents-hero__title {
+    max-width: 620px;
+    margin: 18px 0 0;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: clamp(1.7rem, 4vw, 2.65rem);
+    font-weight: 720;
+    letter-spacing: -0.045em;
+    line-height: 1.2;
+    text-wrap: balance;
+}
+
+.deepagents-hero__lede {
+    max-width: 590px;
+    margin: 18px 0 0;
+    color: var(--secondary);
+    font-size: 0.92rem;
+    line-height: 1.85;
+}
+
+.deepagents-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.post-content .deepagents-hero__actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
+    color: #fff;
+    background: var(--brand);
+    font-family: var(--font-ui);
+    font-size: 0.77rem;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.post-content .deepagents-hero__actions a:hover {
+    border-color: var(--brand-strong);
+    color: #fff;
+    background: var(--brand-strong);
+}
+
+.post-content .deepagents-hero__actions a.deepagents-hero__action--quiet {
+    border-color: var(--border);
+    color: var(--primary);
+    background: transparent;
+}
+
+.post-content .deepagents-hero__actions a.deepagents-hero__action--quiet:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+    background: var(--brand-soft);
+}
+
+.deepagents-hero__signal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 210px;
+    padding: 22px;
+    border-left: 1px solid var(--border);
+}
+
+.deepagents-hero__signal > strong {
+    display: block;
+    margin-top: 16px;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: clamp(1rem, 2vw, 1.22rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.deepagents-hero__steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+    margin-top: 28px;
+}
+
+.deepagents-hero__steps span {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 2px solid var(--brand);
+    color: var(--secondary);
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+}
+
+.deepagents-hero__steps span:nth-child(2) { border-color: var(--deepagents-blue); }
+.deepagents-hero__steps span:nth-child(3) { border-color: var(--deepagents-green); }
+.deepagents-hero__steps span:nth-child(4) { border-color: var(--deepagents-coral); }
+
+.deepagents-hero__steps b {
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+}
+
+.deepagents-roadmap,
+.deepagents-visual,
+.deepagents-capability-map {
+    margin: 28px 0;
+    padding: clamp(20px, 3.5vw, 30px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-soft);
+}
+
+.deepagents-roadmap__head,
+.deepagents-visual__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.deepagents-roadmap__title {
+    margin: 9px 0 0;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 1.08rem;
+    font-weight: 680;
+    line-height: 1.45;
+}
+
+.deepagents-roadmap__status,
+.deepagents-visual__hint {
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.5;
+    text-align: right;
+}
+
+.deepagents-roadmap__list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin: 26px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.deepagents-roadmap__list li {
+    min-width: 0;
+    padding: 14px 12px 13px;
+    border-top: 2px solid var(--brand);
+    background: var(--entry);
+}
+
+.deepagents-roadmap__list li:nth-child(2) { border-color: var(--deepagents-blue); }
+.deepagents-roadmap__list li:nth-child(3) { border-color: var(--deepagents-amber); }
+.deepagents-roadmap__list li:nth-child(4) { border-color: var(--deepagents-green); }
+.deepagents-roadmap__list li:nth-child(5) { border-color: var(--deepagents-coral); }
+
+.deepagents-roadmap__list span {
+    display: block;
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+}
+
+.deepagents-roadmap__list strong {
+    display: block;
+    margin-top: 12px;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+}
+
+.deepagents-roadmap__list small {
+    display: block;
+    margin-top: 7px;
+    color: var(--secondary);
+    font-size: 0.7rem;
+    line-height: 1.6;
+}
+
+.deepagents-stack {
+    max-width: 650px;
+    margin: 28px auto 0;
+}
+
+.deepagents-stack__layer {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 13px 22px;
+    align-items: center;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand);
+    border-radius: 6px;
+    background: var(--entry);
+}
+
+.deepagents-stack__layer--product { border-left-color: var(--deepagents-coral); }
+.deepagents-stack__layer--deep { border-left-color: var(--brand); }
+.deepagents-stack__layer--runtime { border-left-color: var(--deepagents-blue); }
+.deepagents-stack__layer--model { border-left-color: var(--deepagents-green); }
+
+.deepagents-stack__layer span {
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    line-height: 1.4;
+}
+
+.deepagents-stack__layer strong {
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    font-weight: 680;
+}
+
+.deepagents-stack__layer small {
+    grid-column: 2;
+    margin-top: -7px;
+    color: var(--secondary);
+    font-size: 0.72rem;
+    line-height: 1.55;
+}
+
+.deepagents-stack__connector {
+    height: 22px;
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    line-height: 22px;
+    text-align: center;
+}
+
+.deepagents-visual__caption {
+    max-width: 650px;
+    margin: 20px auto 0;
+    color: var(--secondary);
+    font-size: 0.78rem;
+    line-height: 1.75;
+    text-align: center;
+}
+
+.deepagents-flow {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 28px;
+}
+
+.deepagents-flow__node {
+    display: flex;
+    flex: 1 1 145px;
+    flex-direction: column;
+    min-width: 0;
+    padding: 14px;
+    border-top: 3px solid var(--brand);
+    background: var(--entry);
+}
+
+.deepagents-flow__node--input { border-color: var(--deepagents-coral); }
+.deepagents-flow__node--plan { border-color: var(--brand); }
+.deepagents-flow__node--work { border-color: var(--deepagents-amber); }
+.deepagents-flow__node--delegate { border-color: var(--deepagents-green); }
+.deepagents-flow__node--review { border-color: var(--deepagents-blue); }
+
+.deepagents-flow__node span {
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+}
+
+.deepagents-flow__node strong {
+    margin-top: 13px;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+}
+
+.deepagents-flow__node small {
+    margin-top: 7px;
+    color: var(--secondary);
+    font-size: 0.7rem;
+    line-height: 1.6;
+}
+
+.deepagents-flow__arrow {
+    align-self: center;
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+}
+
+.deepagents-capability-map {
+    display: grid;
+    grid-template-columns: 0.68fr 1.32fr;
+    gap: 22px;
+    background: color-mix(in srgb, var(--brand-soft) 56%, var(--surface-soft));
+}
+
+.deepagents-capability-map__intro p {
+    margin: 11px 0 0;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.55;
+}
+
+.deepagents-capability-map__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.deepagents-capability-map__grid > div {
+    padding: 13px 14px;
+    border: 1px solid var(--border);
+    background: var(--entry);
+}
+
+.deepagents-capability-map__grid span {
+    color: var(--brand);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.deepagents-capability-map__grid strong {
+    display: block;
+    margin-top: 9px;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+}
+
+.deepagents-capability-map__grid small {
+    display: block;
+    margin-top: 5px;
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+}
+
+.lab-featured-path {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--brand);
+    background: var(--brand-soft);
+}
+
+.lab-featured-path__kicker {
+    display: block;
+    color: var(--brand);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+}
+
+.lab-featured-path strong {
+    display: block;
+    margin-top: 6px;
+    color: var(--primary);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+}
+
+.lab-featured-path > span {
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-align: right;
+}
+
+.post-content .lab-card--featured {
+    grid-column: 1 / -1;
+    min-height: 142px;
+    background: linear-gradient(110deg, var(--brand-soft), var(--entry) 62%);
+}
+
+.lab-card__cta {
+    display: block;
+    margin-top: 16px;
+    color: var(--brand);
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+@media (max-width: 900px) {
+    .deepagents-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .deepagents-hero__signal {
+        min-height: 0;
+        padding: 22px 0 0;
+        border-top: 1px solid var(--border);
+        border-left: 0;
+    }
+
+    .deepagents-roadmap__list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .deepagents-roadmap__list li:nth-child(4),
+    .deepagents-roadmap__list li:nth-child(5) {
+        grid-column: span 1;
+    }
+
+    .deepagents-flow {
+        flex-wrap: wrap;
+    }
+
+    .deepagents-flow__node {
+        flex-basis: calc(50% - 26px);
+    }
+
+    .deepagents-capability-map {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .deepagents-hero {
+        margin-top: 22px;
+        padding: 20px;
+    }
+
+    .deepagents-hero__title {
+        font-size: 1.72rem;
+    }
+
+    .deepagents-hero__steps {
+        grid-template-columns: repeat(2, 1fr);
+        row-gap: 14px;
+    }
+
+    .deepagents-roadmap__head,
+    .deepagents-visual__head,
+    .lab-featured-path {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .deepagents-roadmap__status,
+    .deepagents-visual__hint,
+    .lab-featured-path > span {
+        text-align: left;
+    }
+
+    .deepagents-roadmap__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .deepagents-stack__layer {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .deepagents-stack__layer small {
+        grid-column: auto;
+        margin-top: 0;
+    }
+
+    .deepagents-flow__arrow {
+        display: none;
+    }
+
+    .deepagents-flow__node {
+        flex-basis: 100%;
+    }
+
+    .deepagents-capability-map__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .post-content .lab-card--featured {
+        grid-column: auto;
+    }
+}
+
 /* Reading progress and lightbox */
 #reading-progress {
     position: fixed;
