@@ -1360,6 +1360,156 @@ body.dark .deepagents-svg-figure img {
     line-height: 1.65;
 }
 
+/* --- Hero core-loop inline SVG --- */
+.deepagents-hero__loop {
+    width: clamp(150px, 60%, 210px);
+    height: auto;
+    margin: 18px 0 4px;
+    color: var(--brand);
+}
+
+.deepagents-hero__loop text {
+    fill: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.deepagents-hero__loop-dot circle {
+    fill: var(--entry);
+    stroke: var(--brand);
+    stroke-width: 2.2;
+}
+
+.deepagents-hero__loop-dot circle:nth-child(2) { stroke: var(--deepagents-blue); }
+.deepagents-hero__loop-dot circle:nth-child(3) { stroke: var(--deepagents-green); }
+.deepagents-hero__loop-dot circle:nth-child(4) { stroke: var(--deepagents-coral); }
+
+/* --- Key defaults metric strip --- */
+.deepagents-metrics {
+    margin: 28px 0;
+    padding: clamp(20px, 3.5vw, 30px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background:
+        radial-gradient(120% 140% at 100% 0, color-mix(in srgb, var(--brand-soft) 60%, transparent), transparent 55%),
+        var(--surface-soft);
+}
+
+.deepagents-metrics__head p {
+    margin: 10px 0 0;
+    max-width: 640px;
+    color: var(--secondary);
+    font-size: 0.82rem;
+    line-height: 1.75;
+}
+
+.deepagents-metrics__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.deepagents-metric {
+    position: relative;
+    padding: 18px 16px 16px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--entry);
+    overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.deepagents-metric::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--brand);
+}
+
+.deepagents-metric:nth-child(2)::before { background: var(--deepagents-blue); }
+.deepagents-metric:nth-child(3)::before { background: var(--deepagents-green); }
+.deepagents-metric:nth-child(4)::before { background: var(--deepagents-amber); }
+
+.deepagents-metric:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--border));
+    box-shadow: var(--shadow);
+}
+
+.deepagents-metric svg {
+    display: block;
+    color: var(--brand);
+}
+
+.deepagents-metric:nth-child(2) svg { color: var(--deepagents-blue); }
+.deepagents-metric:nth-child(3) svg { color: var(--deepagents-green); }
+.deepagents-metric:nth-child(4) svg { color: var(--deepagents-amber); }
+
+.deepagents-metric strong {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.deepagents-metric > span {
+    margin-left: 6px;
+    color: var(--secondary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+}
+
+.deepagents-metric small {
+    display: block;
+    margin-top: 11px;
+    color: var(--secondary);
+    font-size: 0.72rem;
+    line-height: 1.6;
+}
+
+/* --- Capability map: 8 items --- */
+.deepagents-capability-map__grid > div {
+    transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.deepagents-capability-map__grid > div:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+}
+
+/* --- SVG figure polish + hover --- */
+.deepagents-svg-figure img {
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: zoom-in;
+}
+
+.deepagents-svg-figure img:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* --- Card micro-interactions --- */
+.deepagents-roadmap__list li,
+.deepagents-flow__node,
+.deepagents-stack__layer {
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.deepagents-roadmap__list li:hover,
+.deepagents-flow__node:hover,
+.deepagents-stack__layer:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
 .lab-featured-path {
     display: flex;
     align-items: center;
@@ -1436,6 +1586,10 @@ body.dark .deepagents-svg-figure img {
     .deepagents-capability-map {
         grid-template-columns: 1fr;
     }
+
+    .deepagents-metrics__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 680px) {
@@ -1489,6 +1643,10 @@ body.dark .deepagents-svg-figure img {
     }
 
     .deepagents-capability-map__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .deepagents-metrics__grid {
         grid-template-columns: 1fr;
     }
 
