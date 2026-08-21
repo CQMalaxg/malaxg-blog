@@ -1,0 +1,189 @@
+{{- define "main" }}
+{{- $data := hugo.Data.agent_interview }}
+{{- $meta := $data.meta }}
+{{- $cats := $data.categories }}
+{{- $questions := $data.questions }}
+{{- $levelName := dict "1" "初级" "2" "中级" "3" "高级" }}
+{{- $levelClass := dict "1" "interview-tag--l1" "2" "interview-tag--l2" "3" "interview-tag--l3" }}
+<article class="interview-page">
+  <div class="post-content">
+
+    <header class="interview-hero">
+      <div class="interview-hero__copy">
+        <span class="interview-kicker">{{ $meta.kicker | default "INTERVIEW / AI AGENT" }}</span>
+        <h1 class="interview-hero__title">{{ $meta.title | default .Title }}</h1>
+        <p class="interview-hero__lede">{{ $meta.intro }}</p>
+        <div class="interview-hero__stats">
+          <div class="interview-stat"><strong>{{ len $questions }}</strong><span>道题目</span></div>
+          <div class="interview-stat"><strong>{{ len $cats }}</strong><span>个方向</span></div>
+          <div class="interview-stat"><strong>{{ $meta.updated }}</strong><span>最近更新</span></div>
+        </div>
+      </div>
+      <aside class="interview-hero__note" aria-label="阅读说明">
+        <span class="interview-kicker">HOW TO READ</span>
+        <ul>
+          <li>点击题目卡片展开查看解答</li>
+          <li>用搜索框按关键词快速定位</li>
+          <li>点章节标签平滑跳转到对应方向</li>
+          <li>难度分为 <b>初级 / 中级 / 高级</b></li>
+        </ul>
+      </aside>
+    </header>
+
+    <div class="interview-toolbar">
+      <div class="interview-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="interview-search" placeholder="搜索题目 / 关键词，如 ReAct、记忆、RAG…" autocomplete="off">
+      </div>
+      <div class="interview-chips" id="interview-chips" role="navigation" aria-label="章节导航">
+        <button class="interview-chip is-active" data-filter="all" type="button">回到顶部</button>
+        {{- range $cats }}
+        <button class="interview-chip" data-filter="{{ .key }}" type="button">{{ .name }}</button>
+        {{- end }}
+      </div>
+      <div class="interview-controls">
+        <button class="interview-ctrl" id="interview-expand" type="button">展开全部</button>
+        <button class="interview-ctrl" id="interview-collapse" type="button">收起全部</button>
+      </div>
+    </div>
+
+    <div class="interview-board" id="interview-board">
+      {{- range $ci, $cat := $cats }}
+      {{- $catQuestions := where $questions "category" $cat.key }}
+      <section class="interview-group" data-group="{{ $cat.key }}">
+        <div class="interview-group__head"><span class="interview-group__index">{{ printf "%02d" (add $ci 1) }}</span><h2>{{ $cat.name }}</h2><span class="interview-group__count">{{ len $catQuestions }} 题</span></div>
+        {{- range $catQuestions }}
+        {{- $lv := string .level }}
+        <details class="interview-qa" data-cat="{{ .category }}" data-kw="{{ .keywords }}">
+          <summary class="interview-qa__head"><span class="interview-tag {{ index $levelClass $lv | default "interview-tag--l2" }}">{{ index $levelName $lv | default "中级" }}</span><span class="interview-qa__q">{{ .question }}</span><span class="interview-qa__mark" aria-hidden="true"></span></summary>
+          <div class="interview-qa__body">
+            {{ .answer | markdownify }}
+          </div>
+        </details>
+        {{- end }}
+      </section>
+      {{- end }}
+    </div>
+
+    <p class="interview-empty" id="interview-empty" hidden>没有匹配的题目，换个关键词或标签试试。</p>
+
+    <footer class="interview-foot">
+      <span>答案为个人整理，欢迎指正 · 持续更新中</span>
+    </footer>
+  </div>
+</article>
+
+<script>
+(function () {
+  var board = document.getElementById('interview-board');
+  if (!board) return;
+
+  var qas = Array.prototype.slice.call(board.querySelectorAll('.interview-qa'));
+  var groups = Array.prototype.slice.call(board.querySelectorAll('.interview-group'));
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.interview-chip'));
+  var searchInput = document.getElementById('interview-search');
+  var emptyTip = document.getElementById('interview-empty');
+  var expandBtn = document.getElementById('interview-expand');
+  var collapseBtn = document.getElementById('interview-collapse');
+
+  // 吸顶 header + 工具栏的大致高度，用于跳转定位与滚动高亮
+  var SCROLL_OFFSET = window.matchMedia('(max-width: 680px)').matches ? 176 : 150;
+
+  function normalize(s) { return (s || '').toLowerCase().trim(); }
+
+  // ---- 搜索：仅按关键词筛选题目，隐藏空分组 ----
+  function applySearch() {
+    var kw = normalize(searchInput ? searchInput.value : '');
+    var anyVisible = false;
+
+    qas.forEach(function (qa) {
+      var haystack = normalize(qa.textContent + ' ' + (qa.getAttribute('data-kw') || ''));
+      var show = !kw || haystack.indexOf(kw) !== -1;
+      qa.hidden = !show;
+      if (show) anyVisible = true;
+    });
+
+    groups.forEach(function (g) {
+      var visibleInGroup = g.querySelectorAll('.interview-qa:not([hidden])').length;
+      g.hidden = visibleInGroup === 0;
+    });
+
+    if (emptyTip) emptyTip.hidden = anyVisible;
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applySearch);
+  }
+
+  // ---- 章节按钮：锚点跳转导航（所有章节始终可见） ----
+  function groupByKey(key) {
+    for (var i = 0; i < groups.length; i++) {
+      if (groups[i].getAttribute('data-group') === key) return groups[i];
+    }
+    return null;
+  }
+
+  function setActiveChip(key) {
+    chips.forEach(function (c) {
+      c.classList.toggle('is-active', c.getAttribute('data-filter') === key);
+    });
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var key = chip.getAttribute('data-filter') || 'all';
+
+      // 若正在搜索，先清空以保证目标章节可见，再跳转
+      if (searchInput && searchInput.value) {
+        searchInput.value = '';
+        applySearch();
+      }
+
+      if (key === 'all') {
+        window.scrollTo({ top: Math.max(board.offsetTop - SCROLL_OFFSET, 0), behavior: 'smooth' });
+        setActiveChip('all');
+        return;
+      }
+
+      var target = groupByKey(key);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveChip(key);
+      }
+    });
+  });
+
+  // ---- 滚动高亮：自动点亮当前所在章节对应的按钮 ----
+  var spyTicking = false;
+  function updateSpy() {
+    spyTicking = false;
+    var current = 'all';
+    for (var i = 0; i < groups.length; i++) {
+      if (groups[i].hidden) continue;
+      if (groups[i].getBoundingClientRect().top - SCROLL_OFFSET <= 1) {
+        current = groups[i].getAttribute('data-group');
+      }
+    }
+    setActiveChip(current);
+  }
+  window.addEventListener('scroll', function () {
+    if (!spyTicking) { window.requestAnimationFrame(updateSpy); spyTicking = true; }
+  }, { passive: true });
+
+  // ---- 展开 / 收起全部（仅对可见题目） ----
+  if (expandBtn) {
+    expandBtn.addEventListener('click', function () {
+      qas.forEach(function (qa) { if (!qa.hidden) qa.open = true; });
+    });
+  }
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', function () {
+      qas.forEach(function (qa) { qa.open = false; });
+    });
+  }
+
+  applySearch();
+  updateSpy();
+})();
+</script>
+{{- end }}
