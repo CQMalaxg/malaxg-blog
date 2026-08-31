@@ -1,0 +1,77 @@
+<!doctype html><html lang=en dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>学习资料 | 麻辣香郭的精神家园</title><meta name=keywords content><meta name=description content="把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。
+
+  
+    CURRENT PATH
+    正在学习：Agent Self-Improving
+  
+  闭环拆解 &rarr; 工程落地 &rarr; 不变量
+
+
+  
+    GUIDE / 01
+    Claude Code 学习指南
+    从基本使用到工程实践，系统理解 Claude Code 的工作方式。
+  
+  
+    GUIDE / 02
+    Agent Skills 指南
+    了解如何设计、组织并使用可复用的 Agent 技能。
+  
+  
+    GUIDE / 03
+    LLM Wiki 机制学习
+    按输入 / 处理 / 输出拆解「知识编译器」：三层架构、三大操作、两份账本与两遍推送。
+  
+  
+    GUIDE / 04
+    LLM Wiki 详解（博客）
+    从知识检索到知识编译：Karpathy 范式起源、工程化落地与适用边界，配 6 张图解。
+  
+  
+    GUIDE / 05
+    Agent Self-Improving 工程指南
+    按采集 / 反思 / 生效拆解自改进闭环：四层选型、八条不变量、真实故障复盘，附 Warp 双层 Skill 案例。
+  
+  
+    GUIDE / 06
+    如何做 Agent 的 Self-Improving（博客）
+    一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。
+  
+  
+    GUIDE / 07
+    Deep Agents 学习文档
+    从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。
+    进入可视化学习页 &rarr;
+  
+"><meta name=author content="malaxg"><link rel=canonical href=https://malaxg.top/lab/><link crossorigin=anonymous href=/assets/css/stylesheet.7d418b6c38aa4a3ce618c6a2cfe0df8d5d77a40a2cb1b1e0f85512c4758d5b96.css integrity="sha256-fUGLbDiqSjzmGMaiz+DfjV13pAossbHg+FUSxHWNW5Y=" rel="preload stylesheet" as=style><link rel=icon href=https://malaxg.top/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://malaxg.top/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://malaxg.top/favicon-32x32.png><link rel=apple-touch-icon href=https://malaxg.top/apple-touch-icon.png><link rel=mask-icon href=https://malaxg.top/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://malaxg.top/lab/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script><meta property="og:url" content="https://malaxg.top/lab/"><meta property="og:site_name" content="麻辣香郭的精神家园"><meta property="og:title" content="学习资料"><meta property="og:description" content="把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。
+CURRENT PATH 正在学习：Agent Self-Improving 闭环拆解 → 工程落地 → 不变量 GUIDE / 01 Claude Code 学习指南 从基本使用到工程实践，系统理解 Claude Code 的工作方式。 GUIDE / 02 Agent Skills 指南 了解如何设计、组织并使用可复用的 Agent 技能。 GUIDE / 03 LLM Wiki 机制学习 按输入 / 处理 / 输出拆解「知识编译器」：三层架构、三大操作、两份账本与两遍推送。 GUIDE / 04 LLM Wiki 详解（博客） 从知识检索到知识编译：Karpathy 范式起源、工程化落地与适用边界，配 6 张图解。 GUIDE / 05 Agent Self-Improving 工程指南 按采集 / 反思 / 生效拆解自改进闭环：四层选型、八条不变量、真实故障复盘，附 Warp 双层 Skill 案例。 GUIDE / 06 如何做 Agent 的 Self-Improving（博客） 一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。 GUIDE / 07 Deep Agents 学习文档 从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。 进入可视化学习页 →"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta name=twitter:card content="summary"><meta name=twitter:title content="学习资料"><meta name=twitter:description content="把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。
+CURRENT PATH 正在学习：Agent Self-Improving 闭环拆解 → 工程落地 → 不变量 GUIDE / 01 Claude Code 学习指南 从基本使用到工程实践，系统理解 Claude Code 的工作方式。 GUIDE / 02 Agent Skills 指南 了解如何设计、组织并使用可复用的 Agent 技能。 GUIDE / 03 LLM Wiki 机制学习 按输入 / 处理 / 输出拆解「知识编译器」：三层架构、三大操作、两份账本与两遍推送。 GUIDE / 04 LLM Wiki 详解（博客） 从知识检索到知识编译：Karpathy 范式起源、工程化落地与适用边界，配 6 张图解。 GUIDE / 05 Agent Self-Improving 工程指南 按采集 / 反思 / 生效拆解自改进闭环：四层选型、八条不变量、真实故障复盘，附 Warp 双层 Skill 案例。 GUIDE / 06 如何做 Agent 的 Self-Improving（博客） 一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。 GUIDE / 07 Deep Agents 学习文档 从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。 进入可视化学习页 →"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"学习资料","item":"https://malaxg.top/lab/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"学习资料","name":"学习资料","description":"把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。\nCURRENT PATH 正在学习：Agent Self-Improving 闭环拆解 \u0026rarr; 工程落地 \u0026rarr; 不变量 GUIDE / 01 Claude Code 学习指南 从基本使用到工程实践，系统理解 Claude Code 的工作方式。 GUIDE / 02 Agent Skills 指南 了解如何设计、组织并使用可复用的 Agent 技能。 GUIDE / 03 LLM Wiki 机制学习 按输入 / 处理 / 输出拆解「知识编译器」：三层架构、三大操作、两份账本与两遍推送。 GUIDE / 04 LLM Wiki 详解（博客） 从知识检索到知识编译：Karpathy 范式起源、工程化落地与适用边界，配 6 张图解。 GUIDE / 05 Agent Self-Improving 工程指南 按采集 / 反思 / 生效拆解自改进闭环：四层选型、八条不变量、真实故障复盘，附 Warp 双层 Skill 案例。 GUIDE / 06 如何做 Agent 的 Self-Improving（博客） 一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。 GUIDE / 07 Deep Agents 学习文档 从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。 进入可视化学习页 \u0026rarr; ","keywords":[],"articleBody":"把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。\nCURRENT PATH 正在学习：Agent Self-Improving 闭环拆解 → 工程落地 → 不变量 GUIDE / 01 Claude Code 学习指南 从基本使用到工程实践，系统理解 Claude Code 的工作方式。 GUIDE / 02 Agent Skills 指南 了解如何设计、组织并使用可复用的 Agent 技能。 GUIDE / 03 LLM Wiki 机制学习 按输入 / 处理 / 输出拆解「知识编译器」：三层架构、三大操作、两份账本与两遍推送。 GUIDE / 04 LLM Wiki 详解（博客） 从知识检索到知识编译：Karpathy 范式起源、工程化落地与适用边界，配 6 张图解。 GUIDE / 05 Agent Self-Improving 工程指南 按采集 / 反思 / 生效拆解自改进闭环：四层选型、八条不变量、真实故障复盘，附 Warp 双层 Skill 案例。 GUIDE / 06 如何做 Agent 的 Self-Improving（博客） 一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。 GUIDE / 07 Deep Agents 学习文档 从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。 进入可视化学习页 → ","wordCount":"88","inLanguage":"en","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","author":{"@type":"Person","name":"malaxg"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://malaxg.top/lab/"},"publisher":{"@type":"Organization","name":"麻辣香郭的精神家园","logo":{"@type":"ImageObject","url":"https://malaxg.top/favicon.ico"}}}</script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://malaxg.top/ accesskey=h title="麻辣香郭 (Alt + H)">麻辣香郭</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://malaxg.top/posts/ title=文章><span>文章</span></a></li><li><a href=https://malaxg.top/archives/ title=归档><span>归档</span></a></li><li><a href=https://malaxg.top/about/ title=关于><span>关于</span></a></li><li><a href=https://malaxg.top/agent-interview/ title=面经><span>面经</span></a></li><li><a href=https://malaxg.top/lab/ title=学习资料><span class=active>学习资料</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>Home</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">学习资料</h1></header><div class="post-content md-content"><p class=lab-intro>把学习过程中值得反复查看的内容，整理成可交互、可探索的小型指南。</p><div class=lab-featured-path><div><span class=lab-featured-path__kicker>CURRENT PATH</span>
+<strong>正在学习：Agent Self-Improving</strong></div><span>闭环拆解 &rarr; 工程落地 &rarr; 不变量</span></div><div class=lab-grid><a class=lab-card href=/lab/claude-code-learning.html><span class=lab-card__index>GUIDE / 01</span>
+<strong>Claude Code 学习指南</strong>
+<small>从基本使用到工程实践，系统理解 Claude Code 的工作方式。</small>
+</a><a class=lab-card href=/lab/agent-skills-guide.html><span class=lab-card__index>GUIDE / 02</span>
+<strong>Agent Skills 指南</strong>
+<small>了解如何设计、组织并使用可复用的 Agent 技能。</small>
+</a><a class=lab-card href=/lab/llm-wiki-learning.html><span class=lab-card__index>GUIDE / 03</span>
+<strong>LLM Wiki 机制学习</strong>
+<small>按输入 / 处理 / 输出拆解「知识编译器」：三层架构、三大操作、两份账本与两遍推送。</small>
+</a><a class=lab-card href=/posts/llm-wiki-explained/><span class=lab-card__index>GUIDE / 04</span>
+<strong>LLM Wiki 详解（博客）</strong>
+<small>从知识检索到知识编译：Karpathy 范式起源、工程化落地与适用边界，配 6 张图解。</small>
+</a><a class=lab-card href=/lab/self-improving-learning.html><span class=lab-card__index>GUIDE / 05</span>
+<strong>Agent Self-Improving 工程指南</strong>
+<small>按采集 / 反思 / 生效拆解自改进闭环：四层选型、八条不变量、真实故障复盘，附 Warp 双层 Skill 案例。</small>
+</a><a class=lab-card href=/posts/self-improving-agent/><span class=lab-card__index>GUIDE / 06</span>
+<strong>如何做 Agent 的 Self-Improving（博客）</strong>
+<small>一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。</small>
+</a><a class="lab-card lab-card--featured" href=/posts/deepagents-learning-guide/><span class=lab-card__index>GUIDE / 07</span>
+<strong>Deep Agents 学习文档</strong>
+<small>从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。</small>
+<span class=lab-card__cta>进入可视化学习页 <span aria-hidden=true>&rarr;</span></span></a></div></div><footer class=post-footer><ul class=post-tags></ul></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://malaxg.top/>麻辣香郭的精神家园</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg></a><div id=reading-progress aria-hidden=true></div><script>(function(){var n=document.getElementById("reading-progress"),e=!1;function t(){var t=document.documentElement,s=t.scrollHeight-t.clientHeight,o=s>0?t.scrollTop/s*100:0;n.style.width=o+"%",e=!1}window.addEventListener("scroll",function(){e||(window.requestAnimationFrame(t),e=!0)},{passive:!0}),t()})()</script><script>(function(){if(!("IntersectionObserver"in window))return;if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;var e,t=document.querySelectorAll(".post-content img, .post-content figure");if(!t.length)return;e=new IntersectionObserver(function(t){t.forEach(function(t){if(!t.isIntersecting)return;t.target.classList.add("reveal-in"),e.unobserve(t.target)})},{threshold:.1,rootMargin:"0px 0px -6% 0px"}),t.forEach(function(t){t.classList.add("reveal"),e.observe(t)})})()</script><div id=lightbox-overlay role=dialog aria-modal=true aria-hidden=true aria-label=图片预览><button id=lightbox-close type=button aria-label=关闭图片预览>&#215;</button>
+<img alt></div><script>(function(){var e,t,n,s,i=document.querySelectorAll(".post-content img");if(!i.length)return;e=document.getElementById("lightbox-overlay"),t=e.querySelector("img"),s=document.getElementById("lightbox-close"),n=null;function a(o){n=o,t.src=o.currentSrc||o.src,t.alt=o.alt||"文章图片预览",e.classList.add("active"),e.setAttribute("aria-hidden","false"),document.body.style.overflow="hidden",s.focus()}function o(){e.classList.remove("active"),e.setAttribute("aria-hidden","true"),document.body.style.overflow="",t.removeAttribute("src"),n&&n.focus({preventScroll:!0})}i.forEach(function(e){e.tabIndex=0,e.addEventListener("click",function(){a(e)}),e.addEventListener("keydown",function(t){(t.key==="Enter"||t.key===" ")&&(t.preventDefault(),a(e))})}),e.addEventListener("click",function(t){t.target===e&&o()}),s.addEventListener("click",o),document.addEventListener("keydown",function(t){t.key==="Escape"&&e.classList.contains("active")&&o()})})()</script><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html");e.dataset.theme==="dark"?(e.dataset.theme="light",localStorage.setItem("pref-theme","light")):(e.dataset.theme="dark",localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>

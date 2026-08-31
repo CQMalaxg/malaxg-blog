@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 560" role="img" aria-labelledby="t4 d4">
+  <title id="t4">输入 / 处理 / 输出 全景</title>
+  <desc id="d4">四类输入（raw 原始资料、fetch 账本、系统提示词、调用指令）喂给 LLM Agent 编译器处理，产出四类输出（docs 知识库、compile 账本、log 审计、平台发布）。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;
+      --in:#3e6fa7;--in-fill:#dde7f3;--proc:#7a5aa6;--proc-fill:#e6dcef;--out:#397b68;--out-fill:#d6e8df;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;
+        --in:#8eb9e4;--in-fill:#2c3d52;--proc:#c9a7ec;--proc-fill:#3a2f4a;--out:#80c6aa;--out-fill:#2b4a41;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .in-box{fill:var(--in-fill);stroke:var(--in);stroke-width:1.6;}
+    .proc-box{fill:var(--proc-fill);stroke:var(--proc);stroke-width:2.4;}
+    .out-box{fill:var(--out-fill);stroke:var(--out);stroke-width:1.6;}
+    .in-line{fill:none;stroke:var(--in);stroke-width:2.2;marker-end:url(#a4i);}
+    .out-line{fill:none;stroke:var(--out);stroke-width:2.2;marker-end:url(#a4o);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .col-in{fill:var(--in);font:800 15px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .col-proc{fill:var(--proc);font:800 15px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .col-out{fill:var(--out);font:800 15px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .b-name{fill:var(--fg);font:700 15px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .b-sub{fill:var(--muted);font:12px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .p-name{fill:var(--fg);font:700 19px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .p-step{fill:var(--muted);font:13px/1.5 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a4i" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--in)"/></marker>
+    <marker id="a4o" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--out)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="560"/>
+  <text class="eyebrow" x="44" y="42">PIPELINE / INPUT · PROCESS · OUTPUT</text>
+  <text class="title" x="44" y="76">输入 / 处理 / 输出 全景</text>
+
+  <text class="col-in" x="44" y="118">输入 INPUT</text>
+  <text class="col-proc" x="400" y="118">处理 PROCESSING</text>
+  <text class="col-out" x="1036" y="118" text-anchor="end">输出 OUTPUT</text>
+
+  <!-- inputs -->
+  <rect class="in-box" x="44" y="132" width="286" height="66" rx="9"/><text class="b-name" x="62" y="164">① raw/ 原始资料</text><text class="b-sub" x="62" y="185">源代码 · 不可变，只读</text>
+  <rect class="in-box" x="44" y="214" width="286" height="66" rx="9"/><text class="b-name" x="62" y="246">② _fetch_state.json</text><text class="b-sub" x="62" y="267">源版本 / 哈希 · 触发信号</text>
+  <rect class="in-box" x="44" y="296" width="286" height="66" rx="9"/><text class="b-name" x="62" y="328">③ 系统提示词</text><text class="b-sub" x="62" y="349">Schema 层 · 编译规则（最关键）</text>
+  <rect class="in-box" x="44" y="378" width="286" height="66" rx="9"/><text class="b-name" x="62" y="410">④ 调用指令</text><text class="b-sub" x="62" y="431">mode + operation + input</text>
+
+  <!-- processor -->
+  <rect class="proc-box" x="398" y="168" width="284" height="240" rx="12"/>
+  <text class="p-name" x="540" y="206" text-anchor="middle">LLM Agent</text>
+  <text class="b-sub" x="540" y="228" text-anchor="middle">编译器本体（受提示词约束）</text>
+  <text class="p-step" x="426" y="266">1 · 增量候选判定（join 账本）</text>
+  <text class="p-step" x="426" y="296">2 · 通读 raw，提炼要点/矛盾</text>
+  <text class="p-step" x="426" y="326">3 · 编译成 source/concept/entity</text>
+  <text class="p-step" x="426" y="356">4 · 维护一致性：互链/index/标注</text>
+
+  <!-- input arrows -->
+  <path class="in-line" d="M330 165 C 366 165 366 250 396 262"/>
+  <path class="in-line" d="M330 247 C 366 247 366 278 396 280"/>
+  <path class="in-line" d="M330 329 C 366 329 366 300 396 298"/>
+  <path class="in-line" d="M330 411 C 366 411 366 328 396 316"/>
+
+  <!-- outputs -->
+  <rect class="out-box" x="752" y="132" width="286" height="66" rx="9"/><text class="b-name" x="770" y="164">① docs/ 知识库</text><text class="b-sub" x="770" y="185">6 种页面 + 系统页 + 互链</text>
+  <rect class="out-box" x="752" y="214" width="286" height="66" rx="9"/><text class="b-name" x="770" y="246">② _compile_state.json</text><text class="b-sub" x="770" y="267">编译状态回填</text>
+  <rect class="out-box" x="752" y="296" width="286" height="66" rx="9"/><text class="b-name" x="770" y="328">③ log.md 审计</text><text class="b-sub" x="770" y="349">append-only 活动日志</text>
+  <rect class="out-box" x="752" y="378" width="286" height="66" rx="9"/><text class="b-name" x="770" y="410">④ 平台发布</text><text class="b-sub" x="770" y="431">两遍推送到团队 wiki</text>
+
+  <!-- output arrows -->
+  <path class="out-line" d="M684 262 C 716 250 716 165 750 165"/>
+  <path class="out-line" d="M684 280 C 716 278 716 247 750 247"/>
+  <path class="out-line" d="M684 298 C 716 300 716 329 750 329"/>
+  <path class="out-line" d="M684 316 C 716 328 716 411 750 411"/>
+</svg>

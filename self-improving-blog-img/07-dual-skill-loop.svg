@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 560" role="img" aria-labelledby="t7 d7">
+  <title id="t7">双层 Skill 自改进循环</title>
+  <desc id="d7">内层基础技能按任务执行并产出结果，人类在原有工作流中给出反馈；外层改进者技能定时运行，拉取累积反馈、对比建议与人类回应，提出对基础技能的最小修改并开合并请求，经人工审核合并后回流到内层。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;--card:#eeeae0;
+      --inr:#3e6fa7;--inr-f:#dde7f3;--hum:#8a5a2b;--hum-f:#f3e6cf;
+      --out:#7a5aa6;--out-f:#e6dcef;--ok:#397b68;--ok-f:#d6e8df;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;--card:#2b3133;
+        --inr:#8eb9e4;--inr-f:#2c3d52;--hum:#e2b16d;--hum-f:#4a3b23;
+        --out:#c9a7ec;--out-f:#3a2f4a;--ok:#80c6aa;--ok-f:#2b4a41;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .n-in{fill:var(--inr-f);stroke:var(--inr);stroke-width:1.8;}
+    .n-hum{fill:var(--hum-f);stroke:var(--hum);stroke-width:2.4;}
+    .n-out{fill:var(--out-f);stroke:var(--out);stroke-width:1.8;}
+    .n-ok{fill:var(--ok-f);stroke:var(--ok);stroke-width:2.4;}
+    .band-in{fill:none;stroke:var(--inr);stroke-width:1.3;stroke-dasharray:5 5;}
+    .band-out{fill:none;stroke:var(--out);stroke-width:1.3;stroke-dasharray:5 5;}
+    .line{fill:none;stroke:var(--line);stroke-width:2.3;marker-end:url(#a7);}
+    .line-h{fill:none;stroke:var(--hum);stroke-width:2.3;marker-end:url(#a7h);}
+    .back{fill:none;stroke:var(--ok);stroke-width:2.8;marker-end:url(#a7o);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:2px;}
+    .ttl{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .bl-in{fill:var(--inr);font:800 12px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .bl-out{fill:var(--out);font:800 12px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .name{fill:var(--fg);font:700 15px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .name-l{fill:var(--fg);font:700 17px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .sub{fill:var(--muted);font:12px/1.35 ui-sans-serif,system-ui,sans-serif;}
+    .hum-t{fill:var(--hum);font:800 12px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .ok-t{fill:var(--ok);font:700 13px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .foot{fill:var(--muted);font:13px/1.45 ui-sans-serif,system-ui,sans-serif;}
+    .key{fill:var(--fg);font:600 13px/1.45 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a7" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--line)"/></marker>
+    <marker id="a7h" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--hum)"/></marker>
+    <marker id="a7o" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--ok)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="560"/>
+  <text class="eyebrow" x="44" y="42">DUAL-SKILL LOOP / FILE-BASED SELF-IMPROVEMENT</text>
+  <text class="ttl" x="44" y="76">双层 Skill：内层干活，外层打磨内层</text>
+
+  <!-- inner band -->
+  <rect class="band-in" x="44" y="104" width="992" height="132" rx="10"/>
+  <text class="bl-in" x="66" y="128">内层 · 每个任务都执行</text>
+
+  <rect class="n-in" x="66" y="140" width="184" height="80" rx="9"/>
+  <text class="name" x="86" y="170">触发</text>
+  <text class="sub" x="86" y="192">新 PR / 新 Issue</text>
+  <text class="sub" x="86" y="210">由 CI 启动 Agent</text>
+
+  <rect class="n-in" x="290" y="140" width="230" height="80" rx="9"/>
+  <text class="name-l" x="310" y="172">Base Skill</text>
+  <text class="sub" x="310" y="194">领域知识 + 指令</text>
+  <text class="sub" x="310" y="212">就是一个可 diff 的文件</text>
+
+  <rect class="n-in" x="560" y="140" width="184" height="80" rx="9"/>
+  <text class="name" x="580" y="170">产出</text>
+  <text class="sub" x="580" y="192">评审意见 / 标签</text>
+  <text class="sub" x="580" y="210">规格草稿</text>
+
+  <path class="line" d="M250 180 H 288"/>
+  <path class="line" d="M520 180 H 558"/>
+
+  <!-- human feedback -->
+  <rect class="n-hum" x="784" y="140" width="252" height="80" rx="9"/>
+  <text class="hum-t" x="804" y="164">人类反馈 · 循环的关键</text>
+  <text class="sub" x="804" y="188">最低门槛：一个 👍</text>
+  <text class="sub" x="804" y="208">最佳：说清「为什么」</text>
+  <path class="line-h" d="M744 180 H 782"/>
+
+  <!-- accumulate -->
+  <path class="line-h" d="M910 220 V 268"/>
+  <text class="hum-t" x="926" y="252">累积</text>
+
+  <!-- outer band -->
+  <rect class="band-out" x="44" y="286" width="992" height="150" rx="10"/>
+  <text class="bl-out" x="66" y="310">外层 · 定时执行（不按任务）</text>
+
+  <rect class="n-out" x="66" y="322" width="206" height="94" rx="9"/>
+  <text class="name-l" x="86" y="354">Improver Skill</text>
+  <text class="sub" x="86" y="376">观察者 Agent</text>
+  <text class="sub" x="86" y="396">跨用例高度可复用</text>
+
+  <rect class="n-out" x="312" y="322" width="200" height="94" rx="9"/>
+  <text class="name" x="332" y="352">拉取反馈</text>
+  <text class="sub" x="332" y="374">捆绑脚本取近期反馈</text>
+  <text class="sub" x="332" y="394">汇总为结构化文件</text>
+
+  <rect class="n-out" x="552" y="322" width="200" height="94" rx="9"/>
+  <text class="name" x="572" y="352">对比与提炼</text>
+  <text class="sub" x="572" y="374">Agent 建议 vs 人类回应</text>
+  <text class="sub" x="572" y="394">产出最小、聚焦的改动</text>
+
+  <rect class="n-ok" x="792" y="322" width="244" height="94" rx="9"/>
+  <text class="name" x="812" y="352">开 PR → 人工审核</text>
+  <text class="sub" x="812" y="374">走标准合并流程</text>
+  <text class="ok-t" x="812" y="398">人始终掌控改了什么</text>
+
+  <path class="line" d="M272 369 H 310"/>
+  <path class="line" d="M512 369 H 550"/>
+  <path class="line" d="M752 369 H 790"/>
+
+  <!-- return -->
+  <path class="back" d="M1000 322 C 1000 264 1000 264 1000 262 H 405 V 138"/>
+  <text class="ok-t" x="700" y="254" text-anchor="middle">合并后，下一次内层运行即继承该改进</text>
+
+  <text class="key" x="44" y="480">与「存数据库」路线的关键差异：被改进的产物就是一个普通文件，因此天生可 diff、可 review、可回滚，改进流程直接复用团队已有的代码评审机制。</text>
+  <text class="foot" x="44" y="508">另一条隐含纪律：机器只提「建议」（PR），从不直接改生效内容——与「未激活不注入」完全同构。</text>
+</svg>

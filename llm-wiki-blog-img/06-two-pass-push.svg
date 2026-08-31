@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 460" role="img" aria-labelledby="t6 d6">
+  <title id="t6">两遍推送：破解页面互链的鸡生蛋</title>
+  <desc id="d6">第一遍 ensure_docid 给所有无 docid 的页建档拿号、补全映射表；第二遍 push_resolved 把正文里的相对链接解析成平台 URL 后完整推送。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;--card:#eeeae0;
+      --in:#3e6fa7;--in-fill:#dde7f3;--out:#397b68;--out-fill:#d6e8df;--warn:#b3603f;--warn-fill:#f1ddd3;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;--card:#2b3133;
+        --in:#8eb9e4;--in-fill:#2c3d52;--out:#80c6aa;--out-fill:#2b4a41;--warn:#e2977a;--warn-fill:#43302a;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .warn{fill:var(--warn-fill);stroke:var(--warn);stroke-width:1.6;}
+    .p1{fill:none;stroke:var(--in);stroke-width:2.4;}
+    .p2{fill:none;stroke:var(--out);stroke-width:2.4;}
+    .step1{fill:var(--in-fill);stroke:var(--in);stroke-width:1.4;}
+    .step2{fill:var(--out-fill);stroke:var(--out);stroke-width:1.4;}
+    .line{fill:none;stroke:var(--line);stroke-width:2.4;marker-end:url(#a6);}
+    .big{fill:none;stroke:var(--fg);stroke-width:2.6;marker-end:url(#a6b);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .warn-t{fill:var(--warn);font:700 14px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .warn-s{fill:var(--fg);font:13px/1.4 ui-sans-serif,system-ui,sans-serif;}
+    .h1{fill:var(--in);font:800 16px/1.2 ui-monospace,monospace;}
+    .h2{fill:var(--out);font:800 16px/1.2 ui-monospace,monospace;}
+    .st{fill:var(--fg);font:600 13px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .code{fill:var(--muted);font:12px/1.3 ui-monospace,monospace;}
+    .flow-lbl{fill:var(--fg);font:600 13px/1.3 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a6" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--line)"/></marker>
+    <marker id="a6b" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--fg)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="460"/>
+  <text class="eyebrow" x="44" y="40">PUBLISH / TWO-PASS PUSH</text>
+  <text class="title" x="44" y="74">两遍推送，破解页面互链的“鸡生蛋”</text>
+
+  <!-- problem note -->
+  <rect class="warn" x="44" y="94" width="992" height="58" rx="9"/>
+  <text class="warn-t" x="66" y="120">鸡生蛋问题</text>
+  <text class="warn-s" x="66" y="140">A 页用相对路径 ../entities/b.md 链接 B 页，但推到平台需换成 https://…/p/{docid}，而 B 的 docid 只有推送后才知道。</text>
+
+  <!-- Pass 1 -->
+  <rect class="p1" x="52" y="182" width="430" height="228" rx="12"/>
+  <text class="h1" x="76" y="214">第一遍 · ensure_docid</text>
+  <rect class="step1" x="76" y="230" width="382" height="48" rx="8"/><text class="st" x="94" y="252">① 遍历所有尚无 docid 的页面</text><text class="code" x="94" y="270">for page in docs/ if not docid</text>
+  <path class="line" d="M267 278 V 300"/>
+  <rect class="step1" x="76" y="300" width="382" height="48" rx="8"/><text class="st" x="94" y="322">② createDocument 建档拿号</text><text class="code" x="94" y="340">分配 docid，写入 mapping</text>
+  <path class="line" d="M267 348 V 370"/>
+  <rect class="step1" x="76" y="370" width="382" height="30" rx="8"/><text class="st" x="94" y="390">③ 映射表补全：docs 路径 → docid</text>
+
+  <!-- middle arrow -->
+  <path class="big" d="M494 296 H 588"/>
+  <text class="flow-lbl" x="541" y="286" text-anchor="middle">拿到</text>
+  <text class="flow-lbl" x="541" y="322" text-anchor="middle">全部 docid</text>
+
+  <!-- Pass 2 -->
+  <rect class="p2" x="600" y="182" width="430" height="228" rx="12"/>
+  <text class="h2" x="624" y="214">第二遍 · push_resolved</text>
+  <rect class="step2" x="624" y="230" width="382" height="48" rx="8"/><text class="st" x="642" y="252">① 解析正文里的 .md 相对链接</text><text class="code" x="642" y="270">../entities/b.md → …/p/{docid}</text>
+  <path class="line" d="M815 278 V 300"/>
+  <rect class="step2" x="624" y="300" width="382" height="48" rx="8"/><text class="st" x="642" y="322">② saveDocument 完整推送</text><text class="code" x="642" y="340">正文 + 已解析的互链</text>
+  <path class="line" d="M815 348 V 370"/>
+  <rect class="step2" x="624" y="370" width="382" height="30" rx="8"/><text class="st" x="642" y="390">③ 平台上可搜索、可互跳</text>
+</svg>

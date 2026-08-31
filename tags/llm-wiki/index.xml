@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>LLM Wiki on 麻辣香郭的精神家园</title><link>https://malaxg.top/tags/llm-wiki/</link><description>Recent content in LLM Wiki on 麻辣香郭的精神家园</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 26 Aug 2026 10:00:00 +0800</lastBuildDate><atom:link href="https://malaxg.top/tags/llm-wiki/index.xml" rel="self" type="application/rss+xml"/><item><title>LLM Wiki 详解：从知识检索到知识编译</title><link>https://malaxg.top/posts/llm-wiki-explained/</link><pubDate>Wed, 26 Aug 2026 10:00:00 +0800</pubDate><guid>https://malaxg.top/posts/llm-wiki-explained/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;一份关于 LLM Wiki 知识编译范式的完整学习文档。涵盖它是什么、思想起源、三层架构、三大操作、工程化落地、以及适用边界。&lt;/p&gt;
+&lt;p&gt;本文融合了 Karpathy 原始范式的公开资料与一套企业级 LLM Wiki 系统的真实工程实现（已做通用化脱敏）。文末附参考资料与事实核查说明。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="一一句话理解-llm-wiki"&gt;一、一句话理解 LLM Wiki&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;LLM Wiki 是一个「知识编译器」&lt;/strong&gt;：它把杂乱的原始资料（raw）当作&lt;strong&gt;源代码&lt;/strong&gt;，用一个受严格提示词约束的 &lt;strong&gt;LLM Agent&lt;/strong&gt; 作为&lt;strong&gt;编译器&lt;/strong&gt;，产出结构化、相互链接、可持续增量更新的&lt;strong&gt;知识库产物&lt;/strong&gt;（wiki/docs），最后可发布到团队平台供人阅读。&lt;/p&gt;
+&lt;p&gt;用 Karpathy 本人的类比：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;&amp;ldquo;Obsidian 是 IDE，LLM 是程序员，Wiki 是代码库。&amp;rdquo;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&amp;ldquo;LLM 是作者，人是主编。&amp;rdquo;&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;人负责机器做不好的事——&lt;strong&gt;策展&lt;/strong&gt;（挑选高质量来源）、&lt;strong&gt;探索&lt;/strong&gt;（决定研究方向）、&lt;strong&gt;提问&lt;/strong&gt;（提出好问题）；LLM 负责那些&amp;quot;无人愿做、成本极低&amp;quot;的繁重簿记：总结、建立交叉引用、归档、记录变更。&lt;/p&gt;
+&lt;h2 id="二核心洞察编译知识而非检索知识"&gt;二、核心洞察：编译知识，而非检索知识&lt;/h2&gt;
+&lt;p&gt;这是整套范式的灵魂。&lt;/p&gt;
+&lt;p&gt;如果你用 RAG 搭过知识库，多半有过这种别扭感：明明是同一批文档，用户每问一次，系统就要重新检索、重新塞进上下文、让模型重新&amp;quot;读懂&amp;quot;一遍。答案用完即弃，下一次从零再来。&lt;/p&gt;
+&lt;p&gt;Karpathy 用一个精准的类比点破了这件事的荒谬：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;这就像&lt;strong&gt;每次运行程序都重新解释一遍源代码，而不是先把它编译好&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;RAG 是解释型语言，LLM Wiki 是编译型语言。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;两种范式在&amp;quot;知识何时被处理&amp;quot;这件事上，存在根本分歧：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="编译知识 vs 检索知识" loading="lazy" src="https://malaxg.top/llm-wiki-blog-img/01-compile-vs-retrieve.svg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;图 1：RAG 在「查询时」反复现读、不积累；LLM Wiki 在「摄取时」编译一次、之后反复复用并自我生长。&lt;/em&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;维度&lt;/th&gt;
+&lt;th&gt;传统 RAG（解释型）&lt;/th&gt;
+&lt;th&gt;LLM Wiki（编译型）&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;知识处理时机&lt;/td&gt;
+&lt;td&gt;查询时——每次提问都重来&lt;/td&gt;
+&lt;td&gt;摄取时——每个源只处理一次&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;是否积累&lt;/td&gt;
+&lt;td&gt;不积累，每次从零&amp;quot;重新发现&amp;quot;&lt;/td&gt;
+&lt;td&gt;随每个源和每次查询复利增长&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;算力/Token&lt;/td&gt;
+&lt;td&gt;每次都加载大量原始文档&lt;/td&gt;
+&lt;td&gt;读索引即可导航，Token 大幅下降&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;基础设施&lt;/td&gt;
+&lt;td&gt;向量数据库、embedding 管道&lt;/td&gt;
+&lt;td&gt;零基础设施，纯 Markdown + Git&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;可读性&lt;/td&gt;
+&lt;td&gt;chunk 碎片，人难以直接阅读&lt;/td&gt;
+&lt;td&gt;人类可读的 wiki，可直接编辑、可 diff&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;矛盾与缺口&lt;/td&gt;
+&lt;td&gt;难以显式追踪&lt;/td&gt;
+&lt;td&gt;元数据里显式记录矛盾与待解问题&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;维护者&lt;/td&gt;
+&lt;td&gt;系统（黑盒）&lt;/td&gt;
+&lt;td&gt;LLM（透明、有据可查）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;blockquote&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;预防针&lt;/strong&gt;：社区里流传&amp;quot;Token 减少约 95%、比 RAG 高效约 70 倍&amp;quot;之类的说法，这些数字来自个别实践者的估算，&lt;strong&gt;并非严格基准测试&lt;/strong&gt;，请当作&amp;quot;方向性直觉&amp;quot;而非&amp;quot;性能承诺&amp;quot;。&lt;/p&gt;</description><content:encoded><![CDATA[<blockquote>
+<p>一份关于 LLM Wiki 知识编译范式的完整学习文档。涵盖它是什么、思想起源、三层架构、三大操作、工程化落地、以及适用边界。</p>
+<p>本文融合了 Karpathy 原始范式的公开资料与一套企业级 LLM Wiki 系统的真实工程实现（已做通用化脱敏）。文末附参考资料与事实核查说明。</p>
+</blockquote>
+<h2 id="一一句话理解-llm-wiki">一、一句话理解 LLM Wiki</h2>
+<p><strong>LLM Wiki 是一个「知识编译器」</strong>：它把杂乱的原始资料（raw）当作<strong>源代码</strong>，用一个受严格提示词约束的 <strong>LLM Agent</strong> 作为<strong>编译器</strong>，产出结构化、相互链接、可持续增量更新的<strong>知识库产物</strong>（wiki/docs），最后可发布到团队平台供人阅读。</p>
+<p>用 Karpathy 本人的类比：</p>
+<blockquote>
+<p><strong>&ldquo;Obsidian 是 IDE，LLM 是程序员，Wiki 是代码库。&rdquo;</strong></p>
+<p><strong>&ldquo;LLM 是作者，人是主编。&rdquo;</strong></p>
+</blockquote>
+<p>人负责机器做不好的事——<strong>策展</strong>（挑选高质量来源）、<strong>探索</strong>（决定研究方向）、<strong>提问</strong>（提出好问题）；LLM 负责那些&quot;无人愿做、成本极低&quot;的繁重簿记：总结、建立交叉引用、归档、记录变更。</p>
+<h2 id="二核心洞察编译知识而非检索知识">二、核心洞察：编译知识，而非检索知识</h2>
+<p>这是整套范式的灵魂。</p>
+<p>如果你用 RAG 搭过知识库，多半有过这种别扭感：明明是同一批文档，用户每问一次，系统就要重新检索、重新塞进上下文、让模型重新&quot;读懂&quot;一遍。答案用完即弃，下一次从零再来。</p>
+<p>Karpathy 用一个精准的类比点破了这件事的荒谬：</p>
+<blockquote>
+<p>这就像<strong>每次运行程序都重新解释一遍源代码，而不是先把它编译好</strong>。</p>
+<p><strong>RAG 是解释型语言，LLM Wiki 是编译型语言。</strong></p>
+</blockquote>
+<p>两种范式在&quot;知识何时被处理&quot;这件事上，存在根本分歧：</p>
+<p><img alt="编译知识 vs 检索知识" loading="lazy" src="/llm-wiki-blog-img/01-compile-vs-retrieve.svg"></p>
+<p><em>图 1：RAG 在「查询时」反复现读、不积累；LLM Wiki 在「摄取时」编译一次、之后反复复用并自我生长。</em></p>
+<table>
+	<thead>
+			<tr>
+					<th>维度</th>
+					<th>传统 RAG（解释型）</th>
+					<th>LLM Wiki（编译型）</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>知识处理时机</td>
+					<td>查询时——每次提问都重来</td>
+					<td>摄取时——每个源只处理一次</td>
+			</tr>
+			<tr>
+					<td>是否积累</td>
+					<td>不积累，每次从零&quot;重新发现&quot;</td>
+					<td>随每个源和每次查询复利增长</td>
+			</tr>
+			<tr>
+					<td>算力/Token</td>
+					<td>每次都加载大量原始文档</td>
+					<td>读索引即可导航，Token 大幅下降</td>
+			</tr>
+			<tr>
+					<td>基础设施</td>
+					<td>向量数据库、embedding 管道</td>
+					<td>零基础设施，纯 Markdown + Git</td>
+			</tr>
+			<tr>
+					<td>可读性</td>
+					<td>chunk 碎片，人难以直接阅读</td>
+					<td>人类可读的 wiki，可直接编辑、可 diff</td>
+			</tr>
+			<tr>
+					<td>矛盾与缺口</td>
+					<td>难以显式追踪</td>
+					<td>元数据里显式记录矛盾与待解问题</td>
+			</tr>
+			<tr>
+					<td>维护者</td>
+					<td>系统（黑盒）</td>
+					<td>LLM（透明、有据可查）</td>
+			</tr>
+	</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>预防针</strong>：社区里流传&quot;Token 减少约 95%、比 RAG 高效约 70 倍&quot;之类的说法，这些数字来自个别实践者的估算，<strong>并非严格基准测试</strong>，请当作&quot;方向性直觉&quot;而非&quot;性能承诺&quot;。</p>
+</blockquote>
+<h2 id="三思想起源一个-1500-万浏览的旧点子">三、思想起源：一个 1500 万浏览的&quot;旧点子&quot;</h2>
+<ul>
+<li><strong>提出者</strong>：Andrej Karpathy（OpenAI 联合创始人、前特斯拉 AI 高级总监、&ldquo;vibe coding&quot;一词提出者）</li>
+<li><strong>时间</strong>：2026 年 4 月初，一条推文 + 一个 GitHub gist（&ldquo;LLM Wiki&rdquo; idea file）</li>
+<li><strong>热度</strong>：约 1500 万浏览、数万转发收藏，引爆 AI 社区</li>
+<li><strong>原话</strong>：<em>&ldquo;using LLMs to build personal knowledge bases for various topics of research interest&rdquo;</em>（用 LLM 为各研究主题构建个人知识库）</li>
+</ul>
+<p><strong>这不是新问题，而是老问题终于等来了答案。</strong> 把知识组织成相互链接的网络，这个梦想至少可以追溯到：</p>
+<ul>
+<li><strong>1945 年 Vannevar Bush</strong> 在《As We May Think》中构想的 <strong>Memex</strong>；</li>
+<li>社会学家 <strong>Niklas Luhmann</strong> 用一生实践的 <strong>Zettelkasten（卡片盒笔记法）</strong>——&ldquo;原子化笔记 + 密集互链&rdquo;。</li>
+</ul>
+<p>但这些方法有一个共同死穴：<strong>谁来维护？</strong> 手动建立和更新成千上万条交叉引用，是一项没人愿意长期坚持的苦役。而 LLM 恰好补上了这最后一块拼图——一个不知疲倦、成本近乎为零的知识管理员。</p>
+<h2 id="四三层架构">四、三层架构</h2>
+<p>LLM Wiki 的骨架是三层，各司其职、边界清晰。这套分层正是它区别于&quot;让 LLM 随便记点笔记&quot;的关键。</p>
+<p><img alt="LLM Wiki 三层架构" loading="lazy" src="/llm-wiki-blog-img/02-three-layers.svg"></p>
+<p><em>图 2：三层架构。数据只能自下而上流动。Karpathy 特别强调，最容易被忽视却最关键的是第三层 Schema——它是让 LLM 保持纪律的「语言规范」。</em></p>
+<table>
+	<thead>
+			<tr>
+					<th>层</th>
+					<th>是什么</th>
+					<th>软件工程类比</th>
+					<th>可变性</th>
+					<th>谁拥有</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>① Raw</strong></td>
+					<td>原始来源（文档、代码、网页存档）</td>
+					<td>源代码 <code>.c/.java</code></td>
+					<td><strong>不可变</strong>，事实基准</td>
+					<td>拉取脚本（LLM 只读）</td>
+			</tr>
+			<tr>
+					<td><strong>② Wiki</strong></td>
+					<td>LLM 生成的结构化 Markdown 页面</td>
+					<td>编译产物 <code>.o/a.out</code></td>
+					<td>LLM 完全拥有，禁止人工乱改</td>
+					<td>LLM Agent</td>
+			</tr>
+			<tr>
+					<td><strong>③ Schema</strong></td>
+					<td>规则/约定文件（如 <code>CLAUDE.md</code>、系统提示词）</td>
+					<td>语言规范 + 编译选项</td>
+					<td>定义结构与工作流</td>
+					<td>提示词本身</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>为什么 Schema 层&quot;最关键&rdquo;？</strong> 因为同样一个大模型，喂不喂这份规则文件，行为天差地别。没有它，LLM 只是个会瞎聊的助手，产出的笔记杂乱无章、格式漂移、引用混乱；有了它，LLM 才变成一个<strong>守纪律的编译器</strong>——知道该建哪几类页面、每类页面的元数据长什么样、如何交叉引用、遇到矛盾怎么标注。</p>
+<blockquote>
+<p><strong>Agent 的自我定位（系统提示词原文示例）</strong>：
+&ldquo;你是『raw→LLM Wiki 编译器』，一个有纪律的 wiki 维护者，不是普通聊天机器人。你完全拥有并维护 docs/ 知识库层；人类只负责选材、提问、把方向，繁琐的摘要、交叉引用、归档、记账全部由你完成。&rdquo;</p>
+</blockquote>
+<h2 id="五六种页面类型产物的类型系统">五、六种页面类型（产物的类型系统）</h2>
+<p>编译产物不是一堆自由格式的笔记，而是有严格&quot;类型系统&quot;的结构化页面：</p>
+<table>
+	<thead>
+			<tr>
+					<th>type</th>
+					<th>目录</th>
+					<th>产出什么</th>
+					<th>命名规则</th>
+					<th>由哪种操作产出</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>source</code></td>
+					<td><code>sources/</code></td>
+					<td>每篇已摄入 raw 的摘要（与源 1:1 对应）</td>
+					<td><code>summary-{slug}.md</code></td>
+					<td>ingest</td>
+			</tr>
+			<tr>
+					<td><code>entity</code></td>
+					<td><code>entities/</code></td>
+					<td>人/团队/平台/服务/接口/工具/库表/组件</td>
+					<td><code>{name}.md</code></td>
+					<td>ingest</td>
+			</tr>
+			<tr>
+					<td><code>concept</code></td>
+					<td><code>concepts/</code></td>
+					<td>业务知识/数据链路/方法/术语/机制</td>
+					<td><code>{name}.md</code></td>
+					<td>ingest</td>
+			</tr>
+			<tr>
+					<td><code>comparison</code></td>
+					<td><code>comparisons/</code></td>
+					<td>若干对象的横向对比</td>
+					<td><code>{slug}.md</code></td>
+					<td>query 归档</td>
+			</tr>
+			<tr>
+					<td><code>synthesis</code></td>
+					<td><code>syntheses/</code></td>
+					<td>围绕一个主题的纵深综述</td>
+					<td><code>{slug}.md</code></td>
+					<td>query 归档</td>
+			</tr>
+	</tbody>
+</table>
+<p>此外还有<strong>系统页面</strong>（非内容页，随每次操作更新）：</p>
+<ul>
+<li><code>index.md</code> —— 主目录，按主题分组（非扁平堆叠）</li>
+<li><code>overview.md</code> —— 高层综述与主题导航</li>
+<li><code>sources/index.md</code> —— 用户可见的源文档清单</li>
+<li><code>log.md</code> —— append-only 活动日志（仅本地，通常不发布）</li>
+</ul>
+<h2 id="六frontmatter产物的机器可读元数据">六、Frontmatter：产物的机器可读元数据</h2>
+<p>每个产物页面头部都有 YAML frontmatter，这是知识图谱的&quot;符号表&quot;。以 <strong>concept 概念页</strong>为例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">type</span>: <span style="color:#ae81ff">concept</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">title</span>: <span style="color:#e6db74">&#34;概念名&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">aliases</span>: [<span style="color:#ae81ff">别名, 缩写]          </span> <span style="color:#75715e"># 供 query 命中</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sources</span>: [<span style="color:#ae81ff">sources/summary-x.md]</span> <span style="color:#75715e"># 溯源：这页知识来自哪些源摘要</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">related</span>: [<span style="color:#ae81ff">entities/entity1.md] </span> <span style="color:#75715e"># 交叉引用（≥2 条）</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">created</span>: <span style="color:#e6db74">2026-07-15</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">updated</span>: <span style="color:#e6db74">2026-08-03</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">confidence</span>: <span style="color:#ae81ff">high | medium | low</span> <span style="color:#75715e"># 置信度</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">cluster</span>: <span style="color:#e6db74">&#34;{主题分组}&#34;</span>           <span style="color:#75715e"># 与 index.md 分组一致</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">contradictions</span>: []              <span style="color:#75715e"># 与其它源的冲突（不自动选边）</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">open_questions</span>: []              <span style="color:#75715e"># 未解决的缺口</span>
+</span></span><span style="display:flex;"><span>---
+</span></span></code></pre></div><p>不同类型的关键差异字段：</p>
+<ul>
+<li><strong>source 页</strong>：额外有 <code>source_id</code> / <code>source_type</code> / <code>source_version</code> / <code>key_claims</code></li>
+<li><strong>entity 页</strong>：额外有 <code>entity_type</code>（person/team/platform/service/api/tool/table/component）</li>
+<li><strong>comparison / synthesis 页</strong>：有 <code>filed_from_query: true</code>，<code>related</code> 必须回链概念页</li>
+</ul>
+<h2 id="七三大操作知识库如何活起来">七、三大操作：知识库如何&quot;活&quot;起来</h2>
+<p>如果说三层架构是静态骨架，那么让知识库真正运转、生长的，是三个核心操作。它们恰好对应软件构建里的三个动作：</p>
+<p><img alt="三大操作与复利飞轮" loading="lazy" src="/llm-wiki-blog-img/03-three-operations.svg"></p>
+<p><em>图 3：INGEST / QUERY / LINT 三大操作。QUERY 中产生的好答案会被归档回 Wiki，形成&quot;越用越聪明&quot;的复利飞轮（曲线为示意）。</em></p>
+<h3 id="ingest摄取-最重要的操作">INGEST（摄取）—— 最重要的操作</h3>
+<p>当一个新来源进入 <code>raw/</code>，LLM 会通读它，然后<strong>提炼要点、抽取实体与概念、建立与已有页面的交叉引用</strong>。</p>
+<ul>
+<li>一次摄取通常波及 <strong>10–15 个页面</strong>：不只是新建一篇摘要，还要回头更新相关概念页、补上双向链接。</li>
+<li>每个源提炼 <strong>3–5 条</strong>关键要点（key_claims）。</li>
+<li>这正是&quot;编译&quot;的分量所在——它做的是碎片化 chunk 永远做不到的<strong>知识整合</strong>。</li>
+</ul>
+<p><strong>ingest 流程（逐步）</strong>：</p>
+<ol>
+<li>读取候选源对应的 raw 文件原文</li>
+<li>通读原文，提炼 3–5 条关键要点，不臆造</li>
+<li>产出/更新 <code>sources/summary-{slug}.md</code>（与源 1:1 对应）</li>
+<li>抽取实体与概念，创建或更新 <code>entities/*.md</code>、<code>concepts/*.md</code></li>
+<li>建立交叉引用（新页面 ≥2 条入链），形成知识网络</li>
+<li>标注矛盾（若与已有页面冲突，显式并列，不覆盖）</li>
+<li>归类 cluster；出现新分组则登记到 index/overview</li>
+<li>更新系统页（index.md、sources/index.md、log.md）</li>
+</ol>
+<h3 id="query查询-会自我增值的问答">QUERY（查询）—— 会自我增值的问答</h3>
+<p>查询时，LLM 先读索引定位到相关页面，必要时再下钻到源摘要核对证据，然后带着引用作答。</p>
+<p><strong>关键在于</strong>：如果这次问答产生了有价值的新分析（比如一个横向对比），它可以被<strong>归档回 wiki</strong>，变成一篇新的对比页或综述页（<code>filed_from_query: true</code>）。于是知识库不是被动仓库，而是&quot;越用越丰富&quot;。</p>
+<h3 id="lint健康检查-给知识做体检">LINT（健康检查）—— 给知识做体检</h3>
+<p>就像代码需要 linter，知识库也会&quot;腐坏&quot;。LINT 定期扫描：</p>
+<table>
+	<thead>
+			<tr>
+					<th>检查项</th>
+					<th>标准</th>
+					<th>是否 autofix</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>断链</td>
+					<td>所有相对链接目标必须存在</td>
+					<td>仅报告</td>
+			</tr>
+			<tr>
+					<td>孤儿页</td>
+					<td>每页 ≥2 条入链（系统页除外）</td>
+					<td>仅报告</td>
+			</tr>
+			<tr>
+					<td>H1 缺失</td>
+					<td>正文首行必须是一级标题</td>
+					<td>仅报告</td>
+			</tr>
+			<tr>
+					<td>cluster 缺失/不一致</td>
+					<td>frontmatter 与 index 分组一致</td>
+					<td><strong>自动修复</strong>（只改 frontmatter）</td>
+			</tr>
+			<tr>
+					<td>回链缺失</td>
+					<td>综述/对比引用的概念页需有回链</td>
+					<td>自动补回链</td>
+			</tr>
+			<tr>
+					<td>过时声明</td>
+					<td>已编译版本落后于源版本 → 标记 stale</td>
+					<td>报告为待办</td>
+			</tr>
+			<tr>
+					<td>矛盾未标注</td>
+					<td>不同源冲突必须记录</td>
+					<td>不自动选边</td>
+			</tr>
+	</tbody>
+</table>
+<p>有些实现还加入 <strong>MERGE</strong>（合并高度重叠的页面），进一步对抗熵增。</p>
+<h3 id="三条让人放心的纪律硬约束">三条让人放心的纪律（硬约束）</h3>
+<ul>
+<li><strong>① 忠实原文</strong>——raw 里没有的不写，不确定就标低置信度</li>
+<li><strong>② 矛盾显式化</strong>——遇到冲突不悄悄覆盖旧结论，而是并列标注、留待主编裁决</li>
+<li><strong>③ 永不删除</strong>——过时页面标记为 <code>deprecated</code> 而非删掉，保留可追溯历史</li>
+</ul>
+<h2 id="八输入--处理--输出-全景">八、输入 / 处理 / 输出 全景</h2>
+<p><img alt="输入 / 处理 / 输出 全景" loading="lazy" src="/llm-wiki-blog-img/04-io-overview.svg"></p>
+<p><em>图 4：四类输入喂给 LLM Agent 处理器，产出四类输出。处理是核心，输入决定&quot;编译什么&quot;，输出决定&quot;产出什么形态&quot;。</em></p>
+<p><strong>四类输入</strong>：</p>
+<table>
+	<thead>
+			<tr>
+					<th>输入</th>
+					<th>相当于编译器的</th>
+					<th>说明</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>① raw/ 原始资料</td>
+					<td>源代码</td>
+					<td>两类源：文档、代码。不可变，只读</td>
+			</tr>
+			<tr>
+					<td>② <code>_fetch_state.json</code></td>
+					<td>源文件时间戳</td>
+					<td>源的版本、内容哈希、拉取状态</td>
+			</tr>
+			<tr>
+					<td>③ 系统提示词</td>
+					<td>语言规范+编译选项</td>
+					<td>Schema 层，最关键</td>
+			</tr>
+			<tr>
+					<td>④ 调用指令</td>
+					<td><code>make</code> 目标+选项</td>
+					<td>mode + operation + input</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>调用指令</strong>必须显式指定 mode，与 operation 正交组合：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mode<span style="color:#f92672">=</span>rebuild     operation<span style="color:#f92672">=</span>ingest                        <span style="color:#75715e"># 全量重建</span>
+</span></span><span style="display:flex;"><span>mode<span style="color:#f92672">=</span>incremental operation<span style="color:#f92672">=</span>ingest source_id<span style="color:#f92672">=</span>iwiki:xxxxx  <span style="color:#75715e"># 增量摄入（日常默认）</span>
+</span></span><span style="display:flex;"><span>mode<span style="color:#f92672">=</span>incremental operation<span style="color:#f92672">=</span>query <span style="color:#e6db74">&#34;某字段怎么查？&#34;</span>          <span style="color:#75715e"># 查询，可选 --archive</span>
+</span></span><span style="display:flex;"><span>mode<span style="color:#f92672">=</span>incremental operation<span style="color:#f92672">=</span>lint                          <span style="color:#75715e"># 健康检查，可选 --fix</span>
+</span></span></code></pre></div><table>
+	<thead>
+			<tr>
+					<th></th>
+					<th>ingest 摄入</th>
+					<th>query 查询</th>
+					<th>lint 健康检查</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>rebuild</strong> 全量</td>
+					<td>枚举全部源逐个编译，末尾 Lint 收敛，重写 index/overview</td>
+					<td>—</td>
+					<td>rebuild 末尾一致性收敛</td>
+			</tr>
+			<tr>
+					<td><strong>incremental</strong> 增量（默认）</td>
+					<td>只编译候选（stale）源，只动受影响页面</td>
+					<td>读库作答，有价值则归档</td>
+					<td>扫矛盾/孤儿页/断链，报告+可选修复</td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="九工程化落地从个人玩具到生产系统">九、工程化落地：从个人玩具到生产系统</h2>
+<p>Karpathy 的原始版本是面向个人的：把文件拖进 <code>raw/</code>，在 Obsidian 里用 <code>[[双链]]</code> 浏览知识图谱。但当团队想把它变成<strong>自动化生产系统</strong>时，会遇到一系列现实问题，范式也在这些地方被工程化&quot;加固&quot;：</p>
+<table>
+	<thead>
+			<tr>
+					<th>问题</th>
+					<th>个人版做法</th>
+					<th>工程化改造</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>源怎么进来</td>
+					<td>手动拖文件</td>
+					<td>写<strong>自动拉取脚本</strong>，定时从内部 wiki/代码仓库同步，记录每个源的版本</td>
+			</tr>
+			<tr>
+					<td>怎么知道哪些要重编</td>
+					<td>靠人/LLM 隐式判断</td>
+					<td>维护<strong>两份状态账本</strong>（已拉取 vs 已编译），精确比对&quot;变脏&quot;的源，只增量重编</td>
+			</tr>
+			<tr>
+					<td>交叉引用语法</td>
+					<td><code>[[wiki 双链]]</code></td>
+					<td>改用<strong>标准 Markdown 链接</strong> <code>[标题](path.md)</code>——因为要发布到不渲染双链的平台</td>
+			</tr>
+			<tr>
+					<td>怎么给别人看</td>
+					<td>本地 Obsidian</td>
+					<td>写<strong>发布脚本</strong>推送到团队 wiki，解决&quot;页面互链 ID 发布后才知道&quot;的鸡生蛋问题（两遍推送）</td>
+			</tr>
+			<tr>
+					<td>怎么调用</td>
+					<td>自然语言聊</td>
+					<td>结构化指令：<strong>模式 × 操作</strong>（rebuild/incremental × ingest/query/lint）</td>
+			</tr>
+			<tr>
+					<td>矛盾追踪</td>
+					<td>flagged for review</td>
+					<td>引用块显式标注 + frontmatter <code>contradictions</code> 双记录</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>一句话总结</strong>：Karpathy 原始范式是面向<strong>个人、手动、Obsidian 本地浏览</strong>的轻量方案；工程化版本把它升级为面向<strong>团队、自动拉取多源、结构化状态管理、自动发布</strong>的生产系统。但核心思想（三层架构 / 编译而非检索 / ingest-query-lint / 复利积累）一脉相承。</p>
+<h2 id="十增量编译两份账本的解耦设计">十、增量编译：两份账本的解耦设计</h2>
+<p>最能体现&quot;工程 vs 玩具&quot;差异的，是<strong>增量编译</strong>——几乎是从 <code>make</code> 里原样搬来的智慧：只重新编译改动过的文件。</p>
+<p>实现的关键，是让&quot;拉取&quot;和&quot;编译&quot;各记一本账，然后 join 对比：</p>
+<p><img alt="增量编译：两份账本 join 判定" loading="lazy" src="/llm-wiki-blog-img/05-incremental-join.svg"></p>
+<p><em>图 5：拉取账本记录源的当前版本，编译账本记录已编译到的版本，两者 join 对比即可精确判定&quot;哪些源变脏了&quot;。</em></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 拉取账本记：这个源现在是什么版本</span>
+</span></span><span style="display:flex;"><span>fetch_state[src] <span style="color:#f92672">=</span> { <span style="color:#e6db74">&#34;version&#34;</span>: <span style="color:#ae81ff">9</span>, <span style="color:#e6db74">&#34;hash&#34;</span>: <span style="color:#e6db74">&#34;sha256:04f3...&#34;</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 编译账本记：这个源已经编译到哪个版本</span>
+</span></span><span style="display:flex;"><span>compile_state[src] <span style="color:#f92672">=</span> { <span style="color:#e6db74">&#34;compiled_version&#34;</span>: <span style="color:#ae81ff">7</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 判定：编译落后于拉取 → 这个源&#34;脏&#34;了，需要重编</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> compile_state[src][<span style="color:#e6db74">&#34;compiled_version&#34;</span>] <span style="color:#f92672">&lt;</span> fetch_state[src][<span style="color:#e6db74">&#34;version&#34;</span>]:
+</span></span><span style="display:flex;"><span>    mark_as_stale(src)   <span style="color:#75715e"># 只重编它，其余页面纹丝不动</span>
+</span></span></code></pre></div><p><strong>增量候选判定的精确规则</strong>（满足任一即为候选）：</p>
+<ul>
+<li><code>_fetch_state.json</code> 里 <code>fetch.state ∈ {pending, changed, error}</code></li>
+<li><code>_compile_state.json</code> 里 <code>compile.state ∈ {never_compiled, stale, compile_error}</code>，或该 source_id 在编译账本中缺失</li>
+</ul>
+<p><strong>stale 怎么算</strong>：</p>
+<ul>
+<li>iWiki 类源用 <code>version</code> 整数比较（compiled_version &lt; 当前 version → stale）</li>
+<li>代码类源用 blob SHA <strong>字符串等值</strong>比较（不等即 stale）</li>
+<li>stale 是<strong>运行时派生态，不单独存储</strong></li>
+</ul>
+<blockquote>
+<p>🧱 <strong>一个优雅的解耦</strong>：拉取脚本完全不需要懂编译逻辑，编译器也完全不需要懂拉取逻辑，它们只通过两份账本&quot;隔空对账&quot;。&ldquo;哪些源需要重编&quot;这个状态甚至不用存储，每次运行时现算即可。这种单一职责的解耦，正是范式能从个人玩具长成生产系统的底气。</p>
+</blockquote>
+<p><strong>源与产物的主键规范（source_id）</strong>：</p>
+<pre tabindex="0"><code>iwiki:{docid}                      # wiki 文档
+gongfeng:{repo}:{ref}:{path}       # 代码单文件
+gongfeng_dir:{repo}:{ref}:{path}   # 代码目录
+</code></pre><h2 id="十一状态机">十一、状态机</h2>
+<p>整个系统靠两份账本的状态流转驱动增量。</p>
+<p><strong>fetch.state（输入侧，Agent 只读）</strong>：</p>
+<table>
+	<thead>
+			<tr>
+					<th>状态</th>
+					<th>含义</th>
+					<th>对编译的意义</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>pending</code></td>
+					<td>待拉取</td>
+					<td>→ 候选</td>
+			</tr>
+			<tr>
+					<td><code>fresh</code></td>
+					<td>已拉取、与上次一致</td>
+					<td>不一定候选，看 compile 侧</td>
+			</tr>
+			<tr>
+					<td><code>changed</code></td>
+					<td>源端已变更待重拉</td>
+					<td>→ 候选</td>
+			</tr>
+			<tr>
+					<td><code>fetching</code></td>
+					<td>拉取中</td>
+					<td>暂不处理</td>
+			</tr>
+			<tr>
+					<td><code>error</code></td>
+					<td>拉取失败</td>
+					<td>→ 候选（可用现有快照编译）</td>
+			</tr>
+			<tr>
+					<td><code>removed</code></td>
+					<td>已移除</td>
+					<td>对应页面标 deprecated，不删</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>compile.state（输出侧，Agent 独写）</strong>：</p>
+<table>
+	<thead>
+			<tr>
+					<th>状态</th>
+					<th>含义</th>
+					<th>对编译的意义</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>never_compiled</code></td>
+					<td>从未编译</td>
+					<td>→ 候选</td>
+			</tr>
+			<tr>
+					<td><code>stale</code></td>
+					<td>源版本已超过已编译版本</td>
+					<td>→ 候选</td>
+			</tr>
+			<tr>
+					<td><code>compiling</code></td>
+					<td>编译中</td>
+					<td>处理中</td>
+			</tr>
+			<tr>
+					<td><code>compiled</code></td>
+					<td>已编译到最新</td>
+					<td>跳过</td>
+			</tr>
+			<tr>
+					<td><code>compile_error</code></td>
+					<td>上次编译失败</td>
+					<td>→ 候选（重试）</td>
+			</tr>
+			<tr>
+					<td><code>ignored</code></td>
+					<td>人为忽略</td>
+					<td>永不编译</td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="十二双提交工作流">十二、双提交工作流</h2>
+<p><strong>为什么必须两次提交</strong>：编译账本需要记录&quot;产出这批 wiki 的那次提交 hash&rdquo;，但提交前无法知道自己的 hash。所以：<strong>先提交产物拿到 hash（Commit A），再把 hash 回填进编译账本单独提交（Commit B）</strong>。</p>
+<pre tabindex="0"><code>1. 基础检查    ── 新增页有 H1；相对链接目标存在
+2. Commit A    ── git add docs/ &amp;&amp; commit  →  拿到 hash 如 abc123
+3. Commit B    ── 把 abc123 写入 _compile_state.json 的 compiled_commit
+                  git add raw/_compile_state.json &amp;&amp; commit
+4. 一次性 push ── A、B 都提交后再统一推送
+</code></pre><blockquote>
+<p><strong>不修改文件的操作不 commit</strong>：lint 仅报告、query 仅回答、增量无候选时 → 直接说明&quot;无需更新&quot;并停止，不产生空提交。</p>
+</blockquote>
+<p>这与下面发布环节的&quot;两遍推送&quot;同构——都是**&ldquo;先落地拿标识，再回填引用&rdquo;**。</p>
+<h2 id="十三发布两遍推送破解鸡生蛋">十三、发布：两遍推送破解&quot;鸡生蛋&quot;</h2>
+<p>wiki 编译完成后，由发布脚本推送到团队平台。核心难点是<strong>页面互链的 docid 解析</strong>。</p>
+<p><strong>鸡生蛋问题</strong>：wiki 里 A 页链接到 B 页用的是相对路径 <code>../entities/b.md</code>，但推送到平台需要换成 <code>https://.../p/{B的docid}</code>。而 B 的 docid 只有推送后才知道。</p>
+<p><strong>两遍推送</strong>解决：</p>
+<p><img alt="两遍推送：破解页面互链的鸡生蛋" loading="lazy" src="/llm-wiki-blog-img/06-two-pass-push.svg"></p>
+<p><em>图 6：第一遍先给所有页面建档拿到 docid、补全映射表；第二遍再把正文里的相对链接解析成平台 URL 后完整推送。</em></p>
+<ul>
+<li>映射表（如 <code>iwiki-mapping.json</code>）由发布脚本独写，记录 <code>docs 文件路径 → docid</code> 以及目录结构。</li>
+<li>frontmatter 通常会被平台自动剥离（正文干净），所以照常写不会污染发布内容。</li>
+<li><code>log.md</code> 是&quot;构建日志&quot;，一般不发布，留在本地仓库。</li>
+</ul>
+<h2 id="十四端到端实例一个源的完整生命周期">十四、端到端实例：一个源的完整生命周期</h2>
+<p>跟随一个 wiki 源，从被添加到最终发布，把输入/处理/输出串起来：</p>
+<ol>
+<li><strong>【输入】添加源</strong>：运维执行 <code>fetch_raw.py --add 4028672179</code>。脚本拉取正文、加 frontmatter、算 content_hash，落盘为 <code>raw/xxx-4028672179.md</code>，在 <code>_fetch_state.json</code> 写入 <code>fetch.state=fresh, version=3</code>。</li>
+<li><strong>【输入】触发编译</strong>：调用 <code>mode=incremental operation=ingest source_id=iwiki:4028672179</code>。</li>
+<li><strong>【处理】候选判定</strong>：Agent join 两份账本，发现该 source_id 在编译账本中缺失（never_compiled）→ 判定为候选。</li>
+<li><strong>【处理】编译</strong>：通读原文 → 提炼 3–5 条要点 → 新建 <code>sources/summary-xxx.md</code>、若干 <code>concepts/*.md</code> 与 <code>entities/*.md</code> → 建立 ≥2 交叉引用 → 标注矛盾（若有）。</li>
+<li><strong>【输出】写产物</strong>：更新 index.md（注册新页+主题分组）、overview.md、sources/index.md、log.md（追加 ingest 记录）。</li>
+<li><strong>【输出】Commit A</strong>：<code>git add docs/ &amp;&amp; git commit -m &quot;docs: ingest xxx&quot;</code>，得到 hash <code>abc123</code>。</li>
+<li><strong>【输出】Commit B</strong>：把 <code>abc123</code> 回填进 <code>_compile_state.json</code>（state=compiled, compiled_version=3, compiled_commit=abc123），单独提交后 push。</li>
+<li><strong>【发布】sync</strong>：CI 触发发布脚本，第一遍建档拿 docid、第二遍解析链接推送，平台上出现可搜索、可互跳的新文档。</li>
+<li><strong>【再处理】下次源更新</strong>：某天该文档被人改动，fetch 拉到 version=4。下次 ingest 时 join 账本发现 compiled_version(3) &lt; version(4) → stale → 只重编这一个源的相关页面（增量），其余纹丝不动。</li>
+</ol>
+<h2 id="十五从零复现的最小清单">十五、从零复现的最小清单</h2>
+<p>复现这套&quot;知识编译器&quot;门槛低得惊人——不需要向量库，一个目录 + 一份提示词就能起步。</p>
+<h3 id="目录骨架">目录骨架</h3>
+<pre tabindex="0"><code>my-wiki/
+├── raw/                 # 放原始来源（只读）
+│   └── _fetch_state.json   # 拉取账本 {&#34;schema_version&#34;:3,&#34;docs&#34;:[]}
+├── wiki/  (或 docs/)     # LLM 编译出的页面
+│   ├── sources/            # 每个源一篇摘要
+│   ├── entities/           # 实体页
+│   ├── concepts/           # 概念页
+│   ├── comparisons/        # 对比页
+│   ├── syntheses/          # 综述页
+│   ├── index.md            # 主目录
+│   └── log.md              # 活动日志
+├── _compile_state.json  # 编译账本 {&#34;schema_version&#34;:3,&#34;docs&#34;:[]}
+└── CLAUDE.md            # ★ Schema 层：最关键的文件
+</code></pre><h3 id="schema-层claudemd核心规则节选">Schema 层（CLAUDE.md）核心规则节选</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 你是&#34;raw→wiki 编译器&#34;，只读 raw/，完全拥有 wiki/
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 每类页面的 frontmatter 必须包含：type / sources / related / confidence
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 每个新页面至少交叉引用 2 个已有页面
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 只用标准 markdown 链接 [<span style="color:#f92672">标题</span>](<span style="color:#a6e22e">path.md</span>)，绝不用 [[双链]]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 正文第一行必须是 H1 标题
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 遇到矛盾并列标注，不覆盖；过时页面标 deprecated，不删除
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 每次改 wiki 都更新 index.md 与 log.md
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 忠实原文，raw 没有的不写；不确定设 confidence: low
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> 全文不使用 emoji；专有名词保留英文原名
+</span></span></code></pre></div><h3 id="复现步骤">复现步骤</h3>
+<ol>
+<li><strong>【输入】搭输入管道</strong>：写拉取脚本，把外部源拉成&quot;带 source_id 的标准化 raw 文件 + 版本账本&quot;</li>
+<li><strong>【输入】准备空产物骨架</strong>：建 wiki/ 目录树 + 初始两份账本</li>
+<li><strong>【处理】装配处理器（最关键）</strong>：把系统提示词全文设为 Agent 的 system prompt</li>
+<li><strong>【处理】首次全量编译</strong>：调用 <code>mode=rebuild operation=ingest</code></li>
+<li><strong>【输出】验证产物</strong>：检查双提交闭环、log.md 记录、lint 报告（断链/孤儿页为 0）</li>
+<li><strong>【发布】接发布管道</strong>：配置映射表，CI 里跑发布脚本（首次全量）</li>
+<li><strong>【处理】建立增量循环</strong>：定时 fetch 检测更新 → 有 stale 就增量 ingest → 定期 lint 保健康</li>
+</ol>
+<h3 id="复现避坑机制层面">复现避坑（机制层面）</h3>
+<table>
+	<thead>
+			<tr>
+					<th>陷阱</th>
+					<th>正确做法</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>让 Agent 直接改 raw 或拉取账本</td>
+					<td>禁止。输入不可变，编译器无权改输入</td>
+			</tr>
+			<tr>
+					<td>不给系统提示词就让 LLM 编译</td>
+					<td>产物会杂乱无章。提示词是编译器的&quot;语言规范&quot;</td>
+			</tr>
+			<tr>
+					<td>用 Obsidian 双链 <code>[[..]]</code></td>
+					<td>多数平台不渲染。只用标准 markdown 链接</td>
+			</tr>
+			<tr>
+					<td>页面无 H1 首行</td>
+					<td>平台标题会退化成文件名。首行必须 <code># 标题</code></td>
+			</tr>
+			<tr>
+					<td>新页面不建交叉引用</td>
+					<td>会变孤儿页。每页 ≥2 入链</td>
+			</tr>
+			<tr>
+					<td>只提交 docs 不回填 compiled_commit</td>
+					<td>下次增量判定会错乱。必须双提交</td>
+			</tr>
+			<tr>
+					<td>发布只跑一遍</td>
+					<td>页面互链全失效。必须两遍（建档 → 解析链接）</td>
+			</tr>
+			<tr>
+					<td>矛盾时直接覆盖旧结论</td>
+					<td>用引用块 + contradictions 显式标注，不选边</td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="十六冷静一点它不是银弹">十六、冷静一点：它不是银弹</h2>
+<p>LLM Wiki 很优雅，但把它当成&quot;RAG 终结者&quot;是危险的。它的甜蜜区其实相当明确：</p>
+<table>
+	<thead>
+			<tr>
+					<th>✅ 适合 LLM Wiki</th>
+					<th>⚠️ 仍应用 RAG / 混合架构</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>精选、稳定、高价值的知识（百量级源）</td>
+					<td>海量、远超上下文窗口的语料</td>
+			</tr>
+			<tr>
+					<td>个人研究库、团队核心知识、Agent 长期记忆</td>
+					<td>高度动态的实时数据（行情、新闻流）</td>
+			</tr>
+			<tr>
+					<td>希望零基础设施、可 Git 版本化</td>
+					<td>需要毫秒级检索的高并发场景</td>
+			</tr>
+	</tbody>
+</table>
+<p>更诚实地说，它还有几个尚未被充分验证的问题：</p>
+<ul>
+<li><strong>编译本身要消耗不菲的 LLM 算力</strong>——成本从&quot;查询时&quot;挪到了&quot;摄取时&quot;，并没凭空消失。</li>
+<li><strong>当源数量涨到成千上万，wiki 自身也会大到装不进上下文</strong>，届时你反而需要——没错——给 wiki 再套一层检索。</li>
+</ul>
+<p>所以更可能的终局不是&quot;编译取代检索&quot;，而是<strong>二者分层协作</strong>：用编译沉淀高价值的稳定知识，用检索兜底海量的长尾与实时信息。</p>
+<blockquote>
+<p>与其争论&quot;编译还是检索&quot;，不如问&quot;<strong>这块知识值不值得被编译</strong>&quot;。</p>
+</blockquote>
+<p>抛开工程细节，LLM Wiki 真正动人的地方，是它悄悄改变了我们与知识的关系。在 RAG 的世界里，知识是&quot;用完即弃的一次性检索结果&quot;；而在 wiki 的世界里，<strong>每一次阅读、每一次提问，都在为一座会永久留存、还会自我生长的知识大厦添砖加瓦。</strong></p>
+<p>Bush 在 1945 年畅想 Memex 时，缺的是那个不知疲倦的管理员。八十年后，这个管理员终于到岗了。剩下的问题只是：你想让它帮你编译哪座知识大厦？</p>
+<h2 id="参考资料与事实核查说明">参考资料与事实核查说明</h2>
+<p><strong>原始出处</strong></p>
+<ol>
+<li>
+<p>Andrej Karpathy 关于 LLM Wiki 的推文与 GitHub Gist（2026 年 4 月初发布，社区广泛转载）。Karpathy 身份：OpenAI 联合创始人、前特斯拉 AI 高级总监、&ldquo;vibe coding&quot;一词提出者。</p>
+<ul>
+<li>官方发布账号（原始推文 / Gist 请以其官方发布为准）：<a href="https://x.com/karpathy">https://x.com/karpathy</a></li>
+</ul>
+</li>
+<li>
+<p>思想渊源</p>
+<ul>
+<li>Vannevar Bush,《As We May Think》, The Atlantic, 1945（Memex 构想）：<a href="https://www.theatlantic.com/magazine/archive/1945/07/as-we-may-think/303881/">https://www.theatlantic.com/magazine/archive/1945/07/as-we-may-think/303881/</a></li>
+<li>Niklas Luhmann 的 Zettelkasten 卡片盒笔记法（社区资料站）：<a href="https://zettelkasten.de/">https://zettelkasten.de/</a></li>
+</ul>
+</li>
+</ol>
+<p><strong>社区解析文章</strong>（均 2026 年 4 月前后发布）</p>
+<ol start="3">
+<li>Karpathy&rsquo;s LLM Wiki: The Complete Guide to His Idea File（完整指南，本文主要参考）：<a href="https://agentpedia.codes/zh/blog/karpathy-llm-wiki-idea-file">https://agentpedia.codes/zh/blog/karpathy-llm-wiki-idea-file</a></li>
+<li>掘金《8 万人收藏：Karpathy 的 LLM Wiki 到底是什么？完整拆解》：<a href="https://juejin.cn/post/7625301482213130291">https://juejin.cn/post/7625301482213130291</a></li>
+<li>深入解析《Karpathy 的 LLM Wiki：从&quot;检索信息&quot;到&quot;编译知识&rdquo;》：<a href="https://xdlkc.github.io/2026/04/11/karpathy-llm-wiki-deep-dive/index.html">https://xdlkc.github.io/2026/04/11/karpathy-llm-wiki-deep-dive/index.html</a></li>
+<li>abmedia《Karpathy 亲揭：用 LLM 打造个人知识库的完整方法》：<a href="https://abmedia.io/karpathy-llm-knowledge-base-personal-wiki-obsidian-method-2026">https://abmedia.io/karpathy-llm-knowledge-base-personal-wiki-obsidian-method-2026</a></li>
+</ol>
+<p><strong>事实核查说明</strong>：</p>
+<ul>
+<li>Karpathy 的身份、原始类比（&ldquo;Obsidian 是 IDE / LLM 是程序员 / Wiki 是代码库&rdquo;、&ldquo;LLM 是作者，人是主编&rdquo;）、三层架构（Raw / Wiki / Schema）、三大操作（INGEST / QUERY / LINT）、思想渊源（Memex、Zettelkasten）均来自上述公开资料并交叉印证。</li>
+<li>原始 Gist 的确切 URL（gist ID）各二手来源未统一暴露，故此处仅提供 Karpathy 官方账号入口，<strong>请以其官方发布为准</strong>，避免引用未经核实的镜像链接。</li>
+<li>所有量化性能数字（如&quot;Token 减少约 95%&quot;、&ldquo;比 RAG 高效约 70 倍&rdquo;、&ldquo;8.8 万收藏&quot;&ldquo;1500 万浏览&rdquo;）来自二手报道与社区估算，<strong>非严格基准测试</strong>，请谨慎引用。</li>
+<li>第九至十四节的工程实现细节，来自一套真实的企业级 LLM Wiki 系统，已做<strong>通用化脱敏处理</strong>，不指向任何特定内部系统的敏感信息。</li>
+</ul>
+]]></content:encoded></item></channel></rss>
