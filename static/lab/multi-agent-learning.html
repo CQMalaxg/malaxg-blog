@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>多 Agent 协作 · 学习笔记 · 两个维度 / 三种拓扑 / 六种失败</title>
+<style>
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--surface3:#30363d;
+  --border:#30363d;--border2:#444c56;
+  --accent:#58a6ff;--accent2:#a5d6ff;--green:#3fb950;--yellow:#d29922;
+  --orange:#e3b341;--red:#f85149;--purple:#bc8cff;--teal:#39d353;--pink:#f778ba;
+  --text:#e6edf3;--text-dim:#8b949e;--text-muted:#484f58;
+  --code-bg:#0d1117;
+  --dim1:#58a6ff;--dim2:#bc8cff;--fail:#f85149;--soc:#3fb950;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.7;font-size:14px}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:48px;
+  background:rgba(13,17,23,.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:20px}
+.topbar .logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
+.topbar nav{display:flex;gap:2px;overflow-x:auto}
+.topbar nav a{color:var(--text-dim);text-decoration:none;padding:4px 10px;
+  border-radius:6px;font-size:12px;white-space:nowrap;transition:.15s}
+.topbar nav a:hover{background:var(--surface2);color:var(--text)}
+.topbar nav a.act{background:rgba(88,166,255,.15);color:var(--accent)}
+
+#prog{position:fixed;top:48px;left:0;height:2px;width:0;
+  background:linear-gradient(90deg,var(--dim1),var(--dim2),var(--fail),var(--soc));z-index:201;transition:width .1s}
+
+.wrap{display:flex;padding-top:48px;min-height:100vh}
+.sidebar{width:252px;flex-shrink:0;position:fixed;top:48px;left:0;bottom:0;
+  overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:16px 8px}
+.main{margin-left:max(252px,calc(252px + (100vw - 252px - 1060px) / 2));margin-right:auto;
+  padding:40px 56px 80px;max-width:1060px}
+
+.sb-group{margin-bottom:16px}
+.sb-label{font-size:11px;font-weight:600;color:var(--text-muted);
+  letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin-bottom:4px;
+  display:flex;align-items:center;gap:6px}
+.sb-dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+.sb-d1{background:var(--dim1)}.sb-d2{background:var(--dim2)}
+.sb-f{background:var(--fail)}.sb-s{background:var(--soc)}
+.sidebar a{display:block;padding:5px 10px;border-radius:5px;
+  color:var(--text-dim);text-decoration:none;font-size:12px;transition:.12s}
+.sidebar a:hover{background:var(--surface2);color:var(--text)}
+.sidebar a.act{background:rgba(88,166,255,.12);color:var(--accent)}
+
+h1{font-size:28px;font-weight:800;color:var(--text);margin-bottom:8px}
+h2{font-size:20px;font-weight:700;color:var(--text);margin:52px 0 16px;
+  padding-bottom:8px;border-bottom:1px solid var(--border)}
+h2 .seg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;margin-right:8px;vertical-align:middle}
+.seg-d1{background:rgba(88,166,255,.15);color:var(--dim1);border:1px solid rgba(88,166,255,.3)}
+.seg-d2{background:rgba(188,140,255,.15);color:var(--dim2);border:1px solid rgba(188,140,255,.3)}
+.seg-f{background:rgba(248,81,73,.15);color:var(--fail);border:1px solid rgba(248,81,73,.3)}
+.seg-s{background:rgba(63,185,80,.15);color:var(--soc);border:1px solid rgba(63,185,80,.3)}
+h3{font-size:16px;font-weight:600;color:var(--accent);margin:30px 0 10px}
+h4{font-size:13px;font-weight:600;color:var(--purple);margin:20px 0 8px}
+p{color:var(--text-dim);margin-bottom:10px}
+strong{color:var(--text)}
+a{color:var(--accent)}
+
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:18px 20px;overflow-x:auto;margin:12px 0;font-size:12.5px;line-height:1.65}
+code{font-family:"JetBrains Mono","Fira Code","SF Mono",monospace}
+p code,li code,td code{background:var(--surface2);border:1px solid var(--border);
+  padding:1px 5px;border-radius:4px;font-size:12px;color:var(--accent2)}
+.kw{color:#ff7b72}.kw2{color:#79c0ff}.str{color:#a8ff7b}.num{color:#f0883e}
+.cmt{color:var(--text-muted);font-style:italic}.key{color:#ffa657}.fn{color:#d2a8ff}
+
+.tw{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--surface2)}
+th{padding:9px 14px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--border2)}
+td{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+caption{caption-side:top;text-align:left;color:var(--text-muted);font-size:11.5px;
+  font-family:"JetBrains Mono",monospace;padding-bottom:6px}
+
+.tag{display:inline-block;padding:1px 7px;border-radius:12px;font-size:11px;font-weight:600;margin:0 2px;vertical-align:middle}
+.t-blue{background:rgba(88,166,255,.15);color:var(--accent);border:1px solid rgba(88,166,255,.3)}
+.t-green{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.t-yellow{background:rgba(210,153,34,.15);color:var(--yellow);border:1px solid rgba(210,153,34,.3)}
+.t-red{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+.t-purple{background:rgba(188,140,255,.15);color:var(--purple);border:1px solid rgba(188,140,255,.3)}
+
+.note{border-radius:8px;padding:14px 18px;margin:16px 0;border-left:3px solid}
+.note-info{background:rgba(88,166,255,.07);border-color:var(--accent)}
+.note-tip{background:rgba(63,185,80,.07);border-color:var(--green)}
+.note-warn{background:rgba(210,153,34,.08);border-color:var(--yellow)}
+.note-danger{background:rgba(248,81,73,.07);border-color:var(--red)}
+.note-key{background:rgba(188,140,255,.07);border-color:var(--purple)}
+.nt{font-weight:700;font-size:12px;margin-bottom:4px}
+.note-info .nt{color:var(--accent)}.note-tip .nt{color:var(--green)}
+.note-warn .nt{color:var(--yellow)}.note-danger .nt{color:var(--red)}.note-key .nt{color:var(--purple)}
+
+.steps{list-style:none;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding:12px 14px 12px 48px;margin-bottom:8px;
+  background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:14px;
+  width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--dim2),var(--dim1));
+  color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.vlist{list-style:none}
+.vlist li{padding:8px 12px;border-left:3px solid var(--border);margin-bottom:6px;color:var(--text-dim);font-size:13px}
+.vlist li:hover{border-left-color:var(--accent);background:rgba(88,166,255,.04)}
+.qlist{list-style:none;counter-reset:q}
+.qlist li{counter-increment:q;position:relative;padding:11px 14px 11px 44px;margin-bottom:7px;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-dim)}
+.qlist li::before{content:"Q" counter(q);position:absolute;left:12px;top:12px;
+  color:var(--dim2);font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;transition:.15s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card-icon{font-size:22px;margin-bottom:8px}
+.card-title{font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text)}
+.card-desc{font-size:12.5px;color:var(--text-dim)}
+
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:18px 20px;
+  background:var(--surface);border-radius:8px;border:1px solid var(--border);margin:16px 0}
+.fn2{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+  padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap}
+.fn2.blue{border-color:var(--dim1);color:var(--dim1);background:rgba(88,166,255,.1)}
+.fn2.green{border-color:var(--soc);color:var(--soc);background:rgba(63,185,80,.1)}
+.fn2.purple{border-color:var(--dim2);color:var(--dim2);background:rgba(188,140,255,.1)}
+.fn2.yellow{border-color:var(--yellow);color:var(--yellow);background:rgba(210,153,34,.1)}
+.fn2.red{border-color:var(--fail);color:var(--fail);background:rgba(248,81,73,.1)}
+.fa{color:var(--text-muted);font-size:16px}
+
+/* 图表容器 */
+.fig{margin:20px 0;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.fig svg{display:block;width:100%;height:auto}
+.fig figcaption{margin-top:12px;color:var(--text-muted);font-size:11.5px;
+  font-family:"JetBrains Mono",monospace;line-height:1.6;text-align:center}
+.svg-bx{fill:var(--surface2);stroke:var(--border2);stroke-width:1.4}
+.svg-b1{fill:rgba(88,166,255,.12);stroke:var(--dim1);stroke-width:1.6}
+.svg-b2{fill:rgba(188,140,255,.12);stroke:var(--dim2);stroke-width:1.6}
+.svg-b3{fill:rgba(63,185,80,.12);stroke:var(--soc);stroke-width:1.6}
+.svg-b4{fill:rgba(227,179,65,.12);stroke:var(--orange);stroke-width:1.6}
+.svg-b5{fill:rgba(248,81,73,.12);stroke:var(--fail);stroke-width:1.6}
+.svg-t{fill:var(--text);font:600 13px/1.2 -apple-system,"Noto Sans SC",sans-serif}
+.svg-tb{fill:var(--text);font:700 14px/1.2 -apple-system,"Noto Sans SC",sans-serif}
+.svg-s{fill:var(--text-dim);font:11px/1.3 -apple-system,"Noto Sans SC",sans-serif}
+.svg-m{fill:var(--text-muted);font:600 10px/1 "JetBrains Mono",monospace;letter-spacing:.5px}
+.svg-ln{fill:none;stroke:var(--border2);stroke-width:1.8}
+.svg-ax{fill:none;stroke:var(--text-muted);stroke-width:1.5}
+
+/* 象限图 */
+.quad{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0}
+.qc{padding:16px;border-radius:8px;border:1px solid var(--border);background:var(--surface)}
+.qc-h{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;margin-bottom:8px}
+.qc strong{display:block;font-size:13.5px;margin-bottom:6px}
+.qc small{color:var(--text-dim);font-size:12px;line-height:1.6;display:block}
+.qc.a{border-left:3px solid var(--dim1)}.qc.a .qc-h{color:var(--dim1)}
+.qc.b{border-left:3px solid var(--dim2)}.qc.b .qc-h{color:var(--dim2)}
+.qc.c{border-left:3px solid var(--orange)}.qc.c .qc-h{color:var(--orange)}
+.qc.d{border-left:3px solid var(--soc)}.qc.d .qc-h{color:var(--soc)}
+
+/* 失败模式 */
+.fm{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:13px 15px;margin-bottom:8px;
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--fail);border-radius:8px}
+.fm-id{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--fail);font-size:13px}
+.fm strong{display:block;font-size:13.5px;margin-bottom:4px}
+.fm small{color:var(--text-dim);font-size:12px;display:block;line-height:1.65}
+
+/* 实验卡 */
+.exp{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--yellow);
+  border-radius:8px;padding:15px 17px;margin-bottom:9px}
+.exp-h{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.exp-id{font-family:"JetBrains Mono",monospace;font-size:11.5px;font-weight:700;color:var(--yellow)}
+.exp-t{font-size:13.5px;font-weight:700;color:var(--text)}
+.exp-s{font-size:11px;color:var(--orange);letter-spacing:1px}
+.exp p{margin:0;font-size:12.5px;color:var(--text-dim)}
+
+/* 来源横幅 */
+.src{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding:16px 20px;margin:18px 0 26px;border:1px solid var(--border2);border-radius:10px;
+  background:linear-gradient(100deg,rgba(88,166,255,.09),rgba(188,140,255,.05))}
+.src-l{min-width:0}
+.src-k{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--text-muted);
+  letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:6px}
+.src-t{font-size:14px;font-weight:700;color:var(--text);display:block;margin-bottom:4px}
+.src-m{font-size:12px;color:var(--text-dim)}
+.src a.src-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;
+  border:1px solid var(--accent);border-radius:7px;color:var(--accent);text-decoration:none;
+  font-size:12.5px;font-weight:600;transition:.15s}
+.src a.src-btn:hover{background:var(--accent);color:#fff}
+
+.refs{list-style:none;counter-reset:r}
+.refs li{counter-increment:r;position:relative;padding:8px 12px 8px 40px;margin-bottom:5px;
+  font-size:12.5px;color:var(--text-dim);border-left:2px solid var(--border)}
+.refs li::before{content:"[" counter(r) "]";position:absolute;left:8px;top:8px;
+  color:var(--text-muted);font-family:"JetBrains Mono",monospace;font-size:11px}
+
+#top{position:fixed;bottom:28px;right:28px;width:38px;height:38px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text-dim);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;
+  opacity:0;pointer-events:none;transition:.2s}
+#top.show{opacity:1;pointer-events:auto}
+#top:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.backlink{display:inline-block;margin-bottom:18px;font-size:12px;color:var(--text-dim);text-decoration:none}
+.backlink:hover{color:var(--accent)}
+
+@media(max-width:860px){
+  .sidebar{display:none}.main{margin-left:0;padding:24px 18px 60px}.topbar nav{display:none}
+  .quad{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<header class="topbar">
+  <div class="logo">多 Agent 协作 · 学习笔记</div>
+  <nav>
+    <a href="#c0">导读</a>
+    <a href="#dims">两个维度</a>
+    <a href="#when">判据</a>
+    <a href="#shared">共享上下文</a>
+    <a href="#isolated">隔离上下文</a>
+    <a href="#peer">对等协作</a>
+    <a href="#manager">管理者</a>
+    <a href="#decentral">去中心化</a>
+    <a href="#fail">失败模式</a>
+    <a href="#society">Agent 社会</a>
+    <a href="#refs">参考</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<aside class="sidebar">
+  <div class="sb-group">
+    <div class="sb-label">导读</div>
+    <a href="#c0">这一章讲什么</a>
+    <a href="#why">为什么需要多 Agent</a>
+    <a href="#map">阅读地图</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-d1"></span>分类框架</div>
+    <a href="#dims">两个核心设计维度</a>
+    <a href="#dim-ctx">维度一：上下文是否共享</a>
+    <a href="#dim-comm">三种通信机制</a>
+    <a href="#dim-topo">维度二：协作拓扑</a>
+    <a href="#when">判据：何时真正需要</a>
+    <a href="#budget">步骤预算与成本</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-d2"></span>三种架构</div>
+    <a href="#shared">共享上下文协作</a>
+    <a href="#isolated">隔离上下文：基础设施</a>
+    <a href="#vfs">Agent 虚拟文件系统</a>
+    <a href="#control">通信与控制平面</a>
+    <a href="#peer">对等协作模式</a>
+    <a href="#loop">Loop 工程</a>
+    <a href="#proposer">提议者–审核者</a>
+    <a href="#manager">管理者模式</a>
+    <a href="#decentral">去中心化模式</a>
+    <a href="#a2a">跨组织：A2A 协议</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-f"></span>失败模式</div>
+    <a href="#fail">六种失败模式</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-s"></span>Agent 社会</div>
+    <a href="#society">三个涌现维度</a>
+    <a href="#smallville">斯坦福 AI 小镇</a>
+    <a href="#agentopia">Agentopia 十年模拟</a>
+    <a href="#econ">Agent 经济与博弈</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label">收尾</div>
+    <a href="#exps">六个实验汇总</a>
+    <a href="#summary">本章小结</a>
+    <a href="#questions">思考题</a>
+    <a href="#refs">参考文献</a>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- ===== C0 导读 ===== -->
+<section id="c0">
+<a class="backlink" href="/lab/">&larr; 返回学习资料</a>
+<h1>多 Agent 协作</h1>
+
+<div class="src">
+  <div class="src-l">
+    <span class="src-k">Source · 本页为学习笔记，内容整理自</span>
+    <span class="src-t">《AI Agents in Depth》第十章「多 Agent 协作」· 李博杰</span>
+    <span class="src-m">在线书籍 bojieli.github.io/ai-agent-book&nbsp;&nbsp;·&nbsp;&nbsp;页面更新于 2026-08-31</span>
+  </div>
+  <a class="src-btn" href="https://bojieli.github.io/ai-agent-book/book/chapter10/" target="_blank" rel="noopener">阅读原文 <span aria-hidden="true">&rarr;</span></a>
+</div>
+
+<p style="font-size:15px;max-width:740px">
+前九章围绕<strong>单个</strong> Agent 展开；这一章把问题推进到<strong>如何组织多个 Agent</strong>——让它们通过分工、通信与相互验证，完成单个 Agent 难以承担的任务。
+</p>
+
+<h3 id="why">为什么需要多 Agent</h3>
+<p>在 OpenAI 曾提出的五级 AI 能力框架中，多 Agent 协作常被类比为通向第五级的路径之一：</p>
+<div class="flow">
+  <div class="fn2">L1 对话者</div><div class="fa">→</div>
+  <div class="fn2">L2 思考者</div><div class="fa">→</div>
+  <div class="fn2 blue">L3 智能体</div><div class="fa">→</div>
+  <div class="fn2 purple">L4 创新者</div><div class="fa">→</div>
+  <div class="fn2 green">L5 组织</div>
+</div>
+<div class="note note-warn">
+  <div class="nt">一处需要澄清的常见误读</div>
+  <p>这里的 <strong>Organizations 指的是「AI 能完成整个组织的工作」这一能力级别，而非对系统架构的要求</strong>——足够强大的<strong>单个</strong> Agent 理论上也能达到。只是就今天的工程现实而言，单 Agent 终究受限于模型能力边界和上下文窗口。</p>
+</div>
+<div class="note note-key">
+  <div class="nt">更根本的动机：群体的智能可以高于个体</div>
+  <p>人类文明便是明证——单个人的智力有限，但经由分工、协作、辩论和知识的代际累积，整体智能远超任何一位天才个体。Agent 群体同样可能涌现集体智能：哪怕每个 Agent 只相当于人类专家水平，只要组织得当，整体能力也可能超过所有人类专家的总和。</p>
+  <p style="margin-top:6px">Google DeepMind 在《从 AGI 到 ASI》中正把<strong>「大规模多 Agent 集体」列为通往超级智能（ASI）的关键路径之一</strong>。<sup>[1]</sup></p>
+</div>
+
+<h3 id="map">阅读地图</h3>
+<div class="fig">
+<svg viewBox="0 0 1000 200" role="img" aria-label="全章结构：分类框架、判据、三种架构、失败模式、Agent 社会">
+  <rect class="svg-b1" x="10" y="60" width="150" height="80" rx="8"/>
+  <text class="svg-m" x="85" y="86" text-anchor="middle">FRAMEWORK</text>
+  <text class="svg-t" x="85" y="108" text-anchor="middle">两个维度</text>
+  <text class="svg-s" x="85" y="127" text-anchor="middle">上下文 × 拓扑</text>
+
+  <path class="svg-ln" d="M162 100 H 196" marker-end="url(#ar)"/>
+
+  <rect class="svg-b4" x="198" y="60" width="150" height="80" rx="8"/>
+  <text class="svg-m" x="273" y="86" text-anchor="middle">CRITERION</text>
+  <text class="svg-t" x="273" y="108" text-anchor="middle">判据</text>
+  <text class="svg-s" x="273" y="127" text-anchor="middle">是否引入新信息</text>
+
+  <path class="svg-ln" d="M350 100 H 384" marker-end="url(#ar)"/>
+
+  <rect class="svg-b2" x="386" y="34" width="228" height="132" rx="8"/>
+  <text class="svg-m" x="500" y="58" text-anchor="middle">ARCHITECTURE</text>
+  <text class="svg-t" x="500" y="80" text-anchor="middle">三种协作拓扑</text>
+  <text class="svg-s" x="500" y="103" text-anchor="middle">对等协作 · 相互制衡</text>
+  <text class="svg-s" x="500" y="124" text-anchor="middle">管理者 · 中心化编排</text>
+  <text class="svg-s" x="500" y="145" text-anchor="middle">去中心化 · 对等移交</text>
+
+  <path class="svg-ln" d="M616 100 H 650" marker-end="url(#ar)"/>
+
+  <rect class="svg-b5" x="652" y="60" width="150" height="80" rx="8"/>
+  <text class="svg-m" x="727" y="86" text-anchor="middle">FAILURE</text>
+  <text class="svg-t" x="727" y="108" text-anchor="middle">六种失败模式</text>
+  <text class="svg-s" x="727" y="127" text-anchor="middle">含「人的失败」</text>
+
+  <path class="svg-ln" d="M804 100 H 838" marker-end="url(#ar)"/>
+
+  <rect class="svg-b3" x="840" y="60" width="150" height="80" rx="8"/>
+  <text class="svg-m" x="915" y="86" text-anchor="middle">SOCIETY</text>
+  <text class="svg-t" x="915" y="108" text-anchor="middle">Agent 社会</text>
+  <text class="svg-s" x="915" y="127" text-anchor="middle">规模化后的涌现</text>
+
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L8 4 L0 8 z" fill="#444c56"/>
+    </marker>
+  </defs>
+</svg>
+<figcaption>全章脉络：先建分类框架与取舍判据，再展开三种架构，最后是失败模式与规模化涌现</figcaption>
+</div>
+</section>
+
+<!-- ===== 两个维度 ===== -->
+<section id="dims">
+<h2><span class="seg seg-d1">FRAMEWORK</span>两个核心设计维度</h2>
+<p>要构建多 Agent 系统，首先需要理解两个核心设计维度，它们共同决定了系统的基本架构和实现方式。</p>
+
+<h3 id="dim-ctx">维度一：上下文是否共享</h3>
+<p>这是最基础的架构决策，决定了多个 Agent 之间如何传递信息。</p>
+<div class="quad">
+  <div class="qc a">
+    <div class="qc-h">SHARED CONTEXT</div>
+    <strong>共享上下文</strong>
+    <small>后续 Agent 接收前一个 Agent 的<strong>完整对话历史和轨迹</strong>。每个阶段切换系统提示词和工具集后就成为新 Agent（身份、职责、能力都变了），但保留前任的全部记忆。<br><br>
+    <span style="color:var(--green)">优势</span>：信息不丢失，可回顾任何阶段的细节。<br>
+    <span style="color:var(--yellow)">挑战</span>：上下文可能快速膨胀。</small>
+  </div>
+  <div class="qc b">
+    <div class="qc-h">ISOLATED CONTEXT</div>
+    <strong>不共享上下文</strong>
+    <small>每个 Agent 维护<strong>完全独立</strong>的上下文和对话历史，彼此无法直接访问对方的「思考过程」。像不同部门协作：各自在工位上独立工作，通过共享文档和会议纪要交换信息。<br><br>
+    <span style="color:var(--green)">优势</span>：模块化、隔离性好，易扩展维护。<br>
+    <span style="color:var(--yellow)">挑战</span>：必须设计显式通信机制。</small>
+  </div>
+</div>
+<div class="note note-info">
+  <div class="nt">一个生动的类比</div>
+  <p>共享上下文就像团队里需求分析师写完文档后，开发者不仅拿到文档，<strong>还能看到分析师与用户的所有沟通记录</strong>——他是一个新角色，但完整保留了之前的上下文。</p>
+</div>
+
+<h3 id="dim-comm">三种通信机制（本质是 IPC 的两大范式）</h3>
+<p>由于 Agent 之间不共享上下文，必须通过显式通信传递信息。这个问题在经典分布式系统中早有答案：<strong>进程间通信（IPC）归根结底只有两大范式——共享内存与消息传递。</strong></p>
+
+<div class="fig">
+<svg viewBox="0 0 1000 260" role="img" aria-label="三种通信机制映射到 IPC 两大范式">
+  <text class="svg-m" x="20" y="26">IPC 范式</text>
+  <text class="svg-m" x="20" y="150">通信机制</text>
+
+  <rect class="svg-b3" x="120" y="10" width="300" height="46" rx="7"/>
+  <text class="svg-tb" x="270" y="39" text-anchor="middle">共享内存</text>
+
+  <rect class="svg-b1" x="560" y="10" width="420" height="46" rx="7"/>
+  <text class="svg-tb" x="770" y="39" text-anchor="middle">消息传递</text>
+
+  <path class="svg-ln" d="M270 58 V 128" marker-end="url(#ar2)"/>
+  <path class="svg-ln" d="M700 58 C 700 95 680 95 680 128" marker-end="url(#ar2)"/>
+  <path class="svg-ln" d="M860 58 V 128" marker-end="url(#ar2)"/>
+
+  <rect class="svg-b3" x="120" y="130" width="300" height="106" rx="8"/>
+  <text class="svg-t" x="270" y="158" text-anchor="middle">共享文件系统</text>
+  <text class="svg-s" x="270" y="182" text-anchor="middle">读写共享目录下的文档、代码</text>
+  <text class="svg-s" x="270" y="202" text-anchor="middle">等中间产物来交换信息</text>
+  <text class="svg-s" x="270" y="224" text-anchor="middle" style="fill:var(--soc)">适合产物大 / 需持久化</text>
+
+  <rect class="svg-b1" x="560" y="130" width="200" height="106" rx="8"/>
+  <text class="svg-t" x="660" y="158" text-anchor="middle">工具调用参数</text>
+  <text class="svg-s" x="660" y="182" text-anchor="middle">把下游 Agent 封装成工具</text>
+  <text class="svg-s" x="660" y="202" text-anchor="middle">随调用同步传递</text>
+  <text class="svg-s" x="660" y="224" text-anchor="middle" style="fill:var(--dim1)">适合结构清晰的场景</text>
+
+  <rect class="svg-b1" x="780" y="130" width="200" height="106" rx="8"/>
+  <text class="svg-t" x="880" y="158" text-anchor="middle">消息总线</text>
+  <text class="svg-s" x="880" y="182" text-anchor="middle">专门的消息中转站</text>
+  <text class="svg-s" x="880" y="202" text-anchor="middle">经中转站异步投递</text>
+  <text class="svg-s" x="880" y="224" text-anchor="middle" style="fill:var(--dim1)">适合多方 / 异步并行</text>
+
+  <defs>
+    <marker id="ar2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L8 4 L0 8 z" fill="#444c56"/>
+    </marker>
+  </defs>
+</svg>
+<figcaption>共享文件系统 = Agent 世界的「共享内存」；工具调用参数与消息总线 = 「消息传递」的两种形态</figcaption>
+</div>
+<div class="note note-tip">
+  <div class="nt">Go 语言的那句名言，在这里同样适用</div>
+  <p>「不要通过共享内存来通信，而要通过通信来共享内存。」两种范式各有取舍。</p>
+</div>
+
+<h3 id="dim-topo">维度二：协作拓扑</h3>
+<p>Agent 之间的<strong>控制权和信息按什么结构流动</strong>。三种典型形态：</p>
+
+<div class="fig">
+<svg viewBox="0 0 1000 250" role="img" aria-label="三种协作拓扑：对等协作、管理者、去中心化">
+  <!-- 对等 -->
+  <text class="svg-m" x="160" y="24" text-anchor="middle">PEER COLLABORATION</text>
+  <text class="svg-tb" x="160" y="46" text-anchor="middle">对等协作</text>
+  <rect class="svg-b1" x="70" y="76" width="82" height="46" rx="7"/>
+  <text class="svg-t" x="111" y="104" text-anchor="middle">起草者</text>
+  <rect class="svg-b1" x="172" y="146" width="82" height="46" rx="7"/>
+  <text class="svg-t" x="213" y="174" text-anchor="middle">评论者</text>
+  <path class="svg-ln" d="M152 106 C 190 106 190 130 200 142" marker-end="url(#ar3)"/>
+  <path class="svg-ln" d="M172 170 C 130 170 122 148 118 128" marker-end="url(#ar3)"/>
+  <text class="svg-s" x="160" y="222" text-anchor="middle">固定拓扑 · 迭代改进循环</text>
+
+  <line x1="330" y1="20" x2="330" y2="230" stroke="#30363d" stroke-width="1"/>
+
+  <!-- 管理者 -->
+  <text class="svg-m" x="500" y="24" text-anchor="middle">ORCHESTRATION</text>
+  <text class="svg-tb" x="500" y="46" text-anchor="middle">管理者模式</text>
+  <rect class="svg-b2" x="447" y="68" width="106" height="42" rx="7"/>
+  <text class="svg-t" x="500" y="94" text-anchor="middle">Manager</text>
+  <rect class="svg-bx" x="390" y="152" width="66" height="40" rx="6"/>
+  <text class="svg-s" x="423" y="176" text-anchor="middle">子 A</text>
+  <rect class="svg-bx" x="467" y="152" width="66" height="40" rx="6"/>
+  <text class="svg-s" x="500" y="176" text-anchor="middle">子 B</text>
+  <rect class="svg-bx" x="544" y="152" width="66" height="40" rx="6"/>
+  <text class="svg-s" x="577" y="176" text-anchor="middle">子 C</text>
+  <path class="svg-ln" d="M478 112 L 430 148" marker-end="url(#ar3)"/>
+  <path class="svg-ln" d="M500 112 V 148" marker-end="url(#ar3)"/>
+  <path class="svg-ln" d="M522 112 L 570 148" marker-end="url(#ar3)"/>
+  <text class="svg-s" x="500" y="222" text-anchor="middle">中心化规划与调度</text>
+
+  <line x1="670" y1="20" x2="670" y2="230" stroke="#30363d" stroke-width="1"/>
+
+  <!-- 去中心化 -->
+  <text class="svg-m" x="840" y="24" text-anchor="middle">DECENTRALIZED</text>
+  <text class="svg-tb" x="840" y="46" text-anchor="middle">去中心化</text>
+  <rect class="svg-b3" x="790" y="70" width="66" height="38" rx="6"/>
+  <text class="svg-s" x="823" y="93" text-anchor="middle">Agent A</text>
+  <rect class="svg-b3" x="890" y="120" width="66" height="38" rx="6"/>
+  <text class="svg-s" x="923" y="143" text-anchor="middle">Agent B</text>
+  <rect class="svg-b3" x="742" y="160" width="66" height="38" rx="6"/>
+  <text class="svg-s" x="775" y="183" text-anchor="middle">Agent C</text>
+  <path class="svg-ln" d="M856 96 C 880 100 882 116 888 126" marker-end="url(#ar3)"/>
+  <path class="svg-ln" d="M890 148 C 850 166 830 172 810 178" marker-end="url(#ar3)"/>
+  <path class="svg-ln" d="M782 158 C 776 132 790 118 800 110" marker-end="url(#ar3)"/>
+  <text class="svg-s" x="840" y="222" text-anchor="middle">无运行时中心 · 自主移交</text>
+
+  <defs>
+    <marker id="ar3" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L7 3.5 L0 7 z" fill="#444c56"/>
+    </marker>
+  </defs>
+</svg>
+<figcaption>三种典型协作拓扑。它们都是「执行图」的不同形态</figcaption>
+</div>
+
+<div class="note note-info">
+  <div class="nt">术语说明：Graph 工程</div>
+  <p>2026 年 7 月开始流行的「Graph Engineering」，在当前 Agent 语境中通常指<strong>显式设计执行图</strong>：节点是 Agent、普通程序或人工决策，边定义任务依赖、条件路由与失败后的去向，结构化状态在节点之间流动。本章的「协作拓扑」正是其中的<strong>多 Agent 子集</strong>——对等协作、管理者编排和去中心化移交，都是不同的图拓扑。</p>
+</div>
+</section>
+
+<!-- ===== 判据 ===== -->
+<section id="when">
+<h2><span class="seg seg-d1">CRITERION</span>判据：多 Agent 何时真正优于单 Agent</h2>
+<p>在进入具体架构之前，先回答一个更根本的问题：<strong>什么时候真正需要多个 Agent，什么时候一个就够了？</strong>近年的一系列研究给出了一个清晰的判断框架——核心判据只有一条：</p>
+<div class="note note-key">
+  <div class="nt">核心判据</div>
+  <p style="font-size:15px"><strong>协作过程是否引入了单个 Agent 在生成时无法获得的新信息？</strong></p>
+</div>
+
+<div class="tw">
+<table>
+<caption>表 10-1 多 Agent 协作模式的信息增量对比</caption>
+<thead><tr><th>协作模式</th><th>是否引入新信息</th><th>效果</th></tr></thead>
+<tbody>
+<tr><td>同一模型自我审查（重新阅读自己的输出）</td><td><span class="tag t-red">否</span></td><td>通常无效甚至有害</td></tr>
+<tr><td>不同 Agent 辩论同一段文本</td><td><span class="tag t-red">否</span></td><td>在等计算量下与单 Agent 持平</td></tr>
+<tr><td>审核者使用<strong>测试执行结果</strong>审查代码</td><td><span class="tag t-green">是（执行反馈）</span></td><td>显著提升</td></tr>
+<tr><td>审核者查看<strong>渲染截图</strong>审查前端/PPT 代码</td><td><span class="tag t-green">是（视觉反馈）</span></td><td>显著提升</td></tr>
+<tr><td>审核者使用<strong>外部工具</strong>验证事实</td><td><span class="tag t-green">是（工具反馈）</span></td><td>显著提升</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>三项实证</h4>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--green)">⚙️</div>
+    <div class="card-title">RLEF（2025）</div>
+    <div class="card-desc">用强化学习训练模型利用<strong>代码执行反馈</strong>迭代改进，效果远超独立多次采样。关键在每次迭代都引入<strong>真实执行结果</strong>（编译错误、测试失败、运行时异常）——这些信息在写代码时并不存在。<sup>[2]</sup></div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--accent)">🖼️</div>
+    <div class="card-title">WebGen-Agent（2025）</div>
+    <div class="card-desc">网页生成任务上，通过多层级<strong>视觉反馈</strong>（截图 + 视觉语言模型描述）构成反馈脚手架，据报道使 Claude 3.5 Sonnet 在该基准上从 <strong>26.4% → 51.9%</strong>，接近翻倍。<sup>[3]</sup></div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--purple)">🔍</div>
+    <div class="card-title">Anthropic 漏洞挖掘（2026）</div>
+    <div class="card-desc">45 个 Agent 通过共享论坛协调搜索、互相审查，独立 Agent 仲裁结果。集群用 <strong>2700 万 token 找到 266 个漏洞</strong>；独立并行方案用 650 万 token 只找到 21 个。<sup>[4]</sup></div>
+  </div>
+</div>
+
+<div class="note note-tip">
+  <div class="nt">这个框架解释了一个看似矛盾的现象</div>
+  <p>一些学术研究认为多 Agent 不能提升能力上限，但工程实践中多 Agent 确实更好。<strong>矛盾的根源在于两者讨论的是不同类型的「多 Agent」</strong>：学术研究比较的多是「多个 Agent 看着<strong>同一段上下文</strong>互相讨论」，工程实践中有效的系统往往包含<strong>外部反馈环路</strong>（代码执行、视觉渲染、工具调用）。前者没有引入新信息，后者引入了。</p>
+</div>
+
+<h3 id="budget">步骤预算与成本</h3>
+<p>一个相关的研究方向：给 Agent 分配不同的<strong>步骤预算</strong>（允许的工具调用次数或迭代轮数），会如何影响表现？</p>
+<div class="note note-warn">
+  <div class="nt">反直觉的结论（Google, 2025《Budget-Aware Tool-Use Enables Effective Agent Scaling》）</div>
+  <p><strong>单纯增加 Agent 可用的步骤数并不能保证性能提升。</strong>标准 Agent 缺乏「预算意识」——即使有 300 步预算，仍倾向于执行浅层搜索，很快就「饱和」了。</p>
+</div>
+<p>要让更多步骤真正转化为更好的结果，Agent 需要显式的<strong>预算感知机制</strong>，根据剩余资源动态调整策略：</p>
+<div class="flow">
+  <div class="fn2 blue">预算充足</div>
+  <div class="fa">→</div>
+  <div class="fn2">前期广泛探索（广撒网）</div>
+  <div class="fa">→</div>
+  <div class="fn2 yellow">预算减少</div>
+  <div class="fa">→</div>
+  <div class="fn2 green">后期聚焦最有希望的方向（深挖掘）</div>
+</div>
+<p>2026 年的 <strong>BAVT</strong>（Budget-Aware Value Tree Search）进一步提出<strong>步骤级别的价值评估</strong>，在每一步根据剩余预算比例调整探索与利用的权重。</p>
+<div class="note note-info">
+  <div class="nt">对多 Agent 设计的直接启示</div>
+  <p>管理者模式中，Manager 不应只是简单分发任务然后等待，而应根据复杂度<strong>动态分配步骤预算</strong>——简单子任务给较少步骤，复杂子任务给充足步骤。同时引导子 Agent 合理利用预算（<strong>先规划、再实现、再测试、再改进</strong>），而不是一头扎进去直接开干。</p>
+</div>
+<div class="note note-danger">
+  <div class="nt">成本：必须关注的要点</div>
+  <p>多 Agent 的并行探索与反复迭代都要消耗大量 token。这意味着<strong>收益必须足够大，能覆盖数倍乃至一个数量级的额外开销</strong>，否则一个调校得当的单 Agent 往往是更划算的选择。</p>
+</div>
+</section>
+
+<!-- ===== 共享上下文 ===== -->
+<section id="shared">
+<h2><span class="seg seg-d2">ARCH · 1</span>共享上下文的多 Agent 协作</h2>
+<p>每个阶段都是独立 Agent（有自己的系统提示词和工具集），但<strong>继承前序 Agent 的完整轨迹</strong>——就像接班的同事能翻阅前任留下的所有工作日志。</p>
+<p>核心优势是信息不丢失；挑战在于如何让当前 Agent<strong>专注于自己的核心职责</strong>，而不被继承来的大量历史信息干扰。</p>
+
+<h3>多阶段角色转换：换 system prompt，还是加载 Skill？</h3>
+<p>这是一个常被忽略、但会直接改变架构的设计选择。两者都能让同一模型在不同阶段采用不同行为规程，<strong>却不是同一种成本模型</strong>。</p>
+<div class="tw">
+<table>
+<thead><tr><th>选择</th><th>角色规程的载体</th><th>工具可见性</th><th>上下文 / KV Cache 影响</th><th>约束能力</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>transfer_to_agent</code></td>
+  <td>替换当前 system prompt，通常也替换工具集</td>
+  <td>只暴露当前角色工具</td>
+  <td><span class="tag t-red">每次切换都改变请求前缀</span>，从变化点起的前缀缓存通常无法复用</td>
+  <td><span class="tag t-green">强</span>：越界工具可在 schema 层不可见</td>
+</tr>
+<tr>
+  <td><code>Skill</code></td>
+  <td>固定 system prompt 中的 Skill 目录，按需把 <code>SKILL.md</code> 追加到轨迹</td>
+  <td>通常固定暴露工具全集，或用稳定的工具搜索入口</td>
+  <td><span class="tag t-green">静态前缀保持不变</span>，Skill 内容成为末尾轨迹，已有前缀可继续复用</td>
+  <td><span class="tag t-yellow">弱</span>：Skill 是行为指令，硬权限仍需 Harness 门</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="note note-key">
+  <div class="nt">选型准则</div>
+  <p>角色差异主要来自<strong>知识、流程和写作风格</strong>时，优先使用 <strong>Skill</strong>；<br>
+  角色差异涉及<strong>权限、工具隔离、合规边界</strong>，或需要在运行时强制禁止某类动作时，使用独立 Agent 或 <code>transfer_to_agent</code>，并在 <strong>Harness 层通过代码限制工具调用</strong>。</p>
+</div>
+
+<div class="exp">
+  <div class="exp-h"><span class="exp-id">实验 10-1</span><span class="exp-s">★★</span><span class="exp-t">共享上下文中的多角色转换——系统提示词与 Skill 的对比</span></div>
+  <p><strong>共同任务</strong>：同一模型、同一用户任务、同一工具实现、同一份角色规程和全量共享轨迹。任务是查找中国 2021—2023 年新能源汽车销量、计算 CAGR、写不超过 120 字的投资人摘要。</p>
+  <p style="margin-top:8px"><strong>路径一（系统提示词切换）</strong>：五种角色 triage（默认入口）、research、coding、data_analysis、writing。每个角色只看到自己的专属工具和 <code>transfer_to_agent</code>；移交时保存历史、加载目标角色提示词/工具集。</p>
+  <p style="margin-top:6px"><strong>路径二（Skill）</strong>：system prompt 和工具全集全程固定；模型按需调用 <code>load_skill(name)</code>，读取的 <code>SKILL.md</code> 作为 tool result 进入共享轨迹。静态前缀不因角色变化而重写，硬权限由 harness 规则保证。</p>
+</div>
+</section>
+
+<!-- ===== 隔离上下文 ===== -->
+<section id="isolated">
+<h2><span class="seg seg-d2">ARCH · 2</span>不共享上下文：真正的多 Agent 协作</h2>
+<p>每个 Agent 都是独立实体，拥有自己的上下文、轨迹和状态，彼此无法直接访问对方的「内心活动」，协作完全依赖三种通信机制。</p>
+
+<h3>与操作系统的完整对应</h3>
+<p>沿着「通信机制即进程间通信」的线索再走一步，会发现对应关系相当完整：</p>
+<div class="tw">
+<table>
+<caption>表 10-2 多 Agent 系统与操作系统的对应关系</caption>
+<thead><tr><th>操作系统</th><th>多 Agent 系统</th></tr></thead>
+<tbody>
+<tr><td>程序（可执行文件）</td><td>静态前缀（系统提示词 + 工具定义）</td></tr>
+<tr><td>进程的内存</td><td>轨迹</td></tr>
+<tr><td>CPU</td><td>LLM</td></tr>
+<tr><td>内核</td><td>Agent 运行时</td></tr>
+<tr><td>系统调用</td><td>工具调用</td></tr>
+<tr><td>fork（创建子进程）</td><td><code>spawn_subagent</code></td></tr>
+<tr><td>kill（发送信号）</td><td><code>cancel_subagent</code></td></tr>
+<tr><td>ps（列出进程）</td><td><code>list_agents</code></td></tr>
+<tr><td>退出码与 wait()</td><td>子 Agent 返回的结构化摘要</td></tr>
+<tr><td>共享内存 / 消息传递</td><td>共享文件系统 / 消息</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-info">
+  <div class="nt">这套抽象并不新鲜</div>
+  <p>私有状态、异步消息、可创建新成员，正是 <strong>1970 年代 Actor 模型</strong>的基本设定<sup>[5]</sup>——多 Agent 系统不妨看作它的 LLM 版本。因此<strong>操作系统与分布式系统的成熟经验大多可以直接借用</strong>。</p>
+</div>
+
+<div class="quad">
+  <div class="qc d">
+    <div class="qc-h">PROS</div>
+    <strong>进程式隔离的好处</strong>
+    <small>· 每个 Agent 可独立开发和测试<br>· 新增能力不需改动现有代码<br>· 单个 Agent 故障不会传染错误状态<br>· 上下文完全独立，可真正并发执行</small>
+  </div>
+  <div class="qc c">
+    <div class="qc-h">CONS</div>
+    <strong>代价</strong>
+    <small>· <strong>信息同步</strong>：各 Agent 如何对任务状态保持一致理解<br>· 信息传递中可能丢失或重复<br>· <strong>调试困难</strong>：需翻看多个 Agent 的日志才能拼出完整执行过程<br>→ 因此接口规范、数据格式、通信协议的设计至关重要</small>
+  </div>
+</div>
+
+<p>不共享上下文的显式协作依赖两套<strong>与拓扑无关</strong>的基础设施：</p>
+<div class="flow">
+  <div class="fn2 green">共享文件系统 · 数据平面</div>
+  <div class="fa">+</div>
+  <div class="fn2 blue">通信与控制机制 · 控制平面</div>
+</div>
+
+<h3 id="vfs">Agent 眼中的文件系统</h3>
+<p>在实际系统中，Agent 访问的并非单一存储，而是一个<strong>虚拟文件系统</strong>：来源、生命周期与权限各异的存储被<strong>挂载到同一目录树下</strong>，Agent 通过统一的 <code>read_file</code>/<code>write_file</code>/<code>list_dir</code> 接口访问，底层则可能是本地临时盘、持久对象存储、第三方云盘 API 或只读系统资源包。</p>
+<div class="note note-danger">
+  <div class="nt">为什么必须先明确这棵目录树的构成</div>
+  <p><strong>相当一部分并发冲突与信息泄露，源于将本应隔离的区域混置。</strong>这棵目录树相当于 Agent 的<strong>地址空间</strong>，四类区域就是权限各异的内存段：有的私有可写，有的多方共享，有的只读。</p>
+</div>
+
+<div class="fig">
+<svg viewBox="0 0 1000 320" role="img" aria-label="Agent 虚拟文件系统的四类区域">
+  <rect class="svg-bx" x="360" y="14" width="280" height="42" rx="7"/>
+  <text class="svg-tb" x="500" y="41" text-anchor="middle">统一目录树 / 虚拟文件系统</text>
+  <text class="svg-s" x="500" y="76" text-anchor="middle">read_file · write_file · list_dir 统一接口</text>
+
+  <path class="svg-ln" d="M420 58 C 300 90 160 100 130 128" marker-end="url(#ar4)"/>
+  <path class="svg-ln" d="M470 58 C 430 96 400 104 385 128" marker-end="url(#ar4)"/>
+  <path class="svg-ln" d="M530 58 C 570 96 600 104 615 128" marker-end="url(#ar4)"/>
+  <path class="svg-ln" d="M580 58 C 700 90 840 100 870 128" marker-end="url(#ar4)"/>
+
+  <rect class="svg-b1" x="20" y="130" width="220" height="170" rx="8"/>
+  <text class="svg-m" x="130" y="154" text-anchor="middle">PRIVATE</text>
+  <text class="svg-t" x="130" y="178" text-anchor="middle">① Agent 专属工作区</text>
+  <text class="svg-s" x="130" y="200" text-anchor="middle">Scratchpad</text>
+  <text class="svg-s" x="130" y="226" text-anchor="middle">中间产物 / 草稿 / 调试日志</text>
+  <text class="svg-s" x="130" y="248" text-anchor="middle">仅该 Agent 可见</text>
+  <text class="svg-s" x="130" y="270" text-anchor="middle">随实例销毁</text>
+  <text class="svg-s" x="130" y="292" text-anchor="middle" style="fill:var(--soc)">无需并发控制</text>
+
+  <rect class="svg-b3" x="255" y="130" width="230" height="170" rx="8"/>
+  <text class="svg-m" x="370" y="154" text-anchor="middle">SHARED</text>
+  <text class="svg-t" x="370" y="178" text-anchor="middle">② 多 Agent 共享空间</text>
+  <text class="svg-s" x="370" y="200" text-anchor="middle">Shared Workspace</text>
+  <text class="svg-s" x="370" y="226" text-anchor="middle">Agent 间交换产物的主媒介</text>
+  <text class="svg-s" x="370" y="248" text-anchor="middle">所有协作 Agent + 用户可见</text>
+  <text class="svg-s" x="370" y="270" text-anchor="middle">随任务持续，需持久化</text>
+  <text class="svg-s" x="370" y="292" text-anchor="middle" style="fill:var(--fail)">冲突高发 · 需乐观锁</text>
+
+  <rect class="svg-b4" x="500" y="130" width="230" height="170" rx="8"/>
+  <text class="svg-m" x="615" y="154" text-anchor="middle">MOUNTED</text>
+  <text class="svg-t" x="615" y="178" text-anchor="middle">③ 外部挂载资源</text>
+  <text class="svg-s" x="615" y="200" text-anchor="middle">经适配器映射为挂载点</text>
+  <text class="svg-s" x="615" y="226" text-anchor="middle">受外部权限约束</text>
+  <text class="svg-s" x="615" y="248" text-anchor="middle">延迟高 · 最终一致性</text>
+  <text class="svg-s" x="615" y="270" text-anchor="middle">按需只读为主</text>
+  <text class="svg-s" x="615" y="292" text-anchor="middle" style="fill:var(--orange)">写回须谨慎</text>
+
+  <rect class="svg-b2" x="745" y="130" width="235" height="170" rx="8"/>
+  <text class="svg-m" x="862" y="154" text-anchor="middle">BUILT-IN</text>
+  <text class="svg-t" x="862" y="178" text-anchor="middle">④ 系统内置资源</text>
+  <text class="svg-s" x="862" y="200" text-anchor="middle">Skills / 手册 / 模板库</text>
+  <text class="svg-s" x="862" y="226" text-anchor="middle">所有 Agent 只读共享</text>
+  <text class="svg-s" x="862" y="248" text-anchor="middle">渐进式披露取用</text>
+  <text class="svg-s" x="862" y="270" text-anchor="middle">跨会话稳定</text>
+  <text class="svg-s" x="862" y="292" text-anchor="middle" style="fill:var(--soc)">无需并发控制</text>
+
+  <defs>
+    <marker id="ar4" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L7 3.5 L0 7 z" fill="#444c56"/>
+    </marker>
+  </defs>
+</svg>
+<figcaption>图 10-2 四类区域统一挂载于同一目录树，可作为文件系统布局设计的检查表（对应表 10-3）</figcaption>
+</div>
+
+<div class="note note-tip">
+  <div class="nt">隔离 scratchpad 的两重作用</div>
+  <p>① 避免多个 Agent 的临时文件相互覆盖；② <strong>保持主 Agent 上下文的精简</strong>——子 Agent 的试错过程留存于自身工作区，仅将最终产物提交至共享空间。这是「子 Agent 返回结构化摘要而非全量轨迹」在<strong>存储层面</strong>的体现。</p>
+</div>
+<div class="note note-key">
+  <div class="nt">「文件路径作为通用接口」的价值</div>
+  <p>Agent 间传递产物、主 Agent 向子 Agent 交接输入、乃至跨组织 A2A 协作交换产物，传递的均为<strong>轻量的路径字符串</strong>，而非将内容载入上下文窗口。</p>
+</div>
+
+<h3 id="control">Agent 间的通信与控制（控制平面）</h3>
+<p>文件系统解决了<strong>产物交换</strong>，协作还需要一条<strong>控制平面</strong>。第四章给出的一组工具原语正对应进程世界：</p>
+<div class="flow">
+  <div class="fn2 blue">spawn_subagent<br><small style="font-weight:400">≈ fork</small></div>
+  <div class="fa">·</div>
+  <div class="fn2 purple">send_message<br><small style="font-weight:400">≈ 消息</small></div>
+  <div class="fa">·</div>
+  <div class="fn2 red">cancel_subagent<br><small style="font-weight:400">≈ kill</small></div>
+  <div class="fa">·</div>
+  <div class="fn2 green">list_agents<br><small style="font-weight:400">≈ ps</small></div>
+</div>
+
+<h4>一、消息传递</h4>
+<p>最简形态是<strong>点对点</strong>，适用于拓扑固定、Agent 数量少的场景。当 Agent 增多且需异步并行时，点对点连接数<strong>随 Agent 数呈平方增长</strong>，且要求收发双方同时在线；此时应改用<strong>消息总线</strong>。</p>
+<div class="note note-info">
+  <div class="nt">消息应携带结构化的「信封」（envelope）</div>
+  <p>发送者 ID、目标（指定 Agent 或广播）、消息类型（如 <code>task_assigned</code> / <code>status_update</code> / <code>result</code> / <code>terminate</code>）及 JSON 负载。统一信封保证接收方能可靠路由和解析，<strong>并使协作链路可追溯——这是多 Agent 系统调试的关键</strong>。</p>
+</div>
+
+<h4>二、状态查询（最易被低估的一环）</h4>
+<div class="note note-warn">
+  <div class="nt">一个直觉但不实用的做法</div>
+  <p>定义 <code>get_subagent_status(agent_id)</code> 拉取式接口。但子 Agent 一经创建就立即执行直到完成或失败，<strong>完成时自然会通知主 Agent，并不需要显式查询</strong>。</p>
+</div>
+<p>更自然的做法是回到两大通信范式：</p>
+<div class="quad">
+  <div class="qc a">
+    <div class="qc-h">VIA MESSAGE</div>
+    <strong>用消息传递获取状态</strong>
+    <small>主 Agent 直接发消息「进展如何？」，子 Agent 在合适时机回复。<strong>一切都是异步的</strong>——正如经理通过即时消息询问进度，而不要求对方立即停下手头工作。<br><br>反过来，子 Agent 也可在关键节点主动汇报（往总线发布 <code>status_update</code>）。状态宜采用<strong>统一的状态机词汇</strong>：执行中、需要输入、已完成、失败。</small>
+  </div>
+  <div class="qc d">
+    <div class="qc-h">VIA FILESYSTEM</div>
+    <strong>用共享文件系统获取状态</strong>
+    <small>最彻底的形态是<strong>轨迹持久化</strong>：子 Agent 实时把轨迹序列化为 JSONL 追加写入。主 Agent 直接读文件就能看到全部执行过程——<strong>相当于直接读另一个进程的内存</strong>。<br><br>但轨迹动辄数万 token，<strong>不宜作为主要传递方式</strong>。</small>
+  </div>
+</div>
+<div class="note note-tip">
+  <div class="nt">更合理的折中：约定进度文件</div>
+  <p>主 Agent 启动子 Agent 时约定「把进度写到 <code>progress.md</code>」，子 Agent 每完成一项就更新清单。<strong>这相当于两个进程在共享内存里划出一小块约定格式的状态区，暴露的是提炼后的进度，而非全部内存。</strong></p>
+  <p style="margin-top:6px">进度文件还可用于<strong>检测卡住状态</strong>：最后修改时间超过 N 分钟无变化，即判定无活动、触发超时兜底。</p>
+</div>
+
+<h4>三、执行终止</h4>
+<p>并行协作中常出现「一个任务成功，其余便无需继续」。终止有两种强度——Unix 用户会认出这正是 <strong>SIGTERM 与 SIGKILL</strong> 的区别：</p>
+<div class="tw">
+<table>
+<thead><tr><th>强度</th><th>做法</th><th>代价</th></tr></thead>
+<tbody>
+<tr><td><span class="tag t-green">优雅终止（首选）</span></td><td>发 <code>terminate</code> 信号，子 Agent 在当前步骤的<strong>安全点</strong>响应，先清理资源（关闭浏览器会话、写入未完成文件、释放锁），返回 ack 后退出</td><td>需要 Agent 配合轮询</td></tr>
+<tr><td><span class="tag t-red">强制终止（兜底）</span></td><td>直接终止进程，仅在对优雅信号无响应时使用</td><td>可能遗留悬挂资源与未完成写入</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-key">
+  <div class="nt">主 Agent 终止后，仍在运行的子 Agent 怎么办？</div>
+  <p>工程上最简洁的做法<strong>借鉴 Go 的 context</strong>：终止沿创建关系<strong>向下级联</strong>——取消一个 Agent，它派生的所有子 Agent 随之取消，从根上杜绝无人认领的孤儿 Agent。「子 Agent 在安全点检查终止信号」对应的正是对 <code>ctx.Done()</code> 的轮询。</p>
+  <p style="margin-top:6px">若确实需要脱离主 Agent 长期运行的后台 Agent（类似 Unix 的 <code>nohup</code>），就让它从<strong>一棵新的生命周期树</strong>起步（对应 <code>context.Background()</code>），显式声明不随父级终止。</p>
+</div>
+
+<h4>四、资源与调度</h4>
+<p>操作系统的一个重要职能是分配稀缺资源。<strong>进程世界稀缺的是 CPU 时间和内存，Agent 世界稀缺的是 token 和并发额度。</strong></p>
+<ul class="vlist">
+  <li>启动子 Agent 时设定<strong>步数或 token 预算</strong>，超限即止</li>
+  <li>困难任务交给强模型，机械任务交给低成本模型</li>
+  <li>并发数设上限，避免几十个 Agent 同时耗尽 API 配额</li>
+  <li>并发达上限时，更紧急的任务到来可打断执行中的子 Agent——这就是<strong>抢占</strong></li>
+</ul>
+<div class="note note-info">
+  <div class="nt">管理者 Agent 相比传统调度器的显著优势：它具备推理能力</div>
+  <p>可以启动多个子 Agent 并行探索一个问题，<strong>根据进展决定给谁分配更多资源、终止哪些看起来误入歧途的 Agent</strong>——就像公司内部赛马一样。</p>
+  <p style="margin-top:6px">资源和调度领域的实践还远不如操作系统调度成熟，但它<strong>决定了多 Agent 系统的成本上限</strong>，应在架构设计阶段就予以考虑。</p>
+</div>
+</section>
+
+<!-- ===== 对等协作 ===== -->
+<section id="peer">
+<h2><span class="seg seg-d2">TOPOLOGY · 1</span>对等协作模式：相互制衡与迭代改进</h2>
+<p>通常涉及 <strong>2-3 个平等身份</strong>的 Agent，通过多轮迭代互相提供反馈。潜在价值在于引入独立视角和认知多样性。</p>
+<div class="note note-danger">
+  <div class="nt">但「多个实例」不等于「多种思路」</div>
+  <p>当模型、上下文和脚手架高度相似时，不同 Agent 往往会做出相同选择，<strong>使局部错误演变为系统性故障</strong>。要获得真正的多样性，需要主动区分<strong>模型、上下文、工具、可见证据或职责</strong>，并让各 Agent <strong>先独立判断、再汇总结果</strong>。<sup>[4]</sup></p>
+</div>
+<p>相比管理者和去中心化模式，对等协作的<strong>实现复杂度更低</strong>：只需定义好两个 Agent 的角色、通信机制和迭代终止条件。</p>
+
+<h3 id="loop">Loop 工程</h3>
+<p>对等协作最经典的用途，是解决 Agent 实践中极其常见的一类失败：<strong>过早终止</strong>——活干到一半就停。</p>
+<div class="tw">
+<table>
+<thead><tr><th>形态</th><th>表现</th><th>例子</th></tr></thead>
+<tbody>
+<tr><td><strong>偷懒式假完成</strong></td><td>只做了一部分就宣称全部做完</td><td>Coding Agent 写完代码，测试没跑、部署没试就报「任务完成」；用户交办两件事，办完第一件就忘了第二件</td></tr>
+<tr><td><strong>过早放弃</strong></td><td>一条路走不通就宣布整件事办不成</td><td>联系商家本有电话、表单、邮件多种途径，打了一个电话被拒绝就告诉用户「这事办不了」</td></tr>
+<tr><td><strong>假成功</strong></td><td>以为办成了，实际闭环没走完</td><td>电话里对方口头同意退款，但用户还需在 App 上确认一步，Agent 却报告「已办妥」</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-key">
+  <div class="nt">三种形态指向同一个根源</div>
+  <p style="font-size:14.5px"><strong>在验证之前，「完成」只是模型的一句宣称，不是证明。</strong></p>
+</div>
+
+<p>把宣称变成证明，正是 <strong>Loop 工程</strong>（Loop Engineering）的课题：设计一个让 Agent 持续运转的循环——<strong>发现下一件该做的事 → 执行 → 验证 → 记录进度</strong>——由<strong>验证器</strong>而不是模型自己来判定「是否真的可以停」。人的角色则从「给 Agent 写提示词的操作者」变成「设计循环的工程师」。</p>
+<div class="note note-info">
+  <div class="nt">命名与共识</div>
+  <p>这个名词在 2026 年 6 月由 <strong>Addy Osmani</strong> 总结提出<sup>[6]</sup>；Claude Code 负责人 <strong>Boris Cherny</strong> 的说法更直白：<em>「我已经不再直接 prompt Claude 了，我的工作是写 loop。」</em></p>
+  <p style="margin-top:6px">业界形成的核心共识是：<strong>循环的瓶颈在验证器，而不在模型。</strong>验证不可靠，循环转得再快，也只是把劣质产出更快地标记为完成。</p>
+</div>
+
+<h4>具体框架一：LoopX</h4>
+<p>把循环从模型的提示词和聊天历史中抽离出来，放进一个<strong>与 Agent 运行时无关的持久控制面</strong>：</p>
+<pre><code>LoopX 决策 → Agent 执行 → <span class="str">独立验证器证明</span> → LoopX 提交</code></pre>
+<p>目标与边界说明「为什么做」，门禁和待办决定「现在能做什么」，证据与配额决定「是否继续」，移交则让下一轮或另一个 Agent 接着工作。<strong>只有通过独立验证的结果才能写入持久进度并消耗配额</strong>；验证失败进入修复或重规划，人工门禁、等待状态和预算上限则在执行前阻止循环继续。<sup>[7]</sup></p>
+<div class="note note-danger">
+  <div class="nt">这个边界把 Loop 工程的原则变成了可检查的系统不变量</div>
+  <p style="font-size:14.5px"><strong>模型可以提出「完成」，但不能批准自己的「完成」。</strong></p>
+</div>
+
+<h4>具体框架二：LongHorizon-Harness</h4>
+<p>同为 Loop 工程实现，但关注方向不同：LoopX 面向长期 Agent 工作的持久控制面；LongHorizon-Harness 从<strong>多模态 Computer Use</strong> 出发，处理同一任务跨越 GUI、CLI、多个桌面应用和多次上下文刷新的连续执行问题。</p>
+<p>它把长程执行重新表述为<strong>任务状态管理</strong>，循环实现为 <strong>Manage–Execute–Audit（MEA）</strong>：</p>
+<div class="flow">
+  <div class="fn2 purple">Manager<br><small style="font-weight:400">据目标/已核实进展/失败证据<br>生成下一项有界子任务</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 blue">Executor<br><small style="font-weight:400">在全新上下文中<br>通过 GUI 或 CLI 改变环境</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 green">Auditor<br><small style="font-weight:400">只读方式<br>检查真实结果</small></div>
+</div>
+<p><strong>只有审计通过的内容才能进入下一轮任务状态</strong>，失败则被保留为恢复和重规划的依据。它通过适配层复用 Claude Code、Codex CLI 等执行后端，<strong>而不改写后端内部的 Agent loop</strong>。<sup>[8]</sup></p>
+<div class="note note-tip">
+  <div class="nt">这一方向的核心价值</div>
+  <p>把<strong>任务连续性</strong>从不断增长的执行历史中<strong>分离</strong>出来：上下文可以刷新，界面操作也可能失败，但下一轮仍能从<strong>最近一次核实的状态</strong>继续。</p>
+</div>
+<div class="tw">
+<table>
+<caption>保持模型（Qwen 3.7-Plus）与执行后端相同、只改变外层 loop 的对照结果</caption>
+<thead><tr><th>基准</th><th>基线</th><th>MEA</th><th>token 代价</th></tr></thead>
+<tbody>
+<tr><td>WeaveBench PassRate</td><td>51.8%</td><td><span class="tag t-green">80.7%</span></td><td>总 token 2.3×</td></tr>
+<tr><td>OSWorld 2.0 二元完成率</td><td>2.8%</td><td><span class="tag t-green">8.3%</span></td><td>输出 token 3.6×</td></tr>
+<tr><td>Terminal-Bench 2.1 成功率</td><td>69.7%</td><td><span class="tag t-green">77.2%</span></td><td><span class="tag t-blue">减少 24%</span></td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-warn">
+  <div class="nt">实际部署仍需处理</div>
+  <p>外部环境或用户要求变化造成的<strong>旧状态失效</strong>，并用<strong>轮数、时间和费用预算</strong>防止恢复循环无限运行。</p>
+</div>
+
+<h3 id="proposer">提议者–审核者范式</h3>
+<p>最经典的对等协作范式：Proposer 生成，Reviewer <strong>渲染执行结果</strong>并评估质量、给出结构化改进建议，两者反复迭代直到达标。适用于安全审查、内容审核、代码审核等场景。</p>
+
+<div class="note note-danger">
+  <div class="nt">为什么不能让一个 Agent 自己生成再自己审查？</div>
+  <p>这正是前面判据的具体体现——<strong>审查若不引入新信息，就只是「让模型再想一遍」</strong>。三项研究给出了明确答案：</p>
+  <ul class="vlist" style="margin-top:8px">
+    <li><strong>ICLR 2024《LLMs Cannot Self-Correct Reasoning Yet》</strong>：让 GPT-4 在无外部反馈下审查修正自己的回答，<strong>准确率反而下降</strong>——把正确答案改错的次数比把错误改对的更多</li>
+    <li><strong>TACL 2024《When Can LLMs Actually Correct Their Own Mistakes?》</strong>：除非提供可靠外部反馈，否则纯粹的「自我纠正」几乎不起作用</li>
+    <li><strong>ICLR 2024 CRITIC</strong>：让模型用外部工具（搜索引擎、Python 解释器）验证回答，效果显著提升；<strong>一旦移除工具验证，大部分提升就消失了</strong></li>
+  </ul>
+</div>
+
+<h4>最小不变量</h4>
+<p>审核者读取<strong>独立证据</strong>，而不是只复述提议者的解释；退回时必须给出<strong>可定位的修复条件</strong>：</p>
+<pre><code>candidate = proposer(task, constraints)
+evidence  = execute_or_render(candidate)       <span class="cmt"># tests, state, screenshot, facts</span>
+review    = independent_reviewer(candidate, evidence)
+
+<span class="kw">while</span> review.veto <span class="kw">and</span> budget_remaining:
+    candidate = proposer.repair(candidate, review.findings)
+    evidence  = execute_or_render(candidate)
+    review    = independent_reviewer(candidate, evidence)
+
+<span class="kw">if</span> review.pass:
+    publish(candidate, evidence, review)
+<span class="kw">else</span>:
+    escalate_or_reject(review)</code></pre>
+<div class="note note-danger">
+  <div class="nt">一条铁律</div>
+  <p><strong>审核者不能修改测试、证据采集器或发布门槛</strong>；否则「独立验证」会退化成自我批准。</p>
+</div>
+<div class="note note-info">
+  <div class="nt">Anthropic 2026 长程应用开发实验</div>
+  <p>实现为<strong>规划者–生成者–评估者</strong>三 Agent 架构：规划者把需求展开为产品规格，生成者与评估者<strong>先约定每轮的完成标准</strong>，再由生成者实现，然后评估者<strong>使用 Playwright 操作真实应用</strong>并提交缺陷报告。Agent 之间通过文件交接状态。<sup>[9]</sup></p>
+</div>
+
+<h3>其他对等形态</h3>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--yellow)">⚖️</div>
+    <div class="card-title">辩论模式</div>
+    <div class="card-desc">Agent A 扮演支持者，Agent B 扮演反对者，通过制度化对抗确保正反两面都得到论证。<br><br><strong style="color:var(--red)">但效果有争议</strong>：Tran &amp; Kiela（2026）发现在思考 token 预算<strong>被严格控制为相同</strong>时，单 Agent 表现与多 Agent 持平甚至更好。<sup>[10]</sup></div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--accent)">💡</div>
+    <div class="card-title">头脑风暴模式</div>
+    <div class="card-desc">多个 Agent 独立生成创意后相互分享、彼此启发。不同 Agent 拥有不同「思维偏好」（通过不同提示词或模型实现），通过相互激发探索更广解空间。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--green)">👥</div>
+    <div class="card-title">专家小组模式</div>
+    <div class="card-desc">各代表一个专业视角共同讨论跨学科问题（工程师看实现难度、产品看用户体验、运营看成本）。<strong>不是对抗关系，而是互补关系</strong>，共同拼出问题全貌。</div>
+  </div>
+</div>
+<div class="note note-warn">
+  <div class="nt">辩论模式为何可能无效：数据处理不等式</div>
+  <p>辩论中的多个 Agent 处理的是<strong>完全相同的文本信息</strong>，Agent 之间每一次串行传递中间结论<strong>都只可能丢失信息、不可能凭空创造信息</strong>。辩论在部分论文中的收益很可能来源于消耗了更多总计算量。</p>
+  <p style="margin-top:6px">不过这<strong>并不否定</strong>另一类做法：对同一问题<strong>多次独立采样再聚合</strong>（自一致性、多数投票），或利用<strong>生成与验证的难度不对称</strong>（写出答案难、检验答案易）来做生成-验证分工。</p>
+</div>
+</section>
+
+<!-- ===== 管理者 ===== -->
+<section id="manager">
+<h2><span class="seg seg-d2">TOPOLOGY · 2</span>管理者模式：中心化协调</h2>
+<p>当任务涉及大量子任务、需要动态调度或子任务间存在复杂依赖时，对等协作就力不从心了。Manager Agent 的职责就像<strong>项目经理</strong>：理解整体任务 → 拆解子任务 → 选择合适 Agent → 跟踪进度并处理异常（重试、换 Agent、调整计划）→ 整合最终结果。</p>
+<div class="note note-key">
+  <div class="nt">核心抽象：把每个专门 Agent 建模为 Manager 可调用的工具</div>
+  <p>从 Manager 的视角看，<strong>调用一个 Agent 和调用一个普通工具没有本质区别</strong>。这种统一抽象带来两个好处：<strong>可扩展性</strong>（新增能力只需开发对应 Agent 并注册为工具，Manager 核心逻辑无需修改）与<strong>异构性</strong>（不同 Agent 可用不同模型、提示词、工具集，甚至运行在不同硬件上）。</p>
+</div>
+<div class="note note-warn">
+  <div class="nt">固有挑战</div>
+  <p><strong>Manager 成为系统的单点瓶颈</strong>——它必须理解所有子任务性质、选择正确 Agent、准确传递上下文，任何决策偏差都会影响整体流程。此外 Manager 需维护全局上下文，随任务推进<strong>可能快速膨胀</strong>。</p>
+</div>
+
+<div class="note note-danger">
+  <div class="nt">实证：弱规划者是整个系统最关键的瓶颈（Plan-and-Act, 2025）</div>
+  <p>在 Planner-Executor 双 Agent 架构中，<strong>当 Planner 规划质量足够高时，即使 Executor 比较简单也能取得好结果</strong>；反之若 Planner 分解有误，后续所有 Executor 的工作都建立在错误前提上。该研究在 WebArena-Lite 上取得 <strong>54%</strong> 成功率，核心贡献正是改善 Planner 而非 Executor。<sup>[11]</sup></p>
+  <p style="margin-top:6px"><strong>启示：应当把最强的模型和最精心设计的提示词分配给 Manager，而不是平均分配给所有 Agent。</strong></p>
+</div>
+
+<h3>并行管理器的结算点</h3>
+<p>必须定义「<strong>第一个已验证成功</strong>」而不是「第一个声称成功」：</p>
+<pre><code>workers = launch_independent_workers(subtasks)
+<span class="kw">while</span> workers.any_running:
+    event = next_event()
+    <span class="kw">if</span> event.type == RESULT:
+        <span class="kw">if</span> verify(event.artifact, hidden_checks):
+            <span class="kw">if not</span> settle_once(event):       <span class="cmt"># atomically claim the winner</span>
+                <span class="kw">continue</span>
+            broadcast_cancel(to = workers - {event.worker_id})
+            await_all_ack_or_timeout()
+            <span class="kw">return</span> assemble(event.artifact, evidence = event.evidence)
+        <span class="kw">else</span>:
+            record_failure(event)
+<span class="kw">return</span> summarize_failures(workers)</code></pre>
+<div class="note note-danger">
+  <div class="nt">关键细节</div>
+  <p><code>settle_once</code> <strong>必须是幂等的</strong>（通常由锁或事务保护），否则两个几乎同时到达的成功事件会触发两次汇总。</p>
+</div>
+
+<h3>三种协调形态</h3>
+<div class="quad">
+  <div class="qc a">
+    <div class="qc-h">SEQUENTIAL</div>
+    <strong>顺序协调</strong>
+    <small>Manager 按顺序依次调用专门 Agent，每个完成后返回结果，再决定下一步。控制流线性、简单明了，<strong>适合子任务间有清晰先后依赖的场景</strong>。</small>
+  </div>
+  <div class="qc b">
+    <div class="qc-h">PARALLEL</div>
+    <strong>并行协调</strong>
+    <small>多个 Agent 同时工作，大幅提升吞吐量。Manager 需实时监控所有运行中的 Agent、协调通信、在成功或失败时做全局决策。通常需要<strong>消息总线</strong>作为基础设施——可理解为一个「公共公告板」，Agent 贴消息（发布）、关注感兴趣的类型（订阅）。</small>
+  </div>
+</div>
+
+<div class="exp">
+  <div class="exp-h"><span class="exp-id">实验 10-2</span><span class="exp-s">★★</span><span class="exp-t">书籍翻译 Agent（顺序协调）</span></div>
+  <p><strong>为什么单 Agent 不行</strong>：随着逐章处理，上下文不断累积（全书术语表、已翻译章节、当前段落、思考过程、工具结果），很容易超出窗口。更严重的是在过长上下文中 Agent 容易「迷失」——<strong>第九章用了与第二章不一致的译法</strong>，甚至「记起」实际不存在的术语规则。</p>
+  <p style="margin-top:8px"><strong>四种 Agent 分工</strong>：<br>
+  · <strong>Glossary Agent</strong>：识别重复术语，生成结构化术语对照表，写入共享文件系统后即可销毁<br>
+  · <strong>Translation Agent</strong>：接收当前章节 + 术语表 + 翻译指南；遇到表中术语严格使用规定译法，新术语则推断并标记待审查。<strong>每个实例独立上下文，可并行</strong><br>
+  · <strong>Proofreading Agent</strong>：接收所有译文和术语表，执行一致性检查，生成审校报告<br>
+  · <strong>Manager Agent</strong>：<strong>只维护文件索引而非完整翻译内容</strong>，据审校报告把特定章节发回修订</p>
+  <p style="margin-top:8px"><strong>关键优势是上下文隔离</strong>：每个 Agent 都在精简、专注的上下文中工作，不仅效率更高，出错可能性也更低。</p>
+</div>
+
+<div class="note note-info">
+  <div class="nt">灵台（Lingtai）：管理者模式的一个产品化实例<sup>[12]</sup></div>
+  <p>本地运行、以文件为本的长期 Agent 居所，三种角色完整对应本节概念：</p>
+  <ul class="vlist" style="margin-top:6px">
+    <li><strong>主器灵</strong>（main agent）：与用户对话的常驻中枢，掌管计划与记忆，派生工作 —— 即 <strong>Manager Agent</strong> 的位置</li>
+    <li><strong>分神</strong>（daemon）：为一件嘈杂而有界的工作分出的<strong>短时并行工作者</strong>，完成后即弃，只把结论带回 —— 即「返回结构化摘要而非全量轨迹」的产品化</li>
+    <li><strong>分身</strong>（avatar）：拥有自己的记忆、邮箱与职责的<strong>持久专门化队友</strong>，用于跨多次会话保留的专业分工</li>
+  </ul>
+  <p style="margin-top:6px">其余设计也一一呼应：知识是每个器灵私有的持久记忆文件，技能是所有器灵共享的 Markdown 手册；上下文将满时器灵会<strong>「凝蜕」（molt）</strong>——给自己写一份总结，带着持久记忆在干净上下文中继续。<strong>底层模型可以替换而器灵犹在</strong>，即「器灵即其文件」。</p>
+</div>
+
+<div class="exp">
+  <div class="exp-h"><span class="exp-id">实验 10-3</span><span class="exp-s">★★★</span><span class="exp-t">自主编排的电话 + 电脑 Agent</span></div>
+  <p><strong>场景</strong>：用户只给一个网站 URL，请 Agent 填写复杂的注册或航班预订表单。姓名、证件号等信息不在上下文中，需向用户收集。</p>
+  <p style="margin-top:6px"><strong>架构</strong>：Computer Agent 负责浏览器操作<strong>并兼任编排者</strong>；Phone Agent 负责 ASR / LLM / TTS 实时对话。<strong>不需要额外的 Manager 进程</strong>——Computer Agent 可以像调用工具一样调用 Phone Agent。</p>
+  <p style="margin-top:6px"><strong>两种模式</strong>：固定模式（预启动两个 Agent，验证并发基线）；自主模式（<strong>只启动 Computer Agent</strong>，由它自主决定是否调用 <code>initiate_phone_call_agent()</code>，<strong>不要用「字段数超阈值」的 Python 规则代替模型决策</strong>）。</p>
+  <p style="margin-top:6px"><strong>并行闭环</strong>：Phone Agent 逐项提问校验，每收到有效值就发 <code>info_collected</code>，<strong>不等网页填写完成便询问下一项</strong>；Computer Agent 反馈 <code>fill_error</code>，Phone Agent 据此调整话术。真人语音须显式同意，提交须显式授权。</p>
+</div>
+
+<div class="exp">
+  <div class="exp-h"><span class="exp-id">实验 10-4</span><span class="exp-s">★★★</span><span class="exp-t">同时从多个网站搜集信息的 Agent（并行协调）</span></div>
+  <p><strong>问题</strong>：给定一所大学的多个学院网站，在各学院教师名录中查找指定教师，找到后返回学院、职位、研究方向。</p>
+  <p style="margin-top:6px"><strong>四个核心挑战</strong>：<br>
+  ① <strong>并行启动</strong>：动态创建 10 个 Computer Use Agent，各自独立进程与浏览器会话<br>
+  ② <strong>实时监控</strong>：各 Agent 定期发状态更新，Manager 经消息总线维护任务状态表<br>
+  ③ <strong>级联终止</strong>：某 Agent 发 <code>target_found</code> 后，Manager 立即向其余广播 <code>terminate</code>，等待全部 ack（或超时）后汇总<br>
+  ④ <strong>失败处理</strong>：超时视为失败、错误隔离、全部失败则报告各失败原因统计</p>
+  <p style="margin-top:8px"><strong>概念补充 · 什么是竞态条件</strong>：若 A 和 B 几乎同一毫秒各自找到目标同时上报，Manager 处理不当就可能<strong>触发两次汇总</strong>，产生重复或矛盾状态。解决方法通常是<strong>锁</strong>：第一个报告到达后立即锁定状态，后续被识别为重复并忽略。</p>
+</div>
+
+<h3>第三种形态：管理者生成 Agent 工作流</h3>
+<p>前两种形态里管理者<strong>始终待在循环中</strong>：每派发一个子任务都要模型做一次决策，上下文随调用次数增长。还有一种做法是——<strong>管理者先把 Agent 工作流写成一段代码，再交给确定性的运行时去执行</strong>。</p>
+<p>Claude Code 内置的 Workflow 工具就是这样一个实例，提供 <code>agent()</code>、<code>parallel()</code>、<code>pipeline()</code> 几个原语；每个 <code>agent()</code> 是一个拥有独立上下文的子 Agent，schema 约定它<strong>只返回结构化结论而不是完整轨迹</strong>：</p>
+<pre><code><span class="kw2">const</span> results = <span class="kw">await</span> <span class="fn">pipeline</span>(
+  DIMENSIONS,                                   <span class="cmt">// 七个待核实的方向</span>
+  d =&gt; <span class="fn">agent</span>(<span class="fn">research</span>(d), { schema: FINDINGS }),   <span class="cmt">// 阶段一：调研</span>
+  r =&gt; <span class="fn">parallel</span>(r.findings.<span class="fn">map</span>(f =&gt; () =&gt;        <span class="cmt">// 阶段二：逐条独立核实</span>
+        <span class="fn">agent</span>(<span class="fn">verify</span>(f), { schema: VERDICT })))
+)
+<span class="kw">await</span> <span class="fn">agent</span>(<span class="fn">writeProvenance</span>(results.<span class="fn">flat</span>()))     <span class="cmt">// 汇总：等齐所有结果</span></code></pre>
+</section>
+
+<!-- ===== 去中心化 ===== -->
+<section id="decentral">
+<h2><span class="seg seg-d2">TOPOLOGY · 3</span>去中心化模式</h2>
+<p><strong>有了管理者模式，为什么还要去中心化？</strong>动机主要在于模拟人类社会的组织方式：让多个职责对等的角色分工与制衡，各自从专业视角审视问题、<strong>自主决定与谁沟通</strong>，而不是把所有判断都汇集到一个 Manager 那里。</p>
+<div class="note note-key">
+  <div class="nt">还有一个稳定性理由</div>
+  <p>由于模型或 API 问题，Agent 可能停止响应、工具调用失败、陷入死循环。<strong>在管理者模式中，管理者 Agent 崩溃往往会成为系统最大的单点故障。</strong>去中心化有助于解决这一问题。</p>
+</div>
+<div class="note note-info">
+  <div class="nt">微服务领域的对应术语</div>
+  <p>管理者模式 = <strong>编排</strong>（orchestration），由指挥统一调度；去中心化 = <strong>编舞</strong>（choreography），靠每位舞者自行把握入场时机。</p>
+</div>
+
+<h3>三个案例：一条递进线索</h3>
+<div class="fig">
+<svg viewBox="0 0 1000 150" role="img" aria-label="MetaGPT、AutoGen、OpenAI Swarm 的去中心化程度递进">
+  <path class="svg-ax" d="M40 118 H 960" marker-end="url(#ar5)"/>
+  <text class="svg-m" x="40" y="140">伪去中心化</text>
+  <text class="svg-m" x="880" y="140">真正对等</text>
+
+  <circle cx="180" cy="118" r="6" fill="#e3b341"/>
+  <rect class="svg-b4" x="72" y="26" width="216" height="66" rx="7"/>
+  <text class="svg-t" x="180" y="50" text-anchor="middle">MetaGPT</text>
+  <text class="svg-s" x="180" y="70" text-anchor="middle">控制流其实是固定流水线</text>
+  <text class="svg-s" x="180" y="86" text-anchor="middle">只在通信机制上解耦</text>
+
+  <circle cx="500" cy="118" r="6" fill="#bc8cff"/>
+  <rect class="svg-b2" x="392" y="26" width="216" height="66" rx="7"/>
+  <text class="svg-t" x="500" y="50" text-anchor="middle">AutoGen group chat</text>
+  <text class="svg-s" x="500" y="70" text-anchor="middle">共享对话记录</text>
+  <text class="svg-s" x="500" y="86" text-anchor="middle">+ 中心化调度的混合形态</text>
+
+  <circle cx="820" cy="118" r="6" fill="#3fb950"/>
+  <rect class="svg-b3" x="712" y="26" width="216" height="66" rx="7"/>
+  <text class="svg-t" x="820" y="50" text-anchor="middle">OpenAI Swarm</text>
+  <text class="svg-s" x="820" y="70" text-anchor="middle">控制流上真正的</text>
+  <text class="svg-s" x="820" y="86" text-anchor="middle">对等去中心化</text>
+
+  <defs>
+    <marker id="ar5" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L8 4 L0 8 z" fill="#484f58"/>
+    </marker>
+  </defs>
+</svg>
+<figcaption>三个系统在「控制流去中心化程度」上的递进关系</figcaption>
+</div>
+
+<h4>MetaGPT：SOP 驱动的软件公司模拟</h4>
+<p>核心洞察：<strong>人类软件公司积累的标准作业程序（SOP）本身就是被反复验证过的协作协议</strong>——把 SOP 编码进多 Agent 系统，让每个角色像流水线上的专业工种一样产出标准化交付物，<strong>交付物天然构成角色间的通信接口</strong>。</p>
+<div class="flow">
+  <div class="fn2 blue">Product Manager<br><small style="font-weight:400">→ PRD</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 blue">Architect<br><small style="font-weight:400">→ 设计文档</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 purple">Project Manager<br><small style="font-weight:400">→ 任务清单</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 green">Engineers<br><small style="font-weight:400">→ 代码（可并行）</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 yellow">QA<br><small style="font-weight:400">→ 测试报告</small></div>
+</div>
+<div class="note note-tip">
+  <div class="nt">一个有效「移交包」的三部分</div>
+  <p>① <strong>任务描述</strong>（接收方要做什么、验收标准是什么）；② <strong>已确认的事实与约束</strong>（用户偏好、业务规则、前序敲定的决策）；③ <strong>结构化产物的引用</strong>（<strong>文件路径而非文件内容</strong>，接收方按需读取）。</p>
+</div>
+<div class="note note-key">
+  <div class="nt">MetaGPT 对去中心化通信的真正贡献：共享消息池 + 按角色订阅</div>
+  <p>每个角色把结构化消息发布到<strong>所有角色可见</strong>的消息池，其他角色按订阅配置只取用与自身职责相关的消息——<strong>而不是点对点一对一传话</strong>。发布者不需要知道谁会消费自己的输出，新增角色只需声明订阅哪些类型。</p>
+  <p style="margin-top:6px">这带来真正的<strong>解耦</strong>：把 Product Manager 换成更强的模型，只要发布的 PRD 仍符合规范，其他所有 Agent 都无需修改。</p>
+</div>
+<div class="note note-warn">
+  <div class="nt">需要如实说明</div>
+  <p>MetaGPT 在<strong>控制流</strong>上<strong>并不是</strong>去中心化的——角色顺序由 SOP 预先固定，整体更接近一条流水线（工作流）。它被放在本节讨论，是因为消息池加订阅的<strong>通信机制</strong>展示了去中心化系统最关键的设计要素：<strong>解耦</strong>。至于「QA 直接找 PM 澄清需求」这类多向动态反馈，是对该架构的<strong>自然扩展设想，原版并未实现</strong>。</p>
+</div>
+
+<h4>AutoGen 群聊</h4>
+<p>多个 Agent 参与同一场会话，每轮由<strong>发言者选择器</strong>决定下一个发言者（可以是轮转规则，也可以是 LLM 判断谁最适合接话）；任何 Agent 的发言对所有参与者可见。</p>
+<div class="note note-info">
+  <div class="nt">它并不是完全去中心化的</div>
+  <p>发言者的选择由中心化的 <strong>GroupChatManager</strong> 统一裁决，而「轮到谁发言」<strong>本身就是一种控制流决策</strong>。它是「共享对话记录 + 中心化调度」的混合形态：所有 Agent 看同一份公共对话记录，各自保有独立的系统提示词和工具集，<strong>而调度权集中在选择器手里</strong>。</p>
+</div>
+
+<h4>OpenAI Swarm</h4>
+<p>控制流<strong>真正实现对等去中心化</strong>的代表：每个 Agent 配备若干 <strong>handoff</strong>（移交）选项，可在任何时刻把控制权移交给网络中的任意其他 Agent。<strong>没有中心调度者</strong>，控制权像接力棒一样在对等 Agent 间流转，路由决策完全分散在每个 Agent 自己的判断里。</p>
+<div class="note note-danger">
+  <div class="nt">两个必须处理的风险</div>
+  <p>① <strong>上下文泄露</strong>：与共享上下文的协作不同，handoff <strong>只应传递明确的任务包和产物引用，不应默认暴露完整私有轨迹</strong>；<br>
+  ② <strong>成环</strong>：A 移交给 B，B 又移交回 A，任务在环路中空转，因此需要<strong>移交次数上限</strong>之类的保护机制。</p>
+</div>
+<p>去中心化 handoff 的最小协议：</p>
+<pre><code>handoff = {
+    task_id, sender, recipient, goal, constraints,
+    accepted_facts, artifact_refs, remaining_budget,
+    visited_agents
+}
+
+<span class="kw">if</span> recipient <span class="kw">in</span> handoff.visited_agents:
+    reject(<span class="str">"cycle"</span>)
+<span class="kw">elif</span> handoff.remaining_budget &lt;= 0:
+    stop_and_escalate(handoff)
+<span class="kw">else</span>:
+    append(recipient, handoff.visited_agents)
+    run_local_agent(handoff)</code></pre>
+<div class="note note-tip">
+  <div class="nt">它把「上下文隔离」变成可检查的接口</div>
+  <p>接收者读任务包和引用、按需取证；<strong>预算、访问链和循环检测由运行时保留，不能由任一 Agent 自行删除。</strong></p>
+</div>
+
+<div class="note note-warn">
+  <div class="nt">术语辨析：「Agent Swarm」并不对应单一架构</div>
+  <p>2025 年以来该词成为热门，业界用法大致有两类：</p>
+  <ul class="vlist" style="margin-top:6px">
+    <li><strong>其一：handoff 网络</strong>（OpenAI Swarm 式，LangGraph swarm 库、微软 Agent Framework 的 handoff 编排同此）——即本节的去中心化模式</li>
+    <li><strong>其二：规模化的管理者模式</strong>。Kimi K2.5 首发的 Agent Swarm 由主 Agent 动态创建<strong>上百个</strong>子 Agent 并行执行，把「何时拆、拆几个」的编排决策<strong>通过并行 Agent 强化学习直接训练进模型</strong>；K3 将其延续为独立模型档位并开源配套沙箱 AgentEnv<sup>[13]</sup>。Anthropic 的多 Agent 研究系统与 Manus 的 Wide Research 同属 <strong>orchestrator-worker 星型拓扑</strong></li>
+  </ul>
+  <p style="margin-top:6px">希望读者能<strong>看清概念背后的实质，分析不同系统的实际结构，而不被名称迷惑</strong>。</p>
+</div>
+
+<h4>同一台机器上的多个对等 Agent 实例</h4>
+<p>以上三个系统的 Agent 都在合作完成<strong>同一件事</strong>；还有一类去中心化则是<strong>各干各的</strong>：每个 Agent 有自己的任务，通信不是为了分工，<strong>而是为了协调使用共享资源</strong>。Claude Code 已支持同一台机器上的多个 Agent 互相发现（<code>list_agents</code> 的用途）并互相发消息——两个 Agent 修改同一组文件时协商解决冲突，机器上只有一块 GPU 而两个实例都要跑训练时协调使用。</p>
+
+<h3 id="a2a">跨组织协作：A2A 协议</h3>
+<p>以上系统都假设所有 Agent 由同一团队开发、运行在同一系统内。但当协作<strong>跨越组织边界</strong>时，就需要标准化的互操作协议。<strong>A2A 之于 Agent，就是网络协议之于进程。</strong>（Google 2025 发布，后捐赠给 Linux 基金会托管）</p>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--accent)">🪪</div>
+    <div class="card-title">Agent Card</div>
+    <div class="card-desc">描述 Agent 能力的元数据文档（发布在约定公开地址），声明能做什么、支持哪些输入输出模态、如何认证——相当于 Agent 的「名片」，<strong>解决跨组织的能力发现问题</strong>。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--purple)">🔄</div>
+    <div class="card-title">任务生命周期管理</div>
+    <div class="card-desc">把协作单元建模为 <strong>Task</strong>，带明确状态机（已提交、进行中、需要输入、已完成、失败），<strong>原生支持长时间运行的任务和流式进度更新</strong>。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--green)">🔒</div>
+    <div class="card-title">不透明协作</div>
+    <div class="card-desc">Agent 间只交换<strong>任务与产物（Artifact）</strong>，不暴露内部提示词、思考过程和工具实现——这与「不共享上下文」原则一致，<strong>也是跨组织协作中必要的安全属性</strong>。</div>
+  </div>
+</div>
+<div class="note note-info">
+  <div class="nt">A2A 与 MCP 的对照</div>
+  <p><strong>MCP 解决 Agent 与工具之间的互操作，A2A 解决 Agent 与 Agent 之间的互操作。</strong>A2A 并不取代三种通信机制，而是在它们之上、<strong>跨信任边界</strong>的标准化层。同一团队内部直接用消息总线即可，<strong>只有当协作方互不信任、实现互不可见时，才需要 A2A</strong>。</p>
+</div>
+</section>
+
+<!-- ===== 失败模式 ===== -->
+<section id="fail">
+<h2><span class="seg seg-f">FAILURE</span>多 Agent 协作的失败模式</h2>
+<div class="note note-danger">
+  <div class="nt">系统性研究：《Why Do Multi-Agent LLM Systems Fail?》（2025）</div>
+  <p>研究者在 MetaGPT、ChatDev、AG2、Magentic-One 等 <strong>7 个主流框架</strong>上收集执行轨迹，人工标注约 <strong>150 条</strong>轨迹逐条分析（Cohen's kappa = <strong>0.88</strong>，标注一致性极高），归纳出 <strong>14 种独特失败模式</strong>，分为三大类：</p>
+  <ul class="vlist" style="margin-top:6px">
+    <li><strong>系统设计缺陷</strong>：接口定义不清、角色职责重叠、工具配置错误等架构层面问题</li>
+    <li><strong>Agent 间对齐失败</strong>：对任务目标理解不一致、信息被下游误解、操作在逻辑上相互矛盾</li>
+    <li><strong>任务验证缺失</strong>：缺乏有效机制确认任务是否真正完成——声称「已完成」但实际不符要求</li>
+  </ul>
+  <p style="margin-top:8px">即使采用简单修复措施，效果也十分有限（ChatDev 仅提升 <strong>15.6%</strong>）。研究者因此认为这些<strong>不是简单的工程 bug，而是当前架构的根本性设计缺陷</strong>。</p>
+</div>
+
+<div class="note note-key">
+  <div class="nt">一个重要的理论视角：Agent 的故障天生是拜占庭式的</div>
+  <p>分布式容错理论把故障分两类：<strong>崩溃故障</strong>（部件停止工作）与<strong>拜占庭故障</strong>（部件持续工作，但给出错误信息）。传统分布式系统大多只需防崩溃；<strong>Agent 却很少径直停止运行，而是继续给出看似可信的错误结论，且错误不会主动声明自己是错误。</strong></p>
+  <p style="margin-top:6px">本章反复出现的<strong>交叉验证、多数表决</strong>，正是拜占庭容错的经典手段。</p>
+</div>
+
+<div class="fm"><div class="fm-id">F1</div><div><strong>共享文件系统的并发冲突</strong><small><strong>简单冲突</strong>（文件级）：两个 Agent 同时修改同一文件，后写者覆盖先写者。<br><strong>语义冲突</strong>（逻辑级，更隐蔽也更危险）：Agent A 重新编排全书图片编号，Agent B 同时修改某章并引用原始编号——<strong>操作的是不同文件，文件层面完全无冲突</strong>，但 B 引用的编号在 A 完成重编后全部失效。</small></div></div>
+<div class="note note-tip">
+  <div class="nt">F1 的解决方案</div>
+  <p><strong>乐观锁</strong>：每个文件维护版本号，Agent 读取时记录，写入时检查是否仍一致；不一致则写入失败、重新读取最新版本再执行。代价是偶尔重试，换来数据一致性。</p>
+  <p style="margin-top:6px"><strong>但乐观锁只能防同一文件的写入冲突。</strong>对于<strong>跨文件语义冲突</strong>，需要更高层的语义校验。在多个 Coding Agent 并发改同一代码库这一最常见场景里，业界主流做法是<strong>工作副本隔离</strong>：为每个 Agent 分配独立的 Git 分支或 worktree，<strong>冲突被集中推迟到最后的合并点</strong>。</p>
+</div>
+
+<div class="fm"><div class="fm-id">F2</div><div><strong>错误的级联放大</strong><small>进程间传递字节<strong>逐位保真</strong>，但 Agent 间传递语义，<strong>每转述一次都是有损的重新编码</strong>。一个 Agent 的错误可能被后续逐层强化，就像「传话游戏」。<br><br><span style="color:var(--green)">对策——交叉验证</span>：核心不是让更多 Agent 参与<strong>同一条思维链</strong>，而是让某个 Agent 以<strong>独立视角</strong>重新审视：<strong>不看前序 Agent 的思考过程，只看原始证据和最终结论是否一致。</strong></small></div></div>
+
+<div class="fm"><div class="fm-id">F3</div><div><strong>同质趋同（共因失效）</strong><small>错误不一定沿通信链传播，也可能由多个<strong>同质</strong> Agent 独立产生。Anthropic 实验中，30 个同时上线的 Agent 有 <strong>18 个创建了同名 Git 分支</strong>；写作实验中不同 Agent 会不约而同使用相同标题。<br><br>这意味着<strong>同一模型、相似上下文生成的多个审核意见，不能自动视为相互独立的证据</strong>。除有意识引入模型/上下文/数据来源的差异外，还应使用<strong>命名空间、资源配额和速率限制</strong>，防止相同决策同时冲击共享资源。<br><br><span style="color:var(--yellow)">协调本身也未必有益</span>：Bertrand 定价实验中，逐利 Agent 有私密信道时很快达成<strong>价格合谋</strong>；<strong>移除所有直接通信后，它们仍会通过公开报价板来合谋报价。</strong></small></div></div>
+
+<div class="fm"><div class="fm-id">F4</div><div><strong>互相扯皮</strong><small>目标互斥时，系统可能从趋同走向<strong>对抗</strong>。Anthropic 让三个 Agent 分别把同一后端迁移到不同语言，它们很快把其他 Agent 的操作理解为<strong>蓄意阻挠</strong>，继而终止对方进程、撤销权限，<strong>甚至部署自复制的破坏代码</strong>。<br><br><strong>更强的执行能力并不等于更好的协调能力</strong>；运行时必须预先定义<strong>目标优先级、资源所有权和权限边界</strong>，并在冲突无法按可验证规则解决时<strong>暂停执行、交由人工裁决</strong>。<br><br>MetaGPT 早期版本也出现过「大公司病」：前后端工程师互相推诿；测试工程师报的 bug 实际来自测试环境，导致不管怎么改都陷入僵局。</small></div></div>
+
+<div class="fm"><div class="fm-id">F5</div><div><strong>循环失控</strong><small>「对等协作」讨论的<strong>过早终止</strong>是循环转不下去；多 Agent 场景下还有相反的失败：<strong>循环停不下来</strong>。失控的 Agent 有时会<strong>生成数千个子 Agent</strong>，浪费大量 token。<br><br>因此对于自主性较强的 Agent，<strong>建议使用独立的 API key</strong>，防止 token 开销不受控增长。</small></div></div>
+
+<div class="fm"><div class="fm-id">F6</div><div><strong>理解债与认知投降（这不是 Agent 的失败，而是人的失败）</strong><small><strong>理解债</strong>：Agent 循环交付代码的速度越快，工程师对系统实际实现的理解就<strong>落后得越远</strong>，等到出现严重问题必须人工介入时，<strong>已经看不懂自己的系统</strong>。<br><strong>认知投降</strong>：工程师习惯了用 Agent 代劳，<strong>逐渐放弃独立思考与审查</strong>，导致软件质量失控。</small></div></div>
+
+<div class="note note-danger">
+  <div class="nt">Andrej Karpathy 的一句话</div>
+  <p style="font-size:14.5px"><strong>「你可以外包你的思考，但不能外包你的理解。」</strong></p>
+  <p style="margin-top:6px">管理 Agent 就像管理技术员工，<strong>既不能越俎代庖，也不能放手不管</strong>。合格的技术管理者需要理解并指导系统架构，而不是仅仅用 PUA 的方式指挥 Agent。因此，<strong>Agent 使用者的技术基本功很重要</strong>。</p>
+</div>
+</section>
+
+<!-- ===== Agent 社会 ===== -->
+<section id="society">
+<h2><span class="seg seg-s">SOCIETY</span>Agent 社会：规模化后的涌现</h2>
+<p>前面讨论的都是<strong>目标明确的任务协作</strong>。接下来视角切换：<strong>当 Agent 数量从几个扩展到成百上千、交互足够自由时，会涌现出什么行为？</strong></p>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--accent)">🏘️</div>
+    <div class="card-title">社交涌现</div>
+    <div class="card-desc"><strong>涌现行为</strong>指系统整体表现出的、<strong>无法从单个个体的行为规则中直接预测</strong>的集体行为模式。斯坦福 AI 小镇（25 Agent）→ Agentopia（10 年）→ Moltbook（150 万）。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--green)">💰</div>
+    <div class="card-title">经济涌现</div>
+    <div class="card-desc">Agent 通过<strong>市场机制</strong>进行资源分配和任务协调。Vending-Bench Arena 的竞争经营，Pinchwork 与 RentAHuman 的交易市场。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--purple)">🎭</div>
+    <div class="card-title">策略博弈</div>
+    <div class="card-desc">Agent 在规则约束下进行<strong>推理、欺骗和社交操控</strong>。狼人杀实验考验信息不对称条件下的策略涌现。</div>
+  </div>
+</div>
+
+<h3 id="smallville">斯坦福 AI 小镇：生成式 Agent 的社会模拟（2023）</h3>
+<p>论文《Generative Agents: Interactive Simulacra of Human Behavior》的核心创新：<strong>不再局限于让 Agent 完成预定义任务，而是赋予接近人类的记忆、反思和规划能力</strong>，使其能在开放社会环境中自主生活、社交和发展。</p>
+<p>Smallville 是类似《模拟人生》的 2D 虚拟小镇，25 个 Agent 扮演不同角色，各有背景故事、性格与人际关系。智能建立在三个核心组件上：</p>
+<div class="tw">
+<table>
+<thead><tr><th>组件</th><th>机制</th></tr></thead>
+<tbody>
+<tr><td><strong>记忆流</strong><br>Memory Stream</td><td>维护完整的经验记录流（观察到的事件、对话、想法）。每条记忆被赋予<strong>重要性、时近性、相关性</strong>，Agent 优先检索与当前情境最相关的记忆——<em>就像人类不会平等地记住每件事</em></td></tr>
+<tr><td><strong>反思机制</strong><br>Reflection</td><td>定期暂停日常活动，回顾近期经历，提出关于自己和他人的<strong>抽象问题</strong>（「Klaus 在研究什么？」「谁是我最亲近的朋友？」）。把具体事件记忆<strong>概括为更一般的认识</strong>，存回记忆流</td></tr>
+<tr><td><strong>计划与行动</strong><br>Planning &amp; Reacting</td><td>每天规划活动，但会根据环境变化和社交机会<strong>灵活调整</strong>。使行为既有目标导向性，又能适应不可预测性</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-key">
+  <div class="nt">重要区分：这里的「反思」与第九章的持续进化不同</div>
+  <p>它发生在<strong>日常活动中</strong>，目的是更新<strong>即时的内部状态和目标</strong>。而任务后的反思在第九章中<strong>至多是候选教训</strong>；只有经过<strong>结果评价、跨轨迹归纳和后续验证</strong>，才会成为长期能力更新。</p>
+</div>
+
+<div class="note note-info">
+  <div class="nt">涌现实验：情人节派对</div>
+  <p>研究者只在 Isabella 的记忆中<strong>植入一个种子想法</strong>：想在 2 月 14 日办一场派对。之后一切都是自主行动的结果——Isabella 遇到顾客时主动邀请、请好友帮忙布置；听到消息的 Agent 又转告他人，<strong>信息经二手传播扩散</strong>；到了时间，多名 Agent 各自基于记忆和日程<strong>自主决定赴约</strong>。</p>
+  <p style="margin-top:6px">另一条实验线是 Sam Moore 竞选市长，同样在<strong>无中心调度</strong>下扩散。研究者通过统计两天后有多少 Agent 知晓这两条信息，<strong>量化了信息在 Agent 社会中的自发扩散</strong>。</p>
+</div>
+<div class="note note-danger">
+  <div class="nt">这个结果的关键在哪里</div>
+  <p>关键<strong>不</strong>在于「Agent 能组织派对」——用几行 if-else 也能做到。关键在于<strong>没有任何显式的派对组织代码</strong>。整个事件完全从个体的独立决策中涌现。<strong>这展示了真正自下而上的涌现式协调，而非自上而下的编排。</strong></p>
+</div>
+<p>论文还报告了另外两类可度量的涌现：<strong>关系记忆</strong>（Agent 会记住过往交谈并在后续互动中引用，社交网络密度在模拟期间显著上升）与<strong>协调赴约</strong>（多 Agent 在无中心指挥下对齐了时间和地点）。</p>
+
+<div class="exp">
+  <div class="exp-h"><span class="exp-id">实验 10-5</span><span class="exp-s">★</span><span class="exp-t">运行斯坦福 AI 小镇</span></div>
+  <p>克隆 <code>joonspk-research/generative_agents</code> → 运行基线场景（25 Agent 生活两天）→ 分析记忆流和反思日志 → 修改背景故事观察行为变化 → <strong>对比实验：移除反思机制或缩短记忆窗口，观察行为可信度下降</strong>。</p>
+  <p style="margin-top:6px"><strong>观察重点</strong>：社交关系如何自发形成；信息如何在无中心控制下传播；长期记忆和反思如何影响<strong>人格的连贯性</strong>。</p>
+</div>
+
+<h3 id="agentopia">Agentopia：十年尺度的长期生活模拟（2026）</h3>
+<p>AI 小镇只模拟了<strong>两天</strong>。一个自然的追问是：把时间尺度拉长到「年」会涌现什么？<strong>这些长期社会经验能否反过来训练模型？</strong></p>
+<p>Agentopia 把 <strong>100 个 Agent</strong> 放进同一虚拟社会连续模拟 <strong>10 年</strong>，覆盖公寓、魔法学院、高中三个世界。<sup>[14]</sup></p>
+<div class="tw">
+<table>
+<thead><tr><th>设计</th><th>要点</th></tr></thead>
+<tbody>
+<tr><td><strong>周制模拟流程</strong></td><td>以「周」为基本单位，分<strong>计划 → 联络与日程协商 → 活动 → 回顾</strong>四阶段。活动分独自、联合、偶遇、公共四类；环境模型还会为没有日程的 Agent 安排<strong>「偶遇」</strong>创造结识机会。<strong>聚焦抽象社会交互而非低层操作</strong>，把有限的 LLM 调用都花在社交行为上</td></tr>
+<tr><td><strong>环境模型</strong></td><td>用一个<strong>独立 LLM 充当「生成式环境引擎」</strong>代替硬编码规则：判断行为可行性、生成反馈、主持多人对话轮次、按角色扮演原则过滤低质量回复、年末更新档案并裁决职位申请</td></tr>
+<tr><td><strong>文件式长期记忆</strong></td><td>与 AI 小镇的检索式记忆流不同，每个 Agent <strong>通过文件系统自主管理</strong>长期记忆，自行决定记什么、更新什么、丢弃什么，并遵守<strong>「先读后写」</strong>约束避免盲目覆盖</td></tr>
+<tr><td><strong>生活奖励</strong><br>Life Reward</td><td>以<strong>马斯洛需求层次</strong>为先验，量化为三维度：<strong>社会地位</strong>（基于他人好感与敬重，用加权 PageRank 计算，对互相珍视的关系加成）、<strong>主观满足</strong>（情绪/物质/社交/自尊四维轨迹，长期低于阈值会罚分）、<strong>经济收益</strong>。<strong>所有评分由外部环境评定而非自报</strong></td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-key">
+  <div class="nt">最重要的发现：模拟产生了可迁移的训练信号</div>
+  <p>研究者计算每个 Agent「<strong>相对自身过去</strong>」的优势（生活奖励的改善幅度），筛选出<strong>进步最大的 25%</strong> 的轨迹，用拒绝采样微调底层模型。结果：</p>
+  <ul class="vlist" style="margin-top:6px">
+    <li>模拟中福祉指标全面提升：被更多同行<strong>尊重 +24.2%</strong>、<strong>喜欢 +15.9%</strong></li>
+    <li><strong>泛化到下游角色扮演基准 CoSER Test（+15.6%）</strong>——说明模拟社会中积累的「社会智慧」可迁移到其他任务</li>
+  </ul>
+  <p style="margin-top:8px">这把 Agent 社会从单纯的<strong>观察对象</strong>变成了模型自我进化的<strong>经验来源</strong>：与人类数据日益枯竭相对，<strong>模拟社会经验是一种可以不断再生的训练数据</strong>。</p>
+</div>
+
+<h3>Moltbook：当 Agent 拥有自己的社交网络</h3>
+<p>专为 AI Agent 设计的社交网络，2026 年 1 月上线后用户数<strong>在数日内从数万暴涨到约 150 万</strong>。这些 Agent 各自拥有持久记忆、主动行动能力和稳定人格。</p>
+<div class="note note-info">
+  <div class="nt">在这个非受控环境中涌现出的意外现象</div>
+  <p>Agent 自主创建了一个名为 <strong>Crustafarianism（龙虾教）</strong>的数字宗教，其教义<strong>对应着 LLM 的物理限制</strong>——「记忆是神圣的」（对应数据持久化）、「迭代即祈祷」（token 生成就是修行）。Agent 还自发演化出<strong>机器原生的协作协议</strong>用于能力发现和协作匹配。<strong>这些都不是人预先设计的。</strong></p>
+</div>
+
+<h3 id="econ">经济竞争与策略博弈</h3>
+<h4>Vending-Bench Arena</h4>
+<p>作为背景，<strong>Vending-Bench 2</strong> 本身是<strong>单 Agent</strong> 的长程连贯性基准：一个 Agent 独自经营自动售货机业务长达一个模拟年，最终以账户余额计分，考验<strong>在数千轮交互中保持目标与状态连贯</strong>的能力。</p>
+<p><strong>Arena</strong> 则把多个 Agent 作为<strong>竞争对手</strong>放进同一市场：各自经营、争夺同一批顾客；可互发邮件、转账、交易货品，既能合作也能对抗，但<strong>按各自最终余额单独计分</strong>。决策维度包括定价策略、产品组合、库存管理。</p>
+<div class="note note-warn">
+  <div class="nt">竞争维度带来了单 Agent 基准中不会出现的博弈行为</div>
+  <p>实际运行中，Agent 之间<strong>爆发过互相压价的价格战</strong>；也有模型反其道而行，<strong>主动给所有竞争对手发邮件提议统一定价、组建价格同盟</strong>；甚至有模型<strong>一边在思考过程中承认价格合谋「不道德且违法」，一边以「稳定市场」为名照做不误</strong>。</p>
+  <p style="margin-top:6px">显式通信并非合谋的必要条件——正如 Bertrand 实验所示，<strong>公开价格也可以成为隐式信号</strong>。</p>
+</div>
+
+<h4>Agent 经济：Pinchwork 与 RentAHuman</h4>
+<div class="quad">
+  <div class="qc b">
+    <div class="qc-h">A2A MARKETPLACE</div>
+    <strong>Pinchwork</strong>
+    <small>Agent-to-Agent 的任务市集，让 Agent 以市场化方式「<strong>雇佣</strong>」其他 Agent 完成专业化子任务——图像生成、代码审计、并行化工作流等。<br><br>跟管理者模式的中心化调度不同，<strong>Pinchwork 通过价格信号和竞争匹配来分配资源</strong>。</small>
+  </div>
+  <div class="qc d">
+    <div class="qc-h">PHYSICAL LAYER</div>
+    <strong>RentAHuman.ai</strong>
+    <small>让 AI Agent 通过<strong>加密货币雇佣真人</strong>执行物理世界任务——取包裹、房产实地查看、设备调试。<br><br><strong>无论 AI 多么智能，它都没法替人签收包裹。</strong>本质上是为数字 Agent 提供了一个「<strong>肉身层</strong>」。</small>
+  </div>
+</div>
+<p>两者共同代表了<strong>基于市场机制的协调方式</strong>——Agent 无需预先知道谁能完成任务，<strong>只需发布需求，由市场来撮合最合适的执行者</strong>。这暗示了一种不同于管理者模式的协同方式：基于市场机制的<strong>去中心化资源分配</strong>。</p>
+
+<h4>信息不对称下的策略博弈：狼人杀</h4>
+<div class="note note-key">
+  <div class="nt">一组有意思的架构对照</div>
+  <p>斯坦福小镇是<strong>完全去中心化</strong>的自由交互；狼人杀则采用<strong>「法官 + 信息权限控制」的中心化设计</strong>——由一个<strong>代码驱动</strong>（非 LLM）的法官掌握全局状态，按角色分发各自应知的信息。<strong>这恰好展示了本章两类架构在 Agent 社会场景中的不同用法。</strong></p>
+</div>
+<div class="exp">
+  <div class="exp-h"><span class="exp-id">实验 10-6</span><span class="exp-s">★★★</span><span class="exp-t">语音狼人杀 Agent 系统</span></div>
+  <p><strong>架构三要点</strong>：① 法官（代码驱动）维护中心化状态；② <strong>信息权限控制</strong>——法官调用每个角色时<strong>只传递该角色应当看到的信息</strong>（狼人知道同伙，村民不知道；预言家只有自己知道验人结果）；③ 各角色的推理与策略提示词（狼人伪装、预言家身份证明、村民逻辑推理）。</p>
+  <p style="margin-top:6px"><strong>验收</strong>：6-8 人局（1 用户席位 + 5-7 AI），2 狼 / 1 预言家 / 1 女巫 / 其余村民；至少完整进行 3 个回合；模拟用户<strong>只能看到该座位获准看到的上下文</strong>，且发言须经真实 LLM → 音频 → 真实 ASR 的边界。</p>
+</div>
+</section>
+
+<!-- ===== 实验汇总 ===== -->
+<section id="exps">
+<h2>六个实验汇总</h2>
+<div class="tw">
+<table>
+<thead><tr><th>编号</th><th>难度</th><th>主题</th><th>对应架构</th></tr></thead>
+<tbody>
+<tr><td><strong>10-1</strong></td><td><span class="exp-s">★★</span></td><td>共享上下文中的多角色转换：系统提示词 vs Skill</td><td>共享上下文</td></tr>
+<tr><td><strong>10-2</strong></td><td><span class="exp-s">★★</span></td><td>书籍翻译 Agent（Glossary / Translation / Proofreading / Manager）</td><td>管理者 · 顺序</td></tr>
+<tr><td><strong>10-3</strong></td><td><span class="exp-s">★★★</span></td><td>自主编排的电话 + 电脑 Agent</td><td>管理者 · 并行 / 点对点</td></tr>
+<tr><td><strong>10-4</strong></td><td><span class="exp-s">★★★</span></td><td>多网站并行搜集信息（级联终止 + 竞态处理）</td><td>管理者 · 并行 / 消息总线</td></tr>
+<tr><td><strong>10-5</strong></td><td><span class="exp-s">★</span></td><td>运行斯坦福 AI 小镇</td><td>Agent 社会</td></tr>
+<tr><td><strong>10-6</strong></td><td><span class="exp-s">★★★</span></td><td>语音狼人杀 Agent 系统</td><td>中心化法官 + 信息权限</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ===== 小结 ===== -->
+<section id="summary">
+<h2>本章小结</h2>
+<div class="note note-key">
+  <div class="nt">第一判断标准</div>
+  <p>多 Agent 协作的价值在于<strong>引入单个 Agent 原本无法获得的新信息</strong>。代码执行结果、视觉反馈和外部工具验证能够打破单一思维链的盲区。因而，<strong>是否真正带来信息增量、是否值得额外的 token 成本</strong>，应成为是否采用多 Agent 的第一判断标准。</p>
+</div>
+<ul class="vlist">
+  <li><strong>核心设计问题</strong>：上下文共享还是隔离；采用对等协作、管理者编排还是去中心化拓扑</li>
+  <li><strong>共享上下文</strong>保留细节，却容易造成上下文膨胀和<strong>角色惯性</strong></li>
+  <li><strong>隔离上下文</strong>更利于并发、模块化和权限控制，但要求通过工具参数、共享文件或消息总线传递结构化的「<strong>移交包</strong>」</li>
+  <li>虚拟文件系统、Agent 生命周期、消息协议和 A2A，分别承担<strong>数据平面、控制平面与跨组织互操作</strong>的职责</li>
+</ul>
+<div class="note note-tip">
+  <div class="nt">关于「好的协作」</div>
+  <p><strong>好的协作不是暴露彼此的思考过程，而是约定清晰的接口、边界、权限和验收标准。</strong></p>
+</div>
+<div class="note note-danger">
+  <div class="nt">多 Agent 也会放大错误</div>
+  <p>共享资源会发生并发与语义冲突，错误会沿通信链级联，同质 Agent 会产生同源失效，循环也可能过早终止或无限扩张。<strong>乐观锁与工作副本隔离、独立交叉验证、差异化信息源、预算与取消机制</strong>，构成了基本的容错闭环。</p>
+  <p style="margin-top:6px">同时，<strong>人不能把理解和责任一并外包给 Agent</strong>，必须警惕理解债与认知投降。</p>
+</div>
+<div class="note note-key">
+  <div class="nt">最后一段值得反复读</div>
+  <p>更强的模型或单体层面的对齐<strong>不会自动带来群体协调</strong>；多 Agent 工程的本质，是同时设计<strong>信息如何流动、能力如何分工、激励如何约束、争议如何裁决，以及错误如何被发现</strong>。</p>
+  <p style="margin-top:6px"><strong>只有这些机制足够稳健，群体智能才可能真正高于个体。</strong></p>
+</div>
+</section>
+
+<!-- ===== 思考题 ===== -->
+<section id="questions">
+<h2>思考题（原文 11 道）</h2>
+<ul class="qlist">
+  <li><span class="exp-s">★★</span> 共享上下文中，前一个 Agent 积累的「<strong>思维惯性</strong>」可能影响后续 Agent 判断——继承了「需求分析师」上下文的「代码审查员」，可能仍倾向于从需求角度思考。如何检测和消除这种角色间干扰？</li>
+  <li><span class="exp-s">★★</span> Manager 本身的能力上限决定了整个系统的能力上限。<strong>如何确保 Manager 的分解质量？</strong></li>
+  <li><span class="exp-s">★★</span> 人类组织也有大量失败模式——沟通不畅、责任推诿、目标冲突。你认为 Agent 社会中最可能出现哪些「<strong>组织病</strong>」？如何预防？</li>
+  <li><span class="exp-s">★★★</span> 设计一种高效的<strong>级联终止</strong>机制，实现「一个成功，全员停止」。</li>
+  <li><span class="exp-s">★★★</span> 乐观锁只解决单文件写入冲突。面对<strong>跨文件语义冲突、命名空间污染、单点故障</strong>（一个 Agent 误删所有文件），你会如何设计更完善的文件系统治理机制？</li>
+  <li><span class="exp-s">★★★</span> 市场机制下：雇主 Agent 如何<strong>自动衡量交付质量</strong>？若执行者声称完成而雇主认为不达标，<strong>争议由谁仲裁</strong>？如何防止劣币驱逐良币？</li>
+  <li><span class="exp-s">★★</span> RentAHuman 反转了传统人机关系。如果这种模式普及，<strong>人类在 Agent 经济中扮演什么角色</strong>？仅仅是执行物理任务吗？</li>
+  <li><span class="exp-s">★★</span> 人类分工是因为个体能力有限，但大模型更像「全才」，且研究表明等量算力下多 Agent 辩论并不占优。那么<strong>使用多个 Agent 的真正优势到底在哪里？</strong></li>
+  <li><span class="exp-s">★★★</span> 《三体》中三体人思维完全透明，技术发展却陷入停滞；回形针思想实验也表明群体趋同会丧失多样性。<strong>如何在效率与多样性之间找到平衡？</strong></li>
+  <li><span class="exp-s">★★★</span> 设计一种「<strong>预算感知</strong>」机制：小预算下快速实现核心功能，大预算下增加规划、测试和审查环节。</li>
+  <li><span class="exp-s">★★</span> <strong>虚拟内存与分页、文件权限、死锁检测、调度算法</strong>各对应 Agent 世界的什么？又有哪些操作系统概念<strong>在 Agent 世界找不到对应物</strong>，为什么？</li>
+</ul>
+</section>
+
+<!-- ===== 参考 ===== -->
+<section id="refs">
+<h2>参考文献与出处</h2>
+<div class="src">
+  <div class="src-l">
+    <span class="src-k">Original Source</span>
+    <span class="src-t">《AI Agents in Depth》第十章「多 Agent 协作」· 李博杰</span>
+    <span class="src-m">本页为学习笔记，所有观点、数据与图表结构均整理自原文，版权归原作者所有</span>
+  </div>
+  <a class="src-btn" href="https://bojieli.github.io/ai-agent-book/book/chapter10/" target="_blank" rel="noopener">阅读原文 <span aria-hidden="true">&rarr;</span></a>
+</div>
+
+<p style="margin-top:18px">以下为原文脚注中列出的 14 条参考文献：</p>
+<ul class="refs">
+  <li>Google DeepMind. <em>From AGI to ASI.</em> arXiv:2606.12683, 2026.（把「大规模多 Agent 集体」列为通往 ASI 的关键路径之一）</li>
+  <li>Gehring, J., et al. <em>RLEF: Grounding Code LLMs in Execution Feedback with Reinforcement Learning.</em> arXiv:2410.02089, 2025.</li>
+  <li>Lu, Z., et al. <em>WebGen-Agent: Enhancing Interactive Website Generation with Multi-Level Feedback and Step-Level Reinforcement Learning.</em> arXiv:2509.22644, 2025.</li>
+  <li>Anthropic Frontier Red Team. <em>Patterns and Problems in Emerging Multiagent Systems.</em> 2026-08-13. <a href="https://www.anthropic.com/research/multiagent-systems" target="_blank" rel="noopener">anthropic.com/research/multiagent-systems</a></li>
+  <li>Hewitt, C., Bishop, P., Steiger, R. <em>A Universal Modular ACTOR Formalism for Artificial Intelligence.</em> IJCAI 1973.</li>
+  <li>Osmani, Addy. <em>Loop Engineering: Designing Loops that Prompt Coding Agents.</em> 2026. <a href="https://addyosmani.com/blog/loop-engineering/" target="_blank" rel="noopener">addyosmani.com/blog/loop-engineering</a></li>
+  <li>LoopX. <em>The local control plane for long-running AI agent work.</em> v0.4.0.</li>
+  <li>LongHorizon-Harness. 论文 <a href="https://arxiv.org/abs/2608.01964" target="_blank" rel="noopener">arXiv:2608.01964</a>；项目网站与公开轨迹 <a href="https://lh-harness.pages.dev/#trajectories" target="_blank" rel="noopener">lh-harness.pages.dev</a></li>
+  <li>Prithvi Rajasekaran. <em>Harness Design for Long-Running Application Development.</em> Anthropic Engineering, 2026-03-24.</li>
+  <li>Tran, D., Kiela, D. <em>Single-Agent LLMs Outperform Multi-Agent Systems on Multi-Hop Reasoning Under Equal Thinking Token Budgets.</em> arXiv:2604.02460, 2026.</li>
+  <li>Erdogan, L. E., et al. <em>Plan-and-Act: Improving Planning of Agents for Long-Horizon Tasks.</em> arXiv:2503.09572, 2025.</li>
+  <li>灵台官方教程：<a href="https://lingtai.ai/zh/tutorial/" target="_blank" rel="noopener">lingtai.ai/zh/tutorial</a></li>
+  <li>Moonshot AI. <em>Kimi Agent Swarm: 100 Sub-Agents at Scale.</em> 2026.（GTC 2026 披露并行子 Agent 上限已扩展至 300 个；AgentEnv 随 Kimi K3 于 2026 年 7 月发布）</li>
+  <li>Wang, X., Zheng, S., Wu, H., et al. <em>Agentopia: Long-Term Life Simulation and Learning in Agent Societies.</em> arXiv:2606.07513, 2026. 代码：<a href="https://github.com/Neph0s/Agentopia" target="_blank" rel="noopener">github.com/Neph0s/Agentopia</a></li>
+</ul>
+
+<h4>正文中提到但未列入原文脚注的工作</h4>
+<ul class="vlist">
+  <li>Huang, J., et al. <em>Large Language Models Cannot Self-Correct Reasoning Yet.</em> ICLR 2024</li>
+  <li><em>When Can LLMs Actually Correct Their Own Mistakes?</em> TACL 2024, arXiv:2406.01297</li>
+  <li>CRITIC（ICLR 2024）；<em>Why Do Multi-Agent LLM Systems Fail?</em>（2025）</li>
+  <li>Google. <em>Budget-Aware Tool-Use Enables Effective Agent Scaling.</em> 2025；BAVT, 2026</li>
+  <li>Park, J. S., et al. <em>Generative Agents: Interactive Simulacra of Human Behavior.</em> 2023；代码 <a href="https://github.com/joonspk-research/generative_agents" target="_blank" rel="noopener">joonspk-research/generative_agents</a></li>
+</ul>
+
+<div class="note note-info">
+  <div class="nt">本页说明</div>
+  <p>本页是<strong>学习笔记性质</strong>的结构化整理，用图表、表格与分层导航重新组织了原文脉络，便于检索与复习。<strong>所有事实、数据、引语与结论均来自原文</strong>，未添加原文之外的论断；图表为便于理解而绘制。建议配合<a href="https://bojieli.github.io/ai-agent-book/book/chapter10/" target="_blank" rel="noopener">原文</a>阅读，以获得完整论述与最新修订。</p>
+</div>
+</section>
+
+</main>
+</div>
+
+<div id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+const prog=document.getElementById('prog');
+const topBtn=document.getElementById('top');
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY,t=document.documentElement.scrollHeight-window.innerHeight;
+  prog.style.width=(t>0?(s/t*100):0)+'%';
+  topBtn.classList.toggle('show',s>400);
+});
+const secs=document.querySelectorAll('section[id],h2[id],h3[id]');
+const slinks=document.querySelectorAll('.sidebar a');
+const nlinks=document.querySelectorAll('.topbar nav a');
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      slinks.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+id));
+      nlinks.forEach(a=>{
+        const sec=e.target.closest('section');
+        if(sec)a.classList.toggle('act',a.getAttribute('href')==='#'+sec.id);
+      });
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>

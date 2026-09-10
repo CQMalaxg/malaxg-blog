@@ -45,8 +45,13 @@ showToc: false
     <strong>如何做 Agent 的 Self-Improving（博客）</strong>
     <small>一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。</small>
   </a>
-  <a class="lab-card lab-card--featured" href="/posts/deepagents-learning-guide/">
+  <a class="lab-card" href="/lab/multi-agent-learning.html">
     <span class="lab-card__index">GUIDE / 07</span>
+    <strong>多 Agent 协作</strong>
+    <small>两个设计维度、三种协作拓扑、六种失败模式与 Agent 社会涌现。整理自《AI Agents in Depth》第十章。</small>
+  </a>
+  <a class="lab-card lab-card--featured" href="/posts/deepagents-learning-guide/">
+    <span class="lab-card__index">GUIDE / 08</span>
     <strong>Deep Agents 学习文档</strong>
     <small>从核心概念、工具、文件系统、子代理到 memory、skills 和 HITL 的系统学习手册。</small>
     <span class="lab-card__cta">进入可视化学习页 <span aria-hidden="true">&rarr;</span></span>
