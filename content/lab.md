@@ -9,9 +9,9 @@ showToc: false
 <div class="lab-featured-path">
   <div>
     <span class="lab-featured-path__kicker">CURRENT PATH</span>
-    <strong>正在学习：Agent Self-Improving</strong>
+    <strong>正在学习：AI Agents in Depth</strong>
   </div>
-  <span>闭环拆解 &rarr; 工程落地 &rarr; 不变量</span>
+  <span>构建 &rarr; 评估与进化 &rarr; 多 Agent 协作</span>
 </div>
 
 <div class="lab-grid">
@@ -45,10 +45,15 @@ showToc: false
     <strong>如何做 Agent 的 Self-Improving（博客）</strong>
     <small>一条可落地的工程路径：七步蓝图、两条技术路线对比、避坑清单，配 7 张图解。</small>
   </a>
+  <a class="lab-card" href="/lab/ai-agent-book.html">
+    <span class="lab-card__index">SERIES / 07</span>
+    <strong>《AI Agents in Depth》全书专题</strong>
+    <small>李博杰开源书 10 章通读笔记：核心公式、五个工程范式、贯穿设计模式与 109 个实验索引，含 5 张图解。</small>
+  </a>
   <a class="lab-card" href="/lab/multi-agent-learning.html">
-    <span class="lab-card__index">GUIDE / 07</span>
-    <strong>多 Agent 协作</strong>
-    <small>两个设计维度、三种协作拓扑、六种失败模式与 Agent 社会涌现。整理自《AI Agents in Depth》第十章。</small>
+    <span class="lab-card__index">SERIES / 07 · CH10</span>
+    <strong>多 Agent 协作（深度页）</strong>
+    <small>上述专题第十章的完整展开：两个设计维度、三种协作拓扑、六种失败模式与 Agent 社会涌现。</small>
   </a>
   <a class="lab-card lab-card--featured" href="/posts/deepagents-learning-guide/">
     <span class="lab-card__index">GUIDE / 08</span>
