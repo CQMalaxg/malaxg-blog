@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 460" role="img" aria-labelledby="t5 d5">
+  <title id="t5">增量编译：两份账本 join 判定</title>
+  <desc id="d5">拉取账本记录源当前版本，编译账本记录已编译版本，按 source_id join 对比；当已编译版本落后于当前版本即判为 stale，只重编该源。stale 为运行时派生态，不落盘。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;--card:#eeeae0;
+      --in:#3e6fa7;--out:#397b68;--acc:#8a5a2b;--acc-fill:#f3e6cf;--code:#476d7c;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;--card:#2b3133;
+        --in:#8eb9e4;--out:#80c6aa;--acc:#e2b16d;--acc-fill:#4a3b23;--code:#9bc3cf;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .fetch{fill:var(--card);stroke:var(--in);stroke-width:2;}
+    .compile{fill:var(--card);stroke:var(--out);stroke-width:2;}
+    .join{fill:var(--card);stroke:var(--fg);stroke-width:2;}
+    .result{fill:var(--acc-fill);stroke:var(--acc);stroke-width:2.4;}
+    .line{fill:none;stroke:var(--line);stroke-width:2.4;marker-end:url(#a5);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .head-in{fill:var(--in);font:700 16px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .head-out{fill:var(--out);font:700 16px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .head-join{fill:var(--fg);font:700 17px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .code{fill:var(--code);font:600 14px/1.4 ui-monospace,monospace;}
+    .code-b{fill:var(--fg);font:700 15px/1.4 ui-monospace,monospace;}
+    .sub{fill:var(--muted);font:12px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .res-t{fill:var(--acc);font:700 16px/1.3 ui-monospace,monospace;}
+    .res-s{fill:var(--fg);font:600 14px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .cap{fill:var(--muted);font:13px/1.4 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a5" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L9 4.5 L0 9 z" fill="var(--line)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="460"/>
+  <text class="eyebrow" x="44" y="42">INCREMENTAL / TWO LEDGERS JOIN</text>
+  <text class="title" x="44" y="76">增量编译：两份账本隔空对账</text>
+
+  <!-- fetch ledger -->
+  <rect class="fetch" x="52" y="118" width="330" height="112" rx="10"/>
+  <text class="head-in" x="74" y="148">拉取账本 _fetch_state.json</text>
+  <text class="sub" x="74" y="168">源现在是什么版本（Agent 只读）</text>
+  <text class="code-b" x="74" y="196">version: 9</text>
+  <text class="code" x="200" y="196">hash: sha256:04f3…</text>
+
+  <!-- compile ledger -->
+  <rect class="compile" x="52" y="272" width="330" height="112" rx="10"/>
+  <text class="head-out" x="74" y="302">编译账本 _compile_state.json</text>
+  <text class="sub" x="74" y="322">已经编译到哪个版本（Agent 独写）</text>
+  <text class="code-b" x="74" y="350">compiled_version: 7</text>
+
+  <!-- join -->
+  <rect class="join" x="470" y="196" width="180" height="110" rx="12"/>
+  <text class="head-join" x="560" y="242" text-anchor="middle">join 对比</text>
+  <text class="sub" x="560" y="266" text-anchor="middle">按 source_id 配对</text>
+  <text class="sub" x="560" y="284" text-anchor="middle">现算，不存储</text>
+
+  <path class="line" d="M382 174 C 430 174 430 232 468 240"/>
+  <path class="line" d="M382 328 C 430 328 430 268 468 262"/>
+
+  <!-- result -->
+  <rect class="result" x="720" y="196" width="308" height="110" rx="10"/>
+  <text class="res-t" x="742" y="234">7 &lt; 9  →  stale</text>
+  <text class="res-s" x="742" y="262">该源“变脏”，判为候选</text>
+  <text class="res-s" x="742" y="286">只重编它，其余页面纹丝不动</text>
+  <path class="line" d="M650 251 H 718"/>
+
+  <text class="cap" x="52" y="424">规则：iWiki 源用 version 整数比较；代码源用 blob SHA 字符串等值比较。stale 是运行时派生态，不单独落盘——拉取与编译彻底解耦。</text>
+</svg>

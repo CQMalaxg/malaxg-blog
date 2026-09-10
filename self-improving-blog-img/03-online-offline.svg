@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 560" role="img" aria-labelledby="t3 d3">
+  <title id="t3">在线与离线的职责切分</title>
+  <desc id="d3">在线路径只做读已激活经验、运行、写证据并入队三件轻活；离线 worker 负责领取任务、重建轨迹、调用反思模型、写入候选经验。两者通过数据库解耦，对话时延不受反思影响。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;--card:#eeeae0;
+      --on:#3e6fa7;--on-fill:#dde7f3;--off:#7a5aa6;--off-fill:#e6dcef;--db:#397b68;--db-fill:#d6e8df;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;--card:#2b3133;
+        --on:#8eb9e4;--on-fill:#2c3d52;--off:#c9a7ec;--off-fill:#3a2f4a;--db:#80c6aa;--db-fill:#2b4a41;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .lane-on{fill:none;stroke:var(--on);stroke-width:1.5;stroke-dasharray:5 5;}
+    .lane-off{fill:none;stroke:var(--off);stroke-width:1.5;stroke-dasharray:5 5;}
+    .n-on{fill:var(--on-fill);stroke:var(--on);stroke-width:1.7;}
+    .n-off{fill:var(--off-fill);stroke:var(--off);stroke-width:1.7;}
+    .n-db{fill:var(--db-fill);stroke:var(--db);stroke-width:1.7;}
+    .line{fill:none;stroke:var(--line);stroke-width:2.2;marker-end:url(#a3);}
+    .to-db{fill:none;stroke:var(--db);stroke-width:2;stroke-dasharray:4 4;marker-end:url(#a3d);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .lane-on-t{fill:var(--on);font:800 14px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .lane-off-t{fill:var(--off);font:800 14px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .name{fill:var(--fg);font:700 15px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .sub{fill:var(--muted);font:12px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .db-t{fill:var(--db);font:800 13px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .note{fill:var(--fg);font:600 13px/1.4 ui-sans-serif,system-ui,sans-serif;}
+    .foot{fill:var(--muted);font:13px/1.4 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--line)"/></marker>
+    <marker id="a3d" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--db)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="560"/>
+  <text class="eyebrow" x="44" y="42">TOPOLOGY / ONLINE vs OFFLINE</text>
+  <text class="title" x="44" y="76">在线只做轻活，重加工全部离线</text>
+
+  <!-- online lane -->
+  <rect class="lane-on" x="44" y="100" width="992" height="118" rx="10"/>
+  <text class="lane-on-t" x="66" y="126">在线 · 对话链路（低时延，不可阻塞）</text>
+  <rect class="n-on" x="66" y="138" width="230" height="64" rx="8"/>
+  <text class="name" x="86" y="164">① 读已激活经验</text><text class="sub" x="86" y="186">按 Agent 与作用域加载，限量</text>
+  <rect class="n-on" x="424" y="138" width="230" height="64" rx="8"/>
+  <text class="name" x="444" y="164">② 运行并回答</text><text class="sub" x="444" y="186">经验块拼进 system prompt</text>
+  <rect class="n-on" x="782" y="138" width="232" height="64" rx="8"/>
+  <text class="name" x="802" y="164">③ 写证据 + 入队</text><text class="sub" x="802" y="186">终态先落库，再入队</text>
+  <path class="line" d="M296 170 H 422"/>
+  <path class="line" d="M654 170 H 780"/>
+
+  <!-- storage -->
+  <rect class="n-db" x="240" y="256" width="600" height="86" rx="10"/>
+  <text class="db-t" x="266" y="282">存储层 · 解耦的唯一接触面</text>
+  <text class="name" x="266" y="308">证据表</text><text class="sub" x="266" y="328">轨迹可重建</text>
+  <text class="name" x="426" y="308">任务队列</text><text class="sub" x="426" y="328">领取 / 回收 / 完成</text>
+  <text class="name" x="606" y="308">经验表</text><text class="sub" x="606" y="328">候选 → 规则</text>
+
+  <path class="to-db" d="M898 204 C 898 240 880 250 842 268"/>
+  <path class="to-db" d="M180 250 C 180 210 180 210 180 204"/>
+  <path class="to-db" d="M238 288 H 200 C 180 288 180 268 180 250"/>
+
+  <!-- offline lane -->
+  <rect class="lane-off" x="44" y="380" width="992" height="118" rx="10"/>
+  <text class="lane-off-t" x="66" y="406">离线 · 后台 worker（可失败、可重放）</text>
+  <rect class="n-off" x="66" y="418" width="216" height="64" rx="8"/>
+  <text class="name" x="86" y="444">领取任务</text><text class="sub" x="86" y="466">超时自动打回重试</text>
+  <rect class="n-off" x="310" y="418" width="216" height="64" rx="8"/>
+  <text class="name" x="330" y="444">重建轨迹</text><text class="sub" x="330" y="466">按标识四元组还原</text>
+  <rect class="n-off" x="554" y="418" width="216" height="64" rx="8"/>
+  <text class="name" x="574" y="444">调用反思模型</text><text class="sub" x="574" y="466">提炼要点与信号</text>
+  <rect class="n-off" x="798" y="418" width="216" height="64" rx="8"/>
+  <text class="name" x="818" y="444">幂等写候选</text><text class="sub" x="818" y="466">重放不产生重复</text>
+  <path class="line" d="M282 450 H 308"/>
+  <path class="line" d="M526 450 H 552"/>
+  <path class="line" d="M770 450 H 796"/>
+
+  <path class="to-db" d="M174 416 C 174 380 200 350 238 322"/>
+  <path class="to-db" d="M906 416 C 906 380 880 350 842 322"/>
+
+  <text class="foot" x="44" y="530">没有已激活经验时，prompt 里的经验块为空——这是预期降级，不是采集失败。存储层故障时整条自改进链路降级，主对话照常可用。</text>
+</svg>

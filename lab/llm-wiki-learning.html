@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LLM Wiki 机制学习指南 · 输入 / 处理 / 输出</title>
+<style>
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--surface3:#30363d;
+  --border:#30363d;--border2:#444c56;
+  --accent:#58a6ff;--accent2:#a5d6ff;--green:#3fb950;--yellow:#d29922;
+  --orange:#e3b341;--red:#f85149;--purple:#bc8cff;--teal:#39d353;--pink:#f778ba;
+  --text:#e6edf3;--text-dim:#8b949e;--text-muted:#484f58;
+  --code-bg:#0d1117;
+  --in:#58a6ff;--proc:#bc8cff;--out:#3fb950;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.7;font-size:14px}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:48px;
+  background:rgba(13,17,23,.95);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:20px}
+.topbar .logo{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
+.topbar nav{display:flex;gap:2px;overflow-x:auto}
+.topbar nav a{color:var(--text-dim);text-decoration:none;padding:4px 10px;
+  border-radius:6px;font-size:12px;white-space:nowrap;transition:.15s}
+.topbar nav a:hover{background:var(--surface2);color:var(--text)}
+.topbar nav a.act{background:rgba(88,166,255,.15);color:var(--accent)}
+
+#prog{position:fixed;top:48px;left:0;height:2px;width:0;
+  background:linear-gradient(90deg,var(--in),var(--proc),var(--out));z-index:201;transition:width .1s}
+
+.wrap{display:flex;padding-top:48px;min-height:100vh}
+.sidebar{width:236px;flex-shrink:0;position:fixed;top:48px;left:0;bottom:0;
+  overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:16px 8px}
+.main{margin-left:max(236px,calc(236px + (100vw - 236px - 1040px) / 2));margin-right:auto;padding:40px 56px 80px;max-width:1040px}
+
+.sb-group{margin-bottom:16px}
+.sb-label{font-size:11px;font-weight:600;color:var(--text-muted);
+  letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin-bottom:4px;
+  display:flex;align-items:center;gap:6px}
+.sb-dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+.sb-in{background:var(--in)}.sb-proc{background:var(--proc)}.sb-out{background:var(--out)}
+.sidebar a{display:block;padding:5px 10px;border-radius:5px;
+  color:var(--text-dim);text-decoration:none;font-size:12px;transition:.12s}
+.sidebar a:hover{background:var(--surface2);color:var(--text)}
+.sidebar a.act{background:rgba(88,166,255,.12);color:var(--accent)}
+
+h1{font-size:28px;font-weight:800;color:var(--text);margin-bottom:8px}
+h2{font-size:20px;font-weight:700;color:var(--text);margin:52px 0 16px;
+  padding-bottom:8px;border-bottom:1px solid var(--border)}
+h2 .seg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;margin-right:8px;vertical-align:middle}
+.seg-in{background:rgba(88,166,255,.15);color:var(--in);border:1px solid rgba(88,166,255,.3)}
+.seg-proc{background:rgba(188,140,255,.15);color:var(--proc);border:1px solid rgba(188,140,255,.3)}
+.seg-out{background:rgba(63,185,80,.15);color:var(--out);border:1px solid rgba(63,185,80,.3)}
+h3{font-size:16px;font-weight:600;color:var(--accent);margin:30px 0 10px}
+h4{font-size:13px;font-weight:600;color:var(--purple);margin:20px 0 8px}
+p{color:var(--text-dim);margin-bottom:10px}
+strong{color:var(--text)}
+a{color:var(--accent)}
+
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:18px 20px;overflow-x:auto;margin:12px 0;font-size:12.5px;line-height:1.65}
+code{font-family:"JetBrains Mono","Fira Code","SF Mono",monospace}
+p code,li code,td code{background:var(--surface2);border:1px solid var(--border);
+  padding:1px 5px;border-radius:4px;font-size:12px;color:var(--accent2)}
+
+.kw{color:#ff7b72}.kw2{color:#79c0ff}.str{color:#a8ff7b}.num{color:#f0883e}
+.cmt{color:var(--text-muted);font-style:italic}.key{color:#ffa657}.fn{color:#d2a8ff}
+
+.tw{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--surface2)}
+th{padding:9px 14px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--border2)}
+td{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+.tag{display:inline-block;padding:1px 7px;border-radius:12px;font-size:11px;font-weight:600;margin:0 2px;vertical-align:middle}
+.t-blue{background:rgba(88,166,255,.15);color:var(--accent);border:1px solid rgba(88,166,255,.3)}
+.t-green{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+.t-yellow{background:rgba(210,153,34,.15);color:var(--yellow);border:1px solid rgba(210,153,34,.3)}
+.t-red{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+.t-purple{background:rgba(188,140,255,.15);color:var(--purple);border:1px solid rgba(188,140,255,.3)}
+
+.note{border-radius:8px;padding:14px 18px;margin:16px 0;border-left:3px solid}
+.note-info{background:rgba(88,166,255,.07);border-color:var(--accent)}
+.note-tip{background:rgba(63,185,80,.07);border-color:var(--green)}
+.note-warn{background:rgba(210,153,34,.08);border-color:var(--yellow)}
+.note-danger{background:rgba(248,81,73,.07);border-color:var(--red)}
+.note-key{background:rgba(188,140,255,.07);border-color:var(--purple)}
+.nt{font-weight:700;font-size:12px;margin-bottom:4px}
+.note-info .nt{color:var(--accent)}.note-tip .nt{color:var(--green)}
+.note-warn .nt{color:var(--yellow)}.note-danger .nt{color:var(--red)}.note-key .nt{color:var(--purple)}
+
+.ftree{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:18px 20px;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:2;overflow-x:auto;margin:14px 0}
+.fd{color:var(--accent)}.ff{color:var(--text-dim)}.fc{color:var(--text-muted)}.fp{color:var(--border2)}
+
+.steps{list-style:none;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding:12px 14px 12px 48px;margin-bottom:8px;
+  background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:14px;
+  width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--proc),var(--accent));
+  color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.vlist{list-style:none}
+.vlist li{padding:8px 12px;border-left:3px solid var(--border);margin-bottom:6px;color:var(--text-dim);font-size:13px}
+.vlist li:hover{border-left-color:var(--accent);background:rgba(88,166,255,.04)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;transition:.15s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card-icon{font-size:22px;margin-bottom:8px}
+.card-title{font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text)}
+.card-desc{font-size:12.5px;color:var(--text-dim)}
+
+/* I/O 全景大图 */
+.io{display:grid;grid-template-columns:1fr auto 1.2fr auto 1fr;gap:0;align-items:stretch;margin:24px 0;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.io-col{padding:18px 16px}
+.io-col.c-in{background:rgba(88,166,255,.05)}
+.io-col.c-proc{background:rgba(188,140,255,.06)}
+.io-col.c-out{background:rgba(63,185,80,.05)}
+.io-head{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;text-align:center}
+.io-head.h-in{color:var(--in)}.io-head.h-proc{color:var(--proc)}.io-head.h-out{color:var(--out)}
+.io-box{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+  padding:8px 10px;font-size:12px;margin-bottom:7px;color:var(--text-dim)}
+.io-box b{color:var(--text);display:block;font-size:12.5px}
+.io-arrow{display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text-muted);padding:0 4px}
+@media(max-width:760px){.io{grid-template-columns:1fr}.io-arrow{transform:rotate(90deg);padding:8px 0}}
+
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:18px 20px;
+  background:var(--surface);border-radius:8px;border:1px solid var(--border);margin:16px 0}
+.fn2{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+  padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap}
+.fn2.blue{border-color:var(--in);color:var(--in);background:rgba(88,166,255,.1)}
+.fn2.green{border-color:var(--out);color:var(--out);background:rgba(63,185,80,.1)}
+.fn2.purple{border-color:var(--proc);color:var(--proc);background:rgba(188,140,255,.1)}
+.fn2.yellow{border-color:var(--yellow);color:var(--yellow);background:rgba(210,153,34,.1)}
+.fa{color:var(--text-muted);font-size:16px}
+
+#top{position:fixed;bottom:28px;right:28px;width:38px;height:38px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border2);color:var(--text-dim);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;
+  opacity:0;pointer-events:none;transition:.2s}
+#top.show{opacity:1;pointer-events:auto}
+#top:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+@media(max-width:860px){.sidebar{display:none}.main{margin-left:0;padding:24px 18px 60px}.topbar nav{display:none}}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<header class="topbar">
+  <div class="logo">LLM Wiki 机制学习</div>
+  <nav>
+    <a href="#c0">是什么</a>
+    <a href="#origin">Karpathy 起源</a>
+    <a href="#c1">编译器类比</a>
+    <a href="#c2">I/O 全景</a>
+    <a href="#in">输入</a>
+    <a href="#proc">处理</a>
+    <a href="#out">输出</a>
+    <a href="#e2e">端到端实例</a>
+    <a href="#repro">复现清单</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<aside class="sidebar">
+  <div class="sb-group">
+    <div class="sb-label">概念</div>
+    <a href="#c0">什么是 LLM Wiki</a>
+    <a href="#origin">Karpathy 范式起源</a>
+    <a href="#origin-diff">本仓库 vs 原始范式</a>
+    <a href="#c1">编译器类比（主线）</a>
+    <a href="#c2">输入/处理/输出全景</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-in"></span>输入 INPUT</div>
+    <a href="#in">输入总览：四类输入</a>
+    <a href="#in-raw">① raw/ 原始资料契约</a>
+    <a href="#in-fetch">② fetch 账本（触发信号）</a>
+    <a href="#in-prompt">③ 系统提示词（Schema）</a>
+    <a href="#in-call">④ 调用指令</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-proc"></span>处理 PROCESSING</div>
+    <a href="#proc">处理器：Knot Agent</a>
+    <a href="#proc-trigger">增量候选判定</a>
+    <a href="#proc-ingest">ingest 处理流程</a>
+    <a href="#proc-query">query 处理流程</a>
+    <a href="#proc-lint">lint 处理流程</a>
+    <a href="#proc-quality">编译质量约束</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label"><span class="sb-dot sb-out"></span>输出 OUTPUT</div>
+    <a href="#out">输出总览：四类产物</a>
+    <a href="#out-docs">① docs/ 知识库</a>
+    <a href="#out-pages">六种页面类型</a>
+    <a href="#out-fm">frontmatter 元数据</a>
+    <a href="#out-link">互链网络</a>
+    <a href="#out-compile">② compile 账本</a>
+    <a href="#out-log">③ log.md 审计</a>
+    <a href="#out-iwiki">④ iWiki 发布</a>
+  </div>
+  <div class="sb-group">
+    <div class="sb-label">闭环</div>
+    <a href="#state">状态机与增量</a>
+    <a href="#commit">双提交工作流</a>
+    <a href="#e2e">端到端实例</a>
+    <a href="#repro">从零复现清单</a>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- ===== C0 ===== -->
+<section id="c0">
+<h1>LLM Wiki 机制学习指南</h1>
+<p style="font-size:15px;max-width:700px">
+本指南只讲一件事：<strong>LLM Wiki 这套系统本身是怎么运转的</strong>——它的<span style="color:var(--in)">输入</span>是什么、<span style="color:var(--proc)">处理过程</span>是怎样的、<span style="color:var(--out)">输出</span>是什么。不涉及 raw 里的具体业务数据内容。
+</p>
+
+<div class="note note-key">
+  <div class="nt">一句话定义</div>
+  <p>LLM Wiki 是一个 <strong>「知识编译器」</strong>：它把杂乱的原始资料（raw）作为<strong>源代码</strong>，用一个受严格提示词约束的 <strong>LLM Agent</strong> 作为<strong>编译器</strong>，产出结构化、相互链接、可持续增量更新的<strong>知识库产物</strong>（docs），最后发布到 iWiki 供人阅读。</p>
+</div>
+
+<h3>为什么要"编译"知识？（Karpathy 范式）</h3>
+<div class="note note-info">
+  <div class="nt">核心思想</div>
+  <p><strong>知识应当被提前编译成结构化、互链的持久产物并不断累积复利</strong>，而不是每次查询时让模型从原始文档重新理解。用一句业界流传的类比：<strong>RAG 是解释型语言（每次现场解释源码），LLM Wiki 是编译型语言（提前编译成高效产物，运行时直接用）。</strong></p>
+</div>
+<div class="tw">
+<table>
+<thead><tr><th></th><th>传统 RAG / 每次现读</th><th>LLM Wiki（提前编译）</th></tr></thead>
+<tbody>
+<tr><td>知识处理时机</td><td>查询时——每次提问都重来</td><td>摄取时——每个源只处理一次</td></tr>
+<tr><td>知识积累</td><td>不积累，每次从零"重新发现"</td><td>随每个源和查询复利增长</td></tr>
+<tr><td>算力/Token</td><td>每次都加载大量原始文档</td><td>读索引即可导航，Token 大幅下降</td></tr>
+<tr><td>基础设施</td><td>需要向量库、embedding 管道</td><td>零基础设施，纯 Markdown + Git</td></tr>
+<tr><td>矛盾/缺口</td><td>难以显式追踪</td><td>元数据显式记录 contradictions / open_questions</td></tr>
+<tr><td>维护者</td><td>系统（黑盒）</td><td>LLM（透明、可编辑、可 diff）</td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size:12.5px;color:var(--text-muted)">注：上表中"Token 大幅下降 / 零基础设施 / 复利增长"等结论来自 Karpathy 原始范式及社区实践的公开讨论，本节末的<a href="#origin">起源章节</a>给出出处。</p>
+</section>
+
+<!-- ===== ORIGIN Karpathy 起源 ===== -->
+<section id="origin">
+<h2>Karpathy 范式起源（外部背景补充）</h2>
+<div class="note note-key">
+  <div class="nt">这一节讲什么</div>
+  <p>本仓库的系统提示词开篇就引用了「Karpathy 的 LLM Wiki 范式」。这一节基于公开互联网资料，补充这个范式的<strong>来龙去脉</strong>，帮助你理解本仓库设计背后的原始思想源头。<strong>本节内容来自外部公开资料，非本仓库代码。</strong></p>
+</div>
+
+<h3>起源事件</h3>
+<div class="tw">
+<table>
+<thead><tr><th>项目</th><th>内容</th></tr></thead>
+<tbody>
+<tr><td>提出者</td><td><strong>Andrej Karpathy</strong>（OpenAI 联合创始人、前特斯拉 AI 负责人、"vibe coding" 一词提出者）</td></tr>
+<tr><td>时间</td><td>2026 年 4 月初，一条推文 + 一个 GitHub gist（"LLM Wiki" idea file）</td></tr>
+<tr><td>热度</td><td>约 1500 万浏览、4.8 万转发、8.8 万收藏，引爆 AI 社区</td></tr>
+<tr><td>Karpathy 原话</td><td>"using LLMs to build personal knowledge bases for various topics of research interest"（用 LLM 为各研究主题构建个人知识库）</td></tr>
+<tr><td>思想渊源</td><td>可追溯到 <strong>Vannevar Bush 1945 年的 Memex 构想</strong>（《As We May Think》）与 <strong>Luhmann 的 Zettelkasten 卡片盒笔记法</strong>——它们共同的瓶颈是"谁来维护"，而 LLM 恰好补上了这个"不知疲倦的知识管理员"角色。</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Karpathy 的经典类比与人机分工</h3>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--proc)">🧩</div>
+    <div class="card-title">"Obsidian 是 IDE，LLM 是程序员，Wiki 是代码库"</div>
+    <div class="card-desc">这正是本指南采用"编译器类比"的原始出处——Karpathy 本人就把知识管理类比为软件构建。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--in)">👤</div>
+    <div class="card-title">人：策展 / 探索 / 提问</div>
+    <div class="card-desc">人负责寻找来源、探索方向、提出问题。"LLM 是作者，人是主编。"</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--out)">🤖</div>
+    <div class="card-title">LLM：一切繁重簿记</div>
+    <div class="card-desc">总结、交叉引用、归档、记录——这些"无人愿做、成本近乎为零"的工作全交给 LLM。</div>
+  </div>
+</div>
+
+<h3>Karpathy 原始三层架构</h3>
+<div class="tw">
+<table>
+<thead><tr><th>层</th><th>Karpathy 原始定义</th><th>目录名</th></tr></thead>
+<tbody>
+<tr><td>第一层</td><td><strong>Raw Sources</strong> 原始来源，不可变、LLM 只读，是"事实来源"</td><td><code>raw/</code></td></tr>
+<tr><td>第二层</td><td><strong>Wiki</strong> LLM 生成的 markdown（摘要/实体/概念/对比/综述），LLM 完全拥有</td><td><code>wiki/</code></td></tr>
+<tr><td>第三层</td><td><strong>Schema</strong> 配置文件，"最关键的部分"，把聊天机器人变成守纪律的维护者，充当跨会话持久记忆</td><td><code>CLAUDE.md</code> / <code>AGENTS.md</code></td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-info">
+  <div class="nt">三大操作（原始版）</div>
+  <p><strong>INGEST</strong>（摄取，最重要，单次波及 10–15 页）、<strong>QUERY</strong>（查询，好答案可归档回 wiki 形成复利）、<strong>LINT</strong>（健康检查：矛盾/陈旧/孤儿页/缺口）。部分实现还加入 <strong>MERGE</strong>（合并高度重叠页面）。</p>
+</div>
+
+<h3 id="origin-diff">本仓库 vs Karpathy 原始范式（关键改造）</h3>
+<p>本 <code>llm-wiki-overseas</code> 仓库<strong>继承了范式的骨架，但为"企业级 + 多源自动拉取 + 自动发布"做了显著工程化改造</strong>。理解这些差异，是理解本仓库设计取舍的关键：</p>
+<div class="tw">
+<table>
+<thead><tr><th>维度</th><th>Karpathy 原始范式</th><th>本仓库（overseas）</th></tr></thead>
+<tbody>
+<tr><td>知识库目录名</td><td><code>wiki/</code></td><td><code>docs/</code>（语义相同）</td></tr>
+<tr><td>Schema 载体</td><td><code>CLAUDE.md</code> 等配置文件</td><td>独立的<strong>系统提示词</strong>（Knot Agent 的 system prompt）</td></tr>
+<tr><td>源的录入</td><td>人工把文件拖进 <code>raw/</code></td><td><strong>fetch_raw.py 自动拉取</strong> iWiki/Gongfeng，带版本账本 _fetch_state.json</td></tr>
+<tr><td>交叉引用语法</td><td><code>[[wiki-link]]</code>（Obsidian 双链）</td><td><strong>标准 markdown 链接</strong> <code>[标题](path.md)</code>——因为要发 iWiki，双链不渲染</td></tr>
+<tr><td>浏览方式</td><td>Obsidian 图谱视图 + Dataview</td><td>发布到 <strong>iWiki</strong>（sync 两遍推送 + 反向引用体系）</td></tr>
+<tr><td>状态管理</td><td>基本靠 log.md</td><td><strong>两份账本</strong>（fetch + compile）+ 双提交回填 compiled_commit</td></tr>
+<tr><td>增量判定</td><td>较隐式，靠 LLM 判断</td><td><strong>显式 join 两份账本</strong>，按 version/blob SHA 精确判 stale</td></tr>
+<tr><td>页面类型</td><td>concept/entity/source-summary/comparison</td><td>+ synthesis，共 6 类，且每类有严格 frontmatter schema</td></tr>
+<tr><td>调用方式</td><td>自然语言 prompt</td><td>结构化 <strong>mode × operation</strong>（rebuild/incremental × ingest/query/lint）</td></tr>
+<tr><td>矛盾追踪</td><td>Flagged for review</td><td>引用块显式标注 + frontmatter contradictions 双记录</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-tip">
+  <div class="nt">一句话总结</div>
+  <p>Karpathy 原始范式是<strong>面向个人、手动、Obsidian 本地浏览</strong>的轻量方案；本仓库把它升级为<strong>面向团队、自动拉取多源、结构化状态管理、自动发布 iWiki</strong>的工程化生产系统。核心思想（三层架构 / 编译而非检索 / ingest-query-lint / 复利积累）一脉相承。</p>
+</div>
+
+<h3>适用边界（来自社区实践）</h3>
+<div class="tw">
+<table>
+<thead><tr><th>适合 LLM Wiki</th><th>仍需 RAG / 混合架构</th></tr></thead>
+<tbody>
+<tr><td>精选、稳定、高价值的知识（约百量级源）</td><td>超大规模、超出上下文窗口的语料</td></tr>
+<tr><td>个人研究库、团队核心知识、Agent 长期记忆</td><td>高度动态实时数据（行情、新闻流）</td></tr>
+<tr><td>零基础设施、可 Git 版本化的场景</td><td>需要严格权限/并发/审计的企业场景</td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size:12.5px;color:var(--text-muted)">出处：Karpathy LLM Wiki gist（gist.github.com/karpathy/442a6bf…）；社区解析文章（agentpedia.codes、掘金 coderMax《从知识检索到知识编译的范式革命》等，均为 2026-04 公开发布）。数据如"Token 减少 ~95%、比 RAG 高效 ~70 倍"为社区实践估算，非本仓库实测。</p>
+</section>
+
+<!-- ===== C1 编译器类比 ===== -->
+<section id="c1">
+<h2>编译器类比（贯穿全文的主线）</h2>
+<p>系统提示词开篇即自我定义为「raw→LLM Wiki 编译器」。用传统编译器的概念来理解这套系统，一切都会变得清晰：</p>
+<div class="tw">
+<table>
+<thead><tr><th>传统编译器概念</th><th>LLM Wiki 对应</th><th>本指南章节</th></tr></thead>
+<tbody>
+<tr><td><span class="tag t-blue">源代码 .c/.java</span></td><td>raw/ 原始资料（iWiki 文档、Gongfeng 代码）</td><td><a href="#in-raw">输入①</a></td></tr>
+<tr><td><span class="tag t-blue">源文件时间戳/依赖</span></td><td>_fetch_state.json（源版本、SHA、拉取状态）</td><td><a href="#in-fetch">输入②</a></td></tr>
+<tr><td><span class="tag t-blue">语言规范 + 编译选项</span></td><td>系统提示词（Schema 层，定义全部规则）</td><td><a href="#in-prompt">输入③</a></td></tr>
+<tr><td><span class="tag t-blue">编译命令 make / gcc -O2</span></td><td>调用指令（mode + operation + input）</td><td><a href="#in-call">输入④</a></td></tr>
+<tr><td><span class="tag t-purple">编译器本体 gcc/clang</span></td><td>Knot Agent（受提示词约束的 LLM）</td><td><a href="#proc">处理器</a></td></tr>
+<tr><td><span class="tag t-purple">增量编译（只编改动的）</span></td><td>incremental 模式 + join 两份账本判定 stale</td><td><a href="#proc-trigger">增量判定</a></td></tr>
+<tr><td><span class="tag t-purple">全量重编 make clean && make</span></td><td>rebuild 模式（枚举全部源重编）</td><td><a href="#proc-ingest">ingest</a></td></tr>
+<tr><td><span class="tag t-green">目标产物 .o / a.out</span></td><td>docs/ 结构化知识页面（6 种类型）</td><td><a href="#out-docs">输出①</a></td></tr>
+<tr><td><span class="tag t-green">构建缓存 .d / timestamps</span></td><td>_compile_state.json（已编译版本/commit）</td><td><a href="#out-compile">输出②</a></td></tr>
+<tr><td><span class="tag t-green">构建日志 build.log</span></td><td>docs/log.md（append-only 活动记录）</td><td><a href="#out-log">输出③</a></td></tr>
+<tr><td><span class="tag t-green">链接 + 部署</span></td><td>sync_to_iwiki.py 两遍推送到 iWiki</td><td><a href="#out-iwiki">输出④</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ===== C2 全景 ===== -->
+<section id="c2">
+<h2>输入 / 处理 / 输出 全景图</h2>
+
+<div class="io">
+  <div class="io-col c-in">
+    <div class="io-head h-in">输入 INPUT</div>
+    <div class="io-box"><b>① raw/ 原始资料</b>不可变的事实来源</div>
+    <div class="io-box"><b>② _fetch_state.json</b>源版本/SHA/状态（触发信号）</div>
+    <div class="io-box"><b>③ 系统提示词</b>Schema 层，行为规则</div>
+    <div class="io-box"><b>④ 调用指令</b>mode + operation + input</div>
+  </div>
+  <div class="io-arrow">→</div>
+  <div class="io-col c-proc">
+    <div class="io-head h-proc">处理 PROCESSING</div>
+    <div class="io-box"><b>处理器 = Knot Agent (LLM)</b></div>
+    <div class="io-box"><b>1. 增量候选判定</b>join 两份账本，找出 stale 源</div>
+    <div class="io-box"><b>2. 通读 raw 原文</b>提炼要点/矛盾/新概念</div>
+    <div class="io-box"><b>3. 编译知识</b>写 source/concept/entity 等页</div>
+    <div class="io-box"><b>4. 维护一致性</b>互链/index/矛盾标注</div>
+  </div>
+  <div class="io-arrow">→</div>
+  <div class="io-col c-out">
+    <div class="io-head h-out">输出 OUTPUT</div>
+    <div class="io-box"><b>① docs/ 知识库</b>6 种页面 + 系统页 + 互链</div>
+    <div class="io-box"><b>② _compile_state.json</b>编译状态回填</div>
+    <div class="io-box"><b>③ log.md</b>操作审计日志</div>
+    <div class="io-box"><b>④ iWiki 发布</b>经 sync 两遍推送</div>
+  </div>
+</div>
+
+<div class="note note-tip">
+  <div class="nt">阅读方式</div>
+  <p>接下来分三大段展开：<span style="color:var(--in)">输入</span> 讲清楚"喂给编译器什么"，<span style="color:var(--proc)">处理</span> 是核心——讲清楚"编译器内部怎么工作"，<span style="color:var(--out)">输出</span> 讲清楚"产出了什么、长什么样"。最后用一个端到端实例把三段串起来。</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ======================== 输入 ============================= -->
+<!-- ============================================================ -->
+<section id="in">
+<h2><span class="seg seg-in">INPUT</span>输入总览：四类输入</h2>
+<p>LLM Wiki 编译器接收四类输入。前两类是"要编译什么"，第三类是"按什么规则编译"，第四类是"这次编译做什么"。</p>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--in)">📄</div>
+    <div class="card-title">① raw/ 原始资料</div>
+    <div class="card-desc">编译的"源代码"。两类源：iWiki 文档（.md + frontmatter）、Gongfeng 代码（原始格式）。<strong>不可变</strong>，Agent 只读不改。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--in)">📊</div>
+    <div class="card-title">② _fetch_state.json</div>
+    <div class="card-desc">源的版本、内容哈希、拉取状态。相当于"源文件时间戳"，Agent 靠它判断哪些源变了、需要重新编译。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--in)">📐</div>
+    <div class="card-title">③ 系统提示词</div>
+    <div class="card-desc">Schema 层。定义三层架构、页面类型、frontmatter、工作流、硬约束。<strong>把普通 LLM 变成有纪律的编译器。</strong></div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--in)">⌨️</div>
+    <div class="card-title">④ 调用指令</div>
+    <div class="card-desc">mode（rebuild/incremental）+ operation（ingest/query/lint）+ 必要输入。相当于 <code>make</code> 的目标和选项。</div>
+  </div>
+</div>
+
+<h3 id="in-raw">① raw/ 原始资料 —— 输入契约（只讲格式，不讲业务内容）</h3>
+<p>raw/ 是编译器的源代码目录。作为学习机制，你只需理解它的<strong>输入契约</strong>：有哪几类源、以什么格式落盘、如何被 Agent 读取。</p>
+<div class="tw">
+<table>
+<thead><tr><th>源类型</th><th>source_id 主键格式</th><th>落盘形式</th><th>元信息来源</th></tr></thead>
+<tbody>
+<tr><td>iWiki 文档</td><td><code>iwiki:{docid}</code></td><td>带 YAML frontmatter 的 .md 文件</td><td>frontmatter 内（title/version/url…）</td></tr>
+<tr><td>Gongfeng 单文件</td><td><code>gongfeng:{repo}:{ref}:{path}</code></td><td>原始文件内容（不加工）</td><td>从 _fetch_state.json 读</td></tr>
+<tr><td>Gongfeng 目录</td><td><code>gongfeng_dir:{repo}:{ref}:{path}</code></td><td>整个目录镜像</td><td>从 _fetch_state.json 读</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note note-key">
+  <div class="nt">关键契约：raw 是"不可变的事实来源"（ground truth）</div>
+  <p>raw/ 由拉取脚本 <code>fetch_raw.py</code> 独占写入，<strong>Agent 永远只读、绝不修改 raw</strong>。这保证了：任何时候都能追溯"知识来自哪句原文"，编译结果可复现。学习机制时，你不需要关心 raw 里具体写了什么业务（日志、归因……），只需知道它是"输入语料"。</p>
+</div>
+
+<h4>iWiki 源的 frontmatter 契约（拉取时自动生成）</h4>
+<pre><code><span class="kw">---</span>
+<span class="key">source_id:</span> <span class="str">iwiki:4017234012</span>       <span class="cmt"># 全局唯一主键</span>
+<span class="key">url:</span> <span class="str">https://iwiki.woa.com/p/4017234012</span>
+<span class="key">title:</span> <span class="str">"（源文档标题）"</span>
+<span class="key">version:</span> <span class="str">9</span>                     <span class="cmt"># 版本号 → 增量判定的关键信号</span>
+<span class="key">content_changetime:</span> <span class="str">2026-02-10 10:24:28</span>
+<span class="key">fetched_at:</span> <span class="str">2026-07-15</span>
+<span class="key">status:</span> <span class="str">raw</span>                   <span class="cmt"># 标记这是未编译的原始层</span>
+<span class="kw">---</span>
+<span class="cmt">（下面是原文正文，Agent 阅读的对象）</span></code></pre>
+
+<h3 id="in-fetch">② _fetch_state.json —— 拉取账本（编译的触发信号）</h3>
+<p>这是编译器的"源文件时间戳表"。Agent <strong>只读</strong>它来判断哪些源发生了变化。关键字段：</p>
+<pre><code>{
+  <span class="str">"schema_version"</span>: 3,
+  <span class="str">"docs"</span>: [{
+    <span class="str">"source_id"</span>: <span class="str">"iwiki:4017234012"</span>,
+    <span class="str">"source"</span>: {
+      <span class="str">"type"</span>: <span class="str">"iwiki"</span>,
+      <span class="str">"version"</span>: 9,               <span class="cmt">// iWiki 用整数版本号比较</span>
+      <span class="str">"content_hash"</span>: <span class="str">"sha256:04f3..."</span>  <span class="cmt">// 正文规范化后的哈希（防"版本变但内容没变"）</span>
+    },
+    <span class="str">"fetch"</span>: {
+      <span class="str">"state"</span>: <span class="str">"fresh"</span>,           <span class="cmt">// pending|fresh|changed|fetching|error|removed</span>
+      <span class="str">"fetched_at"</span>: <span class="str">"2026-07-15"</span>
+    }
+  }]
+}</code></pre>
+<div class="note note-info">
+  <div class="nt">对 Gongfeng 源</div>
+  <p>版本信号不是整数，而是 <strong>Git blob SHA</strong>（内容哈希）。Agent 用<strong>字符串等值比较</strong>：SHA 不等即视为源变化。目录源则对全部文件清单算一个稳定哈希作为整体版本。</p>
+</div>
+
+<h3 id="in-prompt">③ 系统提示词 —— Schema 层（最关键的输入）</h3>
+<div class="note note-key">
+  <div class="nt">为什么这是最重要的输入</div>
+  <p>同样一个 LLM，喂不喂这份提示词，行为天差地别。它就是编译器的"语言规范 + 编译选项"，规定了：三层架构、两份账本主键、六种页面类型、每种页面的 frontmatter schema、ingest/query/lint 工作流、双提交流程、以及所有硬约束红线。<strong>复现 LLM Wiki，这份提示词是最不可替代的核心资产。</strong></p>
+</div>
+<h4>Agent 的自我定位（提示词原文）</h4>
+<div class="note note-info">
+  <p>「你是『raw→LLM Wiki 编译器』，一个有纪律的 wiki 维护者，不是普通聊天机器人。你完全拥有并维护 docs/ 知识库层；人类只负责选材、提问、把方向，繁琐的摘要、交叉引用、归档、记账全部由你完成。」</p>
+</div>
+<h4>提示词定义的三层架构（编译器视角）</h4>
+<div class="tw">
+<table>
+<thead><tr><th>层</th><th>内容</th><th>可变性</th><th>谁拥有</th></tr></thead>
+<tbody>
+<tr><td><span class="tag t-blue">Layer 1</span></td><td>raw/ 原始资料（源代码）</td><td><strong>不可变</strong>，事实来源</td><td>fetch_raw.py（Agent 只读）</td></tr>
+<tr><td><span class="tag t-purple">Layer 2</span></td><td>docs/ 知识库（编译产物）</td><td>Agent 完全拥有，禁止人工编辑</td><td>Knot Agent</td></tr>
+<tr><td><span class="tag t-green">Layer 3</span></td><td>系统提示词（Schema/规则）</td><td>定义结构与工作流</td><td>就是这份提示词本身</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="in-call">④ 调用指令 —— 告诉编译器这次做什么</h3>
+<p>每次调用必须<strong>显式指定 mode</strong>，与 operation 正交组合：</p>
+<pre><code><span class="cmt"># 格式：mode（rebuild|incremental）+ operation（ingest|query|lint）+ 输入</span>
+
+mode=rebuild     operation=ingest                     <span class="cmt"># 全量重建（初始化/规范大改时）</span>
+mode=incremental operation=ingest source_id=iwiki:4028672179   <span class="cmt"># 增量摄入（日常默认）</span>
+mode=incremental operation=query "某某字段怎么查？"    <span class="cmt"># 查询，可选 --archive 归档</span>
+mode=incremental operation=lint                       <span class="cmt"># 健康检查，可选 --fix</span></code></pre>
+<div class="tw">
+<table>
+<thead><tr><th></th><th>ingest 摄入</th><th>query 查询</th><th>lint 健康检查</th></tr></thead>
+<tbody>
+<tr><td><strong>rebuild</strong><br/>全量</td><td>枚举全部源逐个编译，末尾 Lint 收敛，重写 index/overview</td><td>—</td><td>rebuild 末尾的一致性收敛</td></tr>
+<tr><td><strong>incremental</strong><br/>增量（默认）</td><td>只编译候选（stale）源，只动受影响页面</td><td>读库作答，有价值则归档</td><td>扫矛盾/孤儿页/断链，报告 + 可选修复</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ======================== 处理 ============================= -->
+<!-- ============================================================ -->
+<section id="proc">
+<h2><span class="seg seg-proc">PROCESSING</span>处理器：Knot Agent</h2>
+<p>处理器 = <strong>Knot 平台上的 LLM Agent + 系统提示词</strong>。它是整个系统里唯一的"编译器本体"。下面按照它内部的处理流程逐步拆解。</p>
+
+<h3 id="proc-trigger">处理第一步：增量候选判定（join 两份账本）</h3>
+<p>增量编译的核心问题是："哪些源需要重新编译？" Agent 通过<strong>同时读两份账本</strong>来判定，这正是编译器"增量编译"的本质——对比源文件时间戳和产物时间戳。</p>
+<div class="flow">
+  <div class="fn2 blue">_fetch_state.json<br/><small style="font-weight:400">源的当前版本</small></div>
+  <div class="fa">+</div>
+  <div class="fn2 green">_compile_state.json<br/><small style="font-weight:400">已编译到的版本</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 purple">join 对比<br/><small style="font-weight:400">按 source_id</small></div>
+  <div class="fa">→</div>
+  <div class="fn2 yellow">stale 候选列表<br/><small style="font-weight:400">运行时派生，不落盘</small></div>
+</div>
+<div class="note note-key">
+  <div class="nt">增量候选判定的精确规则（提示词原文）</div>
+  <p>满足<strong>任一</strong>即为候选：</p>
+  <ul class="vlist" style="margin-top:6px">
+    <li>_fetch_state.json 里 <code>fetch.state ∈ {pending, changed, error}</code></li>
+    <li>_compile_state.json 里 <code>compile.state ∈ {never_compiled, stale, compile_error}</code>，或该 source_id 在编译账本中<strong>缺失</strong></li>
+  </ul>
+  <p style="margin-top:6px"><strong>stale 怎么算：</strong>iWiki 用 <code>source.version</code> 整数比较（compiled_version &lt; 当前 version → stale）；Gongfeng 用 blob SHA <strong>字符串等值</strong>比较（不等即 stale）。stale 是<strong>运行时派生态，不单独存储</strong>——这样 fetch 脚本无需懂编译逻辑，Agent 无需懂拉取逻辑，彻底解耦。</p>
+</div>
+
+<h3 id="proc-ingest">处理第二步：ingest 编译流程（核心）</h3>
+<p>确定候选源后，Agent 对每个源执行 ingest。这是把"源代码"翻译成"知识产物"的核心翻译过程：</p>
+<ul class="steps">
+  <li><strong>读取源与状态</strong>：从 _fetch_state.json 找到候选 source_id 对应的 raw 文件路径，读取原文。</li>
+  <li><strong>通读原文提炼</strong>：完整读原文，提炼 <strong>3–5 条</strong>关键要点（key_claims）。不臆造，原文没有的不写。</li>
+  <li><strong>产出/更新 source 摘要页</strong>：每个源对应一篇 <code>docs/sources/summary-{slug}.md</code>，一一对应，记录 source_id/version/key_claims/confidence。</li>
+  <li><strong>抽取实体与概念</strong>：识别原文中的实体（服务/平台/接口/库表…）和概念（机制/方法/术语…），创建或更新 <code>entities/*.md</code> 与 <code>concepts/*.md</code>。</li>
+  <li><strong>建立交叉引用</strong>：新页面<strong>至少引用 2 个</strong>现有页面（标准 markdown 链接），形成知识网络。</li>
+  <li><strong>标注矛盾</strong>：若新源与已有页面冲突，用引用块显式标注 <code>&gt; 矛盾标注（contradiction）：…，来源 sources/summary-x.md</code>，并写入 frontmatter 的 contradictions，<strong>绝不悄悄覆盖旧结论</strong>。</li>
+  <li><strong>归类 cluster</strong>：给新页面打主题分组标签；若出现新分组，登记到 index.md 与 overview.md。</li>
+  <li><strong>更新系统页</strong>：更新 index.md（主目录，按主题分组）、sources/index.md（源清单）、log.md（追加操作记录）。</li>
+  <li><strong>双提交闭环</strong>：先提交 docs 产物（Commit A）拿到 hash，再把 hash 回填进 _compile_state.json 单独提交（Commit B），详见 <a href="#commit">双提交工作流</a>。</li>
+</ul>
+<div class="note note-info">
+  <div class="nt">单次 ingest 的规模感</div>
+  <p>提示词规定：单次 ingest 通常触及 <strong>5–15 个 wiki 页面</strong>；每个源提炼 <strong>3–5 条</strong>关键要点。失败情况用 <code>!failure</code> 标签写入 log.md，避免下次重复踩坑。</p>
+</div>
+
+<h3 id="proc-query">query 处理流程（读取 + 可选归档）</h3>
+<p>query 是"用已编译的知识库回答问题"，并可把有价值的新分析<strong>反哺</strong>回知识库：</p>
+<ul class="steps">
+  <li><strong>定位</strong>：读 index.md 找到相关页面入口。</li>
+  <li><strong>下钻</strong>：读相关概念/实体页，必要时进一步下钻到 sources/ 摘要页核对证据。</li>
+  <li><strong>带引用作答</strong>：回答时标注信息来自哪些页面。</li>
+  <li><strong>可选归档（--archive）</strong>：若问答中产生了有价值的横向对比或纵深分析，归档为 <code>comparisons/*.md</code> 或 <code>syntheses/*.md</code>，标记 <code>filed_from_query: true</code>。</li>
+</ul>
+
+<h3 id="proc-lint">lint 处理流程（一致性检查）</h3>
+<p>lint 是编译器的"静态检查/警告"，扫描知识库的结构健康度：</p>
+<div class="tw">
+<table>
+<thead><tr><th>检查项</th><th>标准</th><th>--fix autofix</th></tr></thead>
+<tbody>
+<tr><td>断链</td><td>所有 .md 相对链接目标必须存在</td><td>仅报告</td></tr>
+<tr><td>孤儿页</td><td>每页 ≥2 条入链（系统页除外）</td><td>仅报告</td></tr>
+<tr><td>H1 缺失</td><td>正文首行必须是一级标题</td><td>仅报告</td></tr>
+<tr><td>cluster 缺失/不一致</td><td>frontmatter cluster 与 index.md 分组一致</td><td><strong>自动修复</strong>（只改 frontmatter）</td></tr>
+<tr><td>回链缺失</td><td>synthesis/comparison 引用的概念页需有回链</td><td>自动补回链</td></tr>
+<tr><td>过时声明</td><td>fetch.version 与 compiled.version 不一致 → 标记 stale</td><td>报告为 ingest 待办</td></tr>
+<tr><td>矛盾未标注</td><td>不同源冲突必须有 contradictions</td><td>不自动选边</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="proc-quality">编译质量约束（红线，保证产物可信）</h3>
+<div class="tw">
+<table>
+<thead><tr><th>红线</th><th>规定</th></tr></thead>
+<tbody>
+<tr><td>不改输入</td><td>永不修改 raw/ 与 _fetch_state.json（那是输入，编译器无权改）</td></tr>
+<tr><td>只写编译账本的 compile 段</td><td>只允许更新 _compile_state.json 的 compile 字段</td></tr>
+<tr><td>忠实原文</td><td>绝不臆造；raw 没有的不写；不确定设 <code>confidence: low</code></td></tr>
+<tr><td>不删页面</td><td>永不删除页面，改为 frontmatter 标记 <code>deprecated</code></td></tr>
+<tr><td>矛盾显式化</td><td>用引用块 + frontmatter 双重记录，不悄悄覆盖</td></tr>
+<tr><td>强制交叉引用</td><td>新页面至少引用 2 个现有页面</td></tr>
+<tr><td>三件套同步</td><td>每次改 docs 都更新 index.md、sources/index.md、log.md</td></tr>
+<tr><td>无 emoji / 中文为主</td><td>全文不用 emoji；专有名词/接口名/类名保留英文</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ======================== 输出 ============================= -->
+<!-- ============================================================ -->
+<section id="out">
+<h2><span class="seg seg-out">OUTPUT</span>输出总览：四类产物</h2>
+<div class="cards">
+  <div class="card">
+    <div class="card-icon" style="color:var(--out)">📚</div>
+    <div class="card-title">① docs/ 知识库</div>
+    <div class="card-desc">主产物。6 种内容页 + 系统页，全部带 frontmatter，互相链接成网。这是"编译出的目标文件"。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--out)">🗂️</div>
+    <div class="card-title">② _compile_state.json</div>
+    <div class="card-desc">编译状态回填。记录每个源"已编译到哪个版本、哪个 commit"，是下次增量判定的依据。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--out)">📝</div>
+    <div class="card-title">③ docs/log.md</div>
+    <div class="card-desc">append-only 审计日志。每次操作追加一条，永不删除，可 grep 追溯全部历史。</div>
+  </div>
+  <div class="card">
+    <div class="card-icon" style="color:var(--out)">🌐</div>
+    <div class="card-title">④ iWiki 发布</div>
+    <div class="card-desc">最终交付形态。经 sync_to_iwiki.py 两遍推送，把 docs/ 变成 iWiki 上可搜索、可互跳的文档。</div>
+  </div>
+</div>
+
+<h3 id="out-docs">① docs/ 知识库结构</h3>
+<div class="ftree">
+<div><span class="fd">docs/</span>  <span class="fc">← 编译产物根目录（Agent 完全拥有）</span></div>
+<div><span class="fp">├── </span><span class="ff">index.md</span>  <span class="fc">← 系统页：主目录，按主题分组，每次 ingest 更新</span></div>
+<div><span class="fp">├── </span><span class="ff">overview.md</span>  <span class="fc">← 系统页：高层综述与主题导航</span></div>
+<div><span class="fp">├── </span><span class="ff">log.md</span>  <span class="fc">← 系统页：append-only 活动日志（仅本地，不发 iWiki）</span></div>
+<div><span class="fp">├── </span><span class="fd">sources/</span>  <span class="fc">← 内容页：源摘要（与 raw 一一对应）+ index.md 源清单</span></div>
+<div><span class="fp">├── </span><span class="fd">entities/</span>  <span class="fc">← 内容页：实体（服务/平台/接口/库表/组件…）</span></div>
+<div><span class="fp">├── </span><span class="fd">concepts/</span>  <span class="fc">← 内容页：概念（机制/方法/术语/数据链路…）</span></div>
+<div><span class="fp">├── </span><span class="fd">comparisons/</span>  <span class="fc">← 内容页：对比分析（query 归档产出）</span></div>
+<div><span class="fp">└── </span><span class="fd">syntheses/</span>  <span class="fc">← 内容页：纵深综述（query 归档产出）</span></div>
+</div>
+
+<h3 id="out-pages">六种页面类型（产物的"类型系统"）</h3>
+<div class="tw">
+<table>
+<thead><tr><th>type</th><th>目录</th><th>产出什么</th><th>命名</th><th>由哪种操作产出</th></tr></thead>
+<tbody>
+<tr><td><span class="tag t-blue">source</span></td><td>sources/</td><td>每篇已摄入 raw 的摘要（1:1 对应）</td><td><code>summary-{slug}.md</code></td><td>ingest</td></tr>
+<tr><td><span class="tag t-blue">entity</span></td><td>entities/</td><td>人/团队/平台/服务/接口/工具/库表/组件</td><td><code>{name}.md</code></td><td>ingest</td></tr>
+<tr><td><span class="tag t-blue">concept</span></td><td>concepts/</td><td>业务知识/数据链路/方法/术语/机制</td><td><code>{name}.md</code></td><td>ingest</td></tr>
+<tr><td><span class="tag t-purple">comparison</span></td><td>comparisons/</td><td>若干对象的横向对比</td><td><code>{slug}.md</code></td><td>query 归档</td></tr>
+<tr><td><span class="tag t-purple">synthesis</span></td><td>syntheses/</td><td>围绕一个主题的纵深综述</td><td><code>{slug}.md</code></td><td>query 归档</td></tr>
+<tr><td colspan="5" style="color:var(--text-muted)">系统页（非内容页）：index.md / overview.md / sources/index.md / log.md —— 随每次操作更新</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="out-fm">frontmatter：产物的机器可读元数据</h3>
+<p>每个产物页面头部都有 YAML frontmatter，这是知识图谱的"符号表"。以 concept 页为例：</p>
+<pre><code><span class="kw">---</span>
+<span class="key">type:</span> <span class="str">concept</span>
+<span class="key">title:</span> <span class="str">"概念名"</span>
+<span class="key">aliases:</span> <span class="str">[别名, 缩写]</span>          <span class="cmt"># 供 query 命中</span>
+<span class="key">sources:</span> <span class="str">[sources/summary-x.md]</span>   <span class="cmt"># 溯源：这页知识来自哪些源摘要</span>
+<span class="key">related:</span> <span class="str">[entities/entity1.md]</span>    <span class="cmt"># 交叉引用（≥2）</span>
+<span class="key">created:</span> <span class="str">2026-07-15</span>
+<span class="key">updated:</span> <span class="str">2026-08-03</span>
+<span class="key">confidence:</span> <span class="str">high | medium | low</span>   <span class="cmt"># 置信度</span>
+<span class="key">cluster:</span> <span class="str">"{主题分组}"</span>          <span class="cmt"># 与 index.md 分组一致</span>
+<span class="key">contradictions:</span> <span class="str">[]</span>            <span class="cmt"># 与其它源的冲突</span>
+<span class="key">open_questions:</span> <span class="str">[]</span>            <span class="cmt"># 未解决的缺口</span>
+<span class="kw">---</span></code></pre>
+<div class="note note-info">
+  <div class="nt">不同类型的关键差异字段</div>
+  <p><strong>source 页</strong>：额外有 source_id / source_type / source_version / key_claims。<strong>entity 页</strong>：额外有 entity_type（person/team/platform/service/api/tool/table/component）。<strong>comparison / synthesis 页</strong>：有 <code>filed_from_query: true</code>，related 必须回链概念页。</p>
+</div>
+
+<h3 id="out-link">互链网络：产物的核心价值</h3>
+<div class="note note-danger">
+  <div class="nt">链接的三条硬规则（决定产物质量）</div>
+  <ul class="vlist" style="margin-top:6px">
+    <li><strong>只用标准 markdown 链接</strong> <code>[标题](相对路径.md)</code>，<strong>绝不用 Obsidian 双链</strong> <code>[[..]]</code>——iWiki 不渲染双链会退化成纯文本；标准链接才会进入 iWiki「本文被引用」反向引用体系。</li>
+    <li><strong>每个新页面 ≥2 条交叉引用</strong>——避免孤儿页，让知识形成网络而非孤岛。</li>
+    <li><strong>正文第一行必须是 H1</strong> <code># 标题</code>——sync 用首个 H1 作为 iWiki 文档标题，缺失会退化成文件名。</li>
+  </ul>
+</div>
+
+<h3 id="out-compile">② _compile_state.json —— 编译状态输出</h3>
+<p>这是编译器写回的"构建缓存"，记录每个源已编译到什么程度，供下次增量判定：</p>
+<pre><code>{
+  <span class="str">"schema_version"</span>: 3,
+  <span class="str">"docs"</span>: [{
+    <span class="str">"source_id"</span>: <span class="str">"iwiki:4017234012"</span>,
+    <span class="str">"compile"</span>: {
+      <span class="str">"state"</span>: <span class="str">"compiled"</span>,       <span class="cmt">// never_compiled|stale|compiling|compiled|compile_error|ignored</span>
+      <span class="str">"compiled_version"</span>: 9,     <span class="cmt">// 已编译到的源版本（与 fetch.version 比较判 stale）</span>
+      <span class="str">"compiled_commit"</span>: <span class="str">"63394f7"</span>, <span class="cmt">// 产出这批 docs 的 Commit A hash（双提交回填）</span>
+      <span class="str">"compiled_at"</span>: <span class="str">"2026-07-15"</span>,
+      <span class="str">"error"</span>: null
+    }
+  }]
+}</code></pre>
+
+<h3 id="out-log">③ docs/log.md —— 操作审计输出</h3>
+<p>每次操作追加一条结构化、可 grep 的记录，<strong>只追加不删除</strong>：</p>
+<pre><code><span class="cmt">## [2026-08-03] ingest | 摄入 {源标题}(iwiki:xxxx) 及 N 个 stale 源</span>
+Sources: iwiki:xxxx (never_compiled→compiled, v3), ...
+Pages created: docs/sources/summary-xxx.md, docs/concepts/xxx.md
+Pages updated: docs/index.md, docs/overview.md, docs/sources/index.md, docs/log.md
+Key changes:
+  - 简述本次新增/变更的知识点
+Contradictions flagged: 无</code></pre>
+<div class="note note-info">
+  <div class="nt">为什么 log.md 不同步 iWiki</div>
+  <p>log.md 是编译器的"构建日志/工作台账"，是给维护者和 Agent 自己看的过程记录，不是知识本身，所以留在本地仓库，不推送到 iWiki。</p>
+</div>
+
+<h3 id="out-iwiki">④ iWiki 发布 —— 最终交付（sync_to_iwiki.py）</h3>
+<p>docs/ 编译完成后，由发布脚本推送到 iWiki。核心难点是<strong>页面互链的 docid 解析</strong>，用"两遍推送"解决：</p>
+<div class="note note-warn">
+  <div class="nt">鸡生蛋问题</div>
+  <p>docs 里 A 页链接到 B 页用的是相对路径 <code>../entities/b.md</code>，但推到 iWiki 需要换成 <code>https://iwiki.woa.com/p/{B的docid}</code>。而 B 的 docid 只有推送后才知道。</p>
+</div>
+<div class="flow">
+  <div class="fn2 blue">第一遍<br/><small style="font-weight:400">ensure_docid</small></div>
+  <div class="fa">→</div>
+  <div class="fn2">所有无 docid 的页<br/>createDocument 建档拿号</div>
+  <div class="fa">→</div>
+  <div class="fn2 green">mapping 完整</div>
+  <div class="fa">→</div>
+  <div class="fn2 blue">第二遍<br/><small style="font-weight:400">push_resolved</small></div>
+  <div class="fa">→</div>
+  <div class="fn2">把正文里的 .md 链接<br/>解析成 iWiki URL 后 saveDocument</div>
+</div>
+<div class="note note-info">
+  <div class="nt">发布映射表 iwiki-mapping.json</div>
+  <p>由 sync 脚本独写，记录 <code>docs 文件路径 → iWiki docid</code> 的映射，以及目录 FOLDER 结构。frontmatter 会被 iWiki 自动剥离（正文干净），所以照常写 frontmatter 不会污染发布内容。</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ======================== 闭环 ============================= -->
+<!-- ============================================================ -->
+<section id="state">
+<h2>状态机与增量闭环</h2>
+<p>整个系统靠两份账本的状态流转驱动增量。理解这两组状态，就理解了"编译器如何知道该编译什么"。</p>
+
+<h4>fetch.state（输入侧状态，Agent 只读）</h4>
+<div class="tw">
+<table>
+<thead><tr><th>状态</th><th>含义</th><th>对编译的意义</th></tr></thead>
+<tbody>
+<tr><td><code>pending</code></td><td>待拉取</td><td>→ 候选（可能有新内容）</td></tr>
+<tr><td><code>fresh</code></td><td>已拉取、与上次一致</td><td>不一定候选，看 compile 侧</td></tr>
+<tr><td><code>changed</code></td><td>源端已变更待重拉</td><td>→ 候选</td></tr>
+<tr><td><code>fetching</code></td><td>拉取中</td><td>暂不处理</td></tr>
+<tr><td><code>error</code></td><td>拉取失败</td><td>→ 候选（可用现有快照编译）</td></tr>
+<tr><td><code>removed</code></td><td>已移除</td><td>对应页面标 deprecated，不删</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>compile.state（输出侧状态，Agent 独写）</h4>
+<div class="tw">
+<table>
+<thead><tr><th>状态</th><th>含义</th><th>对编译的意义</th></tr></thead>
+<tbody>
+<tr><td><code>never_compiled</code></td><td>从未编译</td><td>→ 候选</td></tr>
+<tr><td><code>stale</code></td><td>源版本已超过已编译版本</td><td>→ 候选</td></tr>
+<tr><td><code>compiling</code></td><td>编译中</td><td>处理中</td></tr>
+<tr><td><code>compiled</code></td><td>已编译到最新</td><td>跳过</td></tr>
+<tr><td><code>compile_error</code></td><td>上次编译失败</td><td>→ 候选（重试）</td></tr>
+<tr><td><code>ignored</code></td><td>人为忽略</td><td>永不编译</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="commit">
+<h2>双提交工作流（产物落地的闭环）</h2>
+<div class="note note-danger">
+  <div class="nt">为什么必须两次提交</div>
+  <p>_compile_state.json 需要记录"产出这批 docs 的那次提交 hash"，但提交前无法知道自己的 hash。所以：<strong>先提交 docs 产物拿到 hash（Commit A），再把 hash 回填进编译账本单独提交（Commit B）</strong>。这与 sync 的两遍推送同构——都是"先落地拿标识，再回填引用"。</p>
+</div>
+<ul class="steps">
+  <li><strong>基础检查</strong>：新增/改动页有 H1；相对链接目标存在；必要时 py_compile 校验脚本。</li>
+  <li><strong>Commit A（wiki 产物）</strong>：<code>git add docs/</code> 提交本次编译的所有页面（sources/concepts/entities/index/log…），读取其 commit hash。</li>
+  <li><strong>Commit B（状态回填）</strong>：把 Commit A 的 hash 写入 _compile_state.json 对应 source_id 的 compiled_commit（同时写 state=compiled、compiled_version、compiled_at），<code>git add raw/_compile_state.json</code> 单独提交。</li>
+  <li><strong>一次性 push</strong>：A、B 都提交后再一次性推送，不停在未提交/未推送状态。</li>
+</ul>
+<div class="note note-warn">
+  <div class="nt">不修改文件的操作不 commit</div>
+  <p>lint 仅报告、query 仅回答、incremental 无候选时 → 直接说明"无需更新"并停止，不产生空提交。</p>
+</div>
+</section>
+
+<!-- ===== 端到端实例 ===== -->
+<section id="e2e">
+<h2>端到端实例：一个源的完整生命周期</h2>
+<p>把输入/处理/输出串起来，跟随<strong>一个 iWiki 源</strong>从被添加到最终发布的全过程：</p>
+<ul class="steps">
+  <li><span class="tag t-blue">输入</span> <strong>添加源</strong>：运维执行 <code>fetch_raw.py --add 4028672179</code>。脚本拉取正文、加 frontmatter、算 content_hash，落盘为 <code>raw/xxx-4028672179.md</code>，并在 _fetch_state.json 写入 <code>fetch.state=fresh, version=3</code>。</li>
+  <li><span class="tag t-blue">输入</span> <strong>触发编译</strong>：调用 <code>mode=incremental operation=ingest source_id=iwiki:4028672179</code>。</li>
+  <li><span class="tag t-purple">处理</span> <strong>候选判定</strong>：Agent join 两份账本，发现该 source_id 在 _compile_state.json 中缺失（never_compiled）→ 判定为候选。</li>
+  <li><span class="tag t-purple">处理</span> <strong>编译</strong>：通读原文 → 提炼 3–5 条要点 → 新建 <code>sources/summary-xxx.md</code>、若干 <code>concepts/*.md</code> 与 <code>entities/*.md</code> → 建立 ≥2 交叉引用 → 标注矛盾（若有）。</li>
+  <li><span class="tag t-out" style="color:var(--out)">输出</span> <strong>写产物</strong>：更新 index.md（注册新页 + 主题分组）、overview.md、sources/index.md、log.md（追加 ingest 记录）。</li>
+  <li><span class="tag t-out" style="color:var(--out)">输出</span> <strong>Commit A</strong>：<code>git add docs/ && git commit -m "docs: ingest xxx"</code>，得到 hash <code>abc123</code>。</li>
+  <li><span class="tag t-out" style="color:var(--out)">输出</span> <strong>Commit B</strong>：把 <code>abc123</code> 回填进 _compile_state.json（state=compiled, compiled_version=3, compiled_commit=abc123），单独提交后 push。</li>
+  <li><span class="tag t-green">发布</span> <strong>sync</strong>：CI 触发 <code>sync_to_iwiki.py</code>，第一遍给新页建档拿 docid、第二遍解析链接推送，iWiki 上出现可搜索、可互跳的新文档。</li>
+  <li><span class="tag t-purple">再处理</span> <strong>下次源更新</strong>：某天该 iWiki 文档被人改动，fetch_raw 拉到 version=4。下次 ingest 时 join 账本发现 compiled_version(3) &lt; version(4) → stale → 只重编这一个源的相关页面（增量），其余页面纹丝不动。</li>
+</ul>
+</section>
+
+<!-- ===== 复现 ===== -->
+<section id="repro">
+<h2>从零复现 LLM Wiki 的最小清单</h2>
+<div class="note note-tip">
+  <div class="nt">聚焦机制的复现路径</div>
+  <p>抛开具体业务，复现这套"知识编译器"只需搭好三类要件：<strong>输入管道 + 处理器（提示词）+ 输出管道</strong>。</p>
+</div>
+<ul class="steps">
+  <li><span class="tag t-blue">输入</span> <strong>搭输入管道</strong>：准备 <code>fetch_raw.py</code>（或任意拉取脚本），能把外部源拉成"带 source_id 的标准化 raw 文件 + _fetch_state.json 版本账本"。初始 <code>{"schema_version":3,"docs":[]}</code>。</li>
+  <li><span class="tag t-blue">输入</span> <strong>准备空产物骨架</strong>：建 docs/（index.md、overview.md、log.md + sources/entities/concepts/comparisons/syntheses 五目录）与初始 <code>_compile_state.json</code>、<code>iwiki-mapping.json</code>。</li>
+  <li><span class="tag t-purple">处理</span> <strong>装配处理器（最关键）</strong>：在 Knot 平台建 Agent，绑定仓库读写权限，把<strong>系统提示词全文</strong>设为 system prompt。没有它，LLM 只是聊天机器人。</li>
+  <li><span class="tag t-purple">处理</span> <strong>首次全量编译</strong>：调用 <code>mode=rebuild operation=ingest</code>，让 Agent 枚举全部源编译成 docs，末尾自动 lint 收敛。</li>
+  <li><span class="tag t-out" style="color:var(--out)">输出</span> <strong>验证产物</strong>：检查双提交闭环（Commit A 产物 + Commit B 回填）、log.md 记录、lint 报告（断链/孤儿页为 0）。</li>
+  <li><span class="tag t-green">发布</span> <strong>接发布管道</strong>：配置 <code>iwiki-mapping.json</code> 的 spaceid/parentid，CI 里跑 <code>sync_to_iwiki.py</code>（首次 --all）。</li>
+  <li><span class="tag t-purple">处理</span> <strong>建立增量循环</strong>：定时 fetch 检测源更新 → 有 stale 就 <code>incremental ingest</code> → 定期 <code>lint</code> 保健康。系统开始自我累积复利。</li>
+</ul>
+
+<h3>复现避坑（机制层面）</h3>
+<div class="tw">
+<table>
+<thead><tr><th>陷阱</th><th>正确做法</th></tr></thead>
+<tbody>
+<tr><td>让 Agent 直接改 raw 或 _fetch_state</td><td>禁止。输入不可变，编译器无权改输入。</td></tr>
+<tr><td>不给系统提示词就让 LLM 编译</td><td>产物会杂乱无章。提示词是编译器的"语言规范"，必不可少。</td></tr>
+<tr><td>用 Obsidian 双链 [[..]]</td><td>iWiki 不渲染。只用标准 markdown 链接。</td></tr>
+<tr><td>页面无 H1 首行</td><td>iWiki 标题会退化成文件名。首行必须 <code># 标题</code>。</td></tr>
+<tr><td>新页面不建交叉引用</td><td>会变孤儿页。每页 ≥2 入链。</td></tr>
+<tr><td>只提交 docs 不回填 compile_commit</td><td>下次增量判定会错乱。必须双提交。</td></tr>
+<tr><td>sync 只跑一遍</td><td>页面互链全失效。必须两遍（建档 → 解析链接）。</td></tr>
+<tr><td>矛盾时直接覆盖旧结论</td><td>用引用块 + contradictions 显式标注，不选边。</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+</main>
+</div>
+
+<div id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+const prog=document.getElementById('prog');
+const top=document.getElementById('top');
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY,t=document.documentElement.scrollHeight-window.innerHeight;
+  prog.style.width=(s/t*100)+'%';
+  top.classList.toggle('show',s>400);
+});
+const secs=document.querySelectorAll('section[id],h2[id],h3[id]');
+const slinks=document.querySelectorAll('.sidebar a');
+const nlinks=document.querySelectorAll('.topbar nav a');
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      slinks.forEach(a=>a.classList.toggle('act',a.getAttribute('href')==='#'+id));
+      nlinks.forEach(a=>{
+        const sec=e.target.closest('section');
+        if(sec)a.classList.toggle('act',a.getAttribute('href')==='#'+sec.id);
+      });
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+secs.forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
