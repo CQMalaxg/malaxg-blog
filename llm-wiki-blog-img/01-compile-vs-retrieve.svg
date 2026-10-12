@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 560" role="img" aria-labelledby="t1 d1">
+  <title id="t1">编译知识 vs 检索知识</title>
+  <desc id="d1">左侧传统 RAG 在查询时反复重新检索、答案用完即弃；右侧 LLM Wiki 在摄取时编译一次，之后读索引即可，并把好答案归档回库自我生长。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;
+      --card:#eeeae0;--in:#3e6fa7;--out:#397b68;--warn:#b3603f;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;
+        --card:#2b3133;--in:#8eb9e4;--out:#80c6aa;--warn:#e2977a;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .panel{fill:none;stroke:var(--border);stroke-width:1.5;}
+    .node{fill:var(--card);stroke:var(--border);stroke-width:1.5;}
+    .node-out{fill:var(--card);stroke:var(--out);stroke-width:1.8;}
+    .node-warn{fill:var(--card);stroke:var(--warn);stroke-width:1.8;}
+    .line{fill:none;stroke:var(--line);stroke-width:2.4;marker-end:url(#a1);}
+    .loop-warn{fill:none;stroke:var(--warn);stroke-width:2.2;stroke-dasharray:5 5;marker-end:url(#aw);}
+    .loop-out{fill:none;stroke:var(--out);stroke-width:2.2;stroke-dasharray:5 5;marker-end:url(#ao);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .head-warn{fill:var(--warn);font:700 18px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .head-out{fill:var(--out);font:700 18px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .label{fill:var(--fg);font:600 15px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .small{fill:var(--muted);font:13px/1.4 ui-sans-serif,system-ui,sans-serif;}
+    .tag-warn{fill:var(--warn);font:600 12px/1.3 ui-monospace,monospace;}
+    .tag-out{fill:var(--out);font:600 12px/1.3 ui-monospace,monospace;}
+  </style>
+  <defs>
+    <marker id="a1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L9 4.5 L0 9 z" fill="var(--line)"/></marker>
+    <marker id="aw" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L9 4.5 L0 9 z" fill="var(--warn)"/></marker>
+    <marker id="ao" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L9 4.5 L0 9 z" fill="var(--out)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="560"/>
+  <text class="eyebrow" x="44" y="44">PARADIGM / COMPILE vs RETRIEVE</text>
+  <text class="title" x="44" y="78">编译知识，而非检索知识</text>
+
+  <!-- Left: RAG -->
+  <rect class="panel" x="44" y="104" width="468" height="424" rx="12"/>
+  <text class="head-warn" x="70" y="140">传统 RAG（解释型）</text>
+  <text class="small" x="70" y="162">知识在「查询时」处理，用完即弃</text>
+
+  <rect class="node" x="72" y="182" width="356" height="46" rx="8"/><text class="label" x="90" y="211">① 用户查询</text>
+  <path class="line" d="M250 228 V 258"/>
+  <rect class="node" x="72" y="258" width="356" height="46" rx="8"/><text class="label" x="90" y="287">② 重新检索 raw 文档</text>
+  <path class="line" d="M250 304 V 334"/>
+  <rect class="node" x="72" y="334" width="356" height="46" rx="8"/><text class="label" x="90" y="363">③ 塞进上下文，模型现读</text>
+  <path class="line" d="M250 380 V 410"/>
+  <rect class="node-warn" x="72" y="410" width="356" height="46" rx="8"/><text class="label" x="90" y="439">④ 得到答案 → 用完即弃</text>
+  <path class="loop-warn" d="M428 433 C 478 433 478 205 432 205"/>
+  <text class="tag-warn" x="470" y="322" transform="rotate(90 470 322)">下次从零再来</text>
+
+  <!-- Right: LLM Wiki -->
+  <rect class="panel" x="568" y="104" width="468" height="424" rx="12"/>
+  <text class="head-out" x="594" y="140">LLM Wiki（编译型）</text>
+  <text class="small" x="594" y="162">知识在「摄取时」编译一次，之后复用并生长</text>
+
+  <rect class="node" x="596" y="182" width="356" height="46" rx="8"/><text class="label" x="614" y="211">① 摄取时编译一次</text>
+  <path class="line" d="M774 228 V 258"/>
+  <rect class="node-out" x="596" y="258" width="356" height="46" rx="8"/><text class="label" x="614" y="287">② 结构化 · 互链知识库</text>
+  <path class="line" d="M774 304 V 334"/>
+  <rect class="node" x="596" y="334" width="356" height="46" rx="8"/><text class="label" x="614" y="363">③ 查询读索引即可导航</text>
+  <path class="line" d="M774 380 V 410"/>
+  <rect class="node-out" x="596" y="410" width="356" height="46" rx="8"/><text class="label" x="614" y="439">④ 好答案归档回库</text>
+  <path class="loop-out" d="M952 433 C 1002 433 1002 281 956 281"/>
+  <text class="tag-out" x="994" y="352" transform="rotate(90 994 352)">复利生长 · 越用越聪明</text>
+</svg>

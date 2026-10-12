@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 520" role="img" aria-labelledby="t4 d4">
+  <title id="t4">轻反思与深反思的分层</title>
+  <desc id="d4">轻反思对每一条完整运行轨迹做一对一的原子提取，产出候选经验，默认开启；深反思跨多条轨迹聚类归纳，产出带适用条件与例外的规范规则，默认关闭。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;--card:#eeeae0;
+      --lt:#3e6fa7;--lt-f:#dde7f3;--dp:#7a5aa6;--dp-f:#e6dcef;--on:#397b68;--off:#b3603f;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;--card:#2b3133;
+        --lt:#8eb9e4;--lt-f:#2c3d52;--dp:#c9a7ec;--dp-f:#3a2f4a;--on:#80c6aa;--off:#e2977a;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .traj{fill:var(--card);stroke:var(--border);stroke-width:1.4;}
+    .cand{fill:var(--lt-f);stroke:var(--lt);stroke-width:1.6;}
+    .pat{fill:var(--dp-f);stroke:var(--dp);stroke-width:2.2;}
+    .proc-lt{fill:none;stroke:var(--lt);stroke-width:2.2;}
+    .proc-dp{fill:none;stroke:var(--dp);stroke-width:2.2;}
+    .line{fill:none;stroke:var(--line);stroke-width:2;marker-end:url(#a4);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .h-lt{fill:var(--lt);font:800 15px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .h-dp{fill:var(--dp);font:800 15px/1 ui-monospace,monospace;letter-spacing:1px;}
+    .name{fill:var(--fg);font:700 15px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .sub{fill:var(--muted);font:12px/1.3 ui-sans-serif,system-ui,sans-serif;}
+    .tiny{fill:var(--muted);font:11px/1.2 ui-monospace,monospace;}
+    .on-b{fill:var(--on);font:700 12px/1 ui-sans-serif,system-ui,sans-serif;}
+    .off-b{fill:var(--off);font:700 12px/1 ui-sans-serif,system-ui,sans-serif;}
+    .rel{fill:var(--muted);font:600 12px/1.2 ui-monospace,monospace;}
+    .foot{fill:var(--fg);font:600 13px/1.4 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a4" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--line)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="520"/>
+  <text class="eyebrow" x="44" y="42">REFLECTION / TWO TIERS</text>
+  <text class="title" x="44" y="76">浅层与深层必须分开</text>
+
+  <!-- trajectories -->
+  <text class="rel" x="52" y="118">完整运行轨迹</text>
+  <rect class="traj" x="52" y="132" width="132" height="42" rx="7"/><text class="sub" x="68" y="158">轨迹 A</text>
+  <rect class="traj" x="52" y="184" width="132" height="42" rx="7"/><text class="sub" x="68" y="210">轨迹 B</text>
+  <rect class="traj" x="52" y="236" width="132" height="42" rx="7"/><text class="sub" x="68" y="262">轨迹 C</text>
+  <rect class="traj" x="52" y="288" width="132" height="42" rx="7"/><text class="sub" x="68" y="314">轨迹 D</text>
+
+  <!-- light reflection -->
+  <rect class="proc-lt" x="240" y="132" width="176" height="198" rx="10"/>
+  <text class="h-lt" x="328" y="164" text-anchor="middle">轻反思</text>
+  <text class="sub" x="328" y="192" text-anchor="middle">一条轨迹 = 一个单元</text>
+  <text class="sub" x="328" y="214" text-anchor="middle">原子提取，不做归纳</text>
+  <text class="sub" x="328" y="240" text-anchor="middle">幂等键含 run_id</text>
+  <text class="sub" x="328" y="262" text-anchor="middle">低置信度进复核</text>
+  <text class="on-b" x="328" y="298" text-anchor="middle">默认开启</text>
+  <text class="rel" x="328" y="320" text-anchor="middle">1 : 1</text>
+
+  <path class="line" d="M184 153 H 238"/>
+  <path class="line" d="M184 205 C 210 205 212 190 238 186"/>
+  <path class="line" d="M184 257 C 210 257 212 255 238 253"/>
+  <path class="line" d="M184 309 C 210 309 212 300 238 292"/>
+
+  <!-- candidates -->
+  <text class="rel" x="472" y="118">候选经验</text>
+  <rect class="cand" x="472" y="132" width="140" height="42" rx="7"/><text class="sub" x="488" y="158">候选 a1</text>
+  <rect class="cand" x="472" y="184" width="140" height="42" rx="7"/><text class="sub" x="488" y="210">候选 a2</text>
+  <rect class="cand" x="472" y="236" width="140" height="42" rx="7"/><text class="sub" x="488" y="262">候选 b1</text>
+  <rect class="cand" x="472" y="288" width="140" height="42" rx="7"/><text class="sub" x="488" y="314">候选 c1</text>
+  <path class="line" d="M416 231 H 470"/>
+
+  <!-- deep reflection -->
+  <rect class="proc-dp" x="668" y="132" width="176" height="198" rx="10"/>
+  <text class="h-dp" x="756" y="164" text-anchor="middle">深反思</text>
+  <text class="sub" x="756" y="192" text-anchor="middle">跨轨迹聚类</text>
+  <text class="sub" x="756" y="214" text-anchor="middle">成簇 ≥ 2 才归纳</text>
+  <text class="sub" x="756" y="240" text-anchor="middle">孤例不成规则</text>
+  <text class="sub" x="756" y="262" text-anchor="middle">按作用域分组</text>
+  <text class="off-b" x="756" y="298" text-anchor="middle">默认关闭</text>
+  <text class="rel" x="756" y="320" text-anchor="middle">N : 1</text>
+
+  <path class="line" d="M612 153 C 640 153 642 176 666 186"/>
+  <path class="line" d="M612 205 C 640 205 642 205 666 210"/>
+  <path class="line" d="M612 257 C 640 257 642 245 666 236"/>
+  <path class="line" d="M612 309 C 640 309 642 290 666 278"/>
+
+  <!-- patterns -->
+  <text class="rel" x="900" y="118">规范规则</text>
+  <rect class="pat" x="900" y="164" width="136" height="134" rx="9"/>
+  <text class="name" x="920" y="194">规则</text>
+  <text class="tiny" x="920" y="220">canonical_rule</text>
+  <text class="tiny" x="920" y="242">applicability</text>
+  <text class="tiny" x="920" y="264">exceptions</text>
+  <text class="tiny" x="920" y="286">证据可回溯</text>
+  <path class="line" d="M844 231 H 898"/>
+
+  <text class="foot" x="44" y="396">为什么深反思默认关闭：没有轻反思的稳定产出，开深反思几乎无产出——先修好浅层，再谈归纳。</text>
+  <text class="foot" x="44" y="424">门控同样重要：消息数 ≤ 2 且无子 Agent、无重试、无错误、无反馈的「琐碎交互」直接跳过，只反思有信息量的轨迹。</text>
+</svg>

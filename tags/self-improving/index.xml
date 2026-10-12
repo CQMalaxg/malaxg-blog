@@ -1,0 +1,889 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Self-Improving on 麻辣香郭的精神家园</title><link>https://malaxg.top/tags/self-improving/</link><description>Recent content in Self-Improving on 麻辣香郭的精神家园</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 31 Aug 2026 20:00:00 +0800</lastBuildDate><atom:link href="https://malaxg.top/tags/self-improving/index.xml" rel="self" type="application/rss+xml"/><item><title>如何做 Agent 的 Self-Improving：一条可落地的工程路径</title><link>https://malaxg.top/posts/self-improving-agent/</link><pubDate>Mon, 31 Aug 2026 20:00:00 +0800</pubDate><guid>https://malaxg.top/posts/self-improving-agent/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;这篇文章只讲一件事：&lt;strong&gt;怎么真的把 Agent 自改进搭出来。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;不是论文综述，而是一条从采集、反思、归纳、激活到注入的完整工程路径，附带八条不可破坏的红线、一个真实的静默故障，以及从零复现的最小清单。&lt;/p&gt;
+&lt;p&gt;内容融合了公开研究范式与&lt;strong&gt;某企业级实现的真实工程经验（已做匿名化与通用化处理，不指向任何具体系统）&lt;/strong&gt;。文末附参考资料与事实核查说明。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="一先说清楚什么才叫自改进"&gt;一、先说清楚：什么才叫「自改进」&lt;/h2&gt;
+&lt;p&gt;我们对工具有一个朴素期待：&lt;strong&gt;越用越好用&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;但今天绝大多数 Agent 不是这样。你用了三个月的 Agent，和第一天用它，感觉差不多。它不记得上周你纠正过它三次的同一个错误，不记得哪条路走过是死胡同。每次对话都像重新认识。&lt;/p&gt;
+&lt;p&gt;自改进要解决的就是这件事，一句话概括：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;让 Agent 把「这次是怎么做成 / 做砸的」变成下次的先验。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Warp 团队把这个问题的根因说得更精准——&lt;strong&gt;反馈是无状态的（stateless）&lt;/strong&gt;：会话结束后，人给 Agent 的反馈就消失了，那些最关键的上下文被直接踢出了 agentic loop。&lt;/p&gt;
+&lt;p&gt;他们还给出了一个很传神的症状描述：&lt;strong&gt;「80% 正确」陷阱&lt;/strong&gt;。一次性写好的 prompt 能把任务做对约 80%，但剩下的 20% 会产生大量噪音，体验反而很差。而靠人工不断重写 prompt 来补那 20%，&lt;strong&gt;根本无法规模化&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;它是一个闭环，六步：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Agent 自改进闭环" loading="lazy" src="https://malaxg.top/self-improving-blog-img/01-closed-loop.svg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;图 1：六步闭环。注意三种颜色的分工——运行/留痕/注入在在线路径，反思/归纳在离线路径，而激活是人在环的显式决策。这个分工是整套架构最重要的决定。&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;学术上这个闭环被抽象为四个要素：&lt;strong&gt;System Inputs / Agent System / Environment / Optimiser&lt;/strong&gt;（综述 arXiv:2508.07407）。你要优化的是前两者，信号来自环境，而&amp;quot;反思器&amp;quot;就是那个 Optimiser。&lt;/p&gt;
+&lt;p&gt;先划清一条边界，避免一开始就跑偏：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;这&lt;strong&gt;是&lt;/strong&gt;自改进&lt;/th&gt;
+&lt;th&gt;这&lt;strong&gt;不是&lt;/strong&gt;自改进&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;沉淀「这类任务该先查再答」这样的&lt;strong&gt;方法论&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;记住「用户叫张三、住北京」这样的&lt;strong&gt;用户事实&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;经验归 &lt;strong&gt;Agent&lt;/strong&gt;，跨用户复用&lt;/td&gt;
+&lt;td&gt;用户画像、个性化人设&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;提炼可复用的规则&lt;/td&gt;
+&lt;td&gt;把原始日志堆进 prompt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;经验归 Agent，不归用户&lt;/strong&gt;——这是最容易做错也最关键的一条立场，第四节第 1 步会详细展开为什么。&lt;/p&gt;
+&lt;h2 id="二第一性问题改什么"&gt;二、第一性问题：改什么？&lt;/h2&gt;
+&lt;p&gt;自改进不是一个动作，而是四个不同层级的动作。选错层级，项目基本就废了。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="自改进的四个可改层级" loading="lazy" src="https://malaxg.top/self-improving-blog-img/02-four-layers.svg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;图 2：四层选型。越往上能力上限越高，但风险、成本和不可逆性也越高。&lt;/em&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;层级&lt;/th&gt;
+&lt;th&gt;改什么&lt;/th&gt;
+&lt;th&gt;代表工作&lt;/th&gt;
+&lt;th&gt;见效&lt;/th&gt;
+&lt;th&gt;风险&lt;/th&gt;
+&lt;th&gt;回滚&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;L1 上下文/经验&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;prompt、memory、经验手册、Skill 文件&lt;/td&gt;
+&lt;td&gt;ACE、ExpeL、Reflexion、GEPA；工业界：&lt;strong&gt;Warp&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;快&lt;/td&gt;
+&lt;td&gt;低&lt;/td&gt;
+&lt;td&gt;改一行文本&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;L2 技能/工具&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;技能库、自建工具&lt;/td&gt;
+&lt;td&gt;Voyager、SkillOpt&lt;/td&gt;
+&lt;td&gt;中&lt;/td&gt;
+&lt;td&gt;中&lt;/td&gt;
+&lt;td&gt;删掉技能&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;L3 架构/工作流&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;拓扑、节点，甚至自改代码&lt;/td&gt;
+&lt;td&gt;ADAS、Darwin Gödel Machine、AWM&lt;/td&gt;
+&lt;td&gt;慢&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;高&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;难&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;L4 权重&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;SFT / RL / 蒸馏&lt;/td&gt;
+&lt;td&gt;SEAL&lt;/td&gt;
+&lt;td&gt;慢且贵&lt;/td&gt;
+&lt;td&gt;高&lt;/td&gt;
+&lt;td&gt;需重训&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;结论很明确：绝大多数团队应该只做 L1，而且应该先只做 L1。&lt;/strong&gt;&lt;/p&gt;</description><content:encoded><![CDATA[<blockquote>
+<p>这篇文章只讲一件事：<strong>怎么真的把 Agent 自改进搭出来。</strong></p>
+<p>不是论文综述，而是一条从采集、反思、归纳、激活到注入的完整工程路径，附带八条不可破坏的红线、一个真实的静默故障，以及从零复现的最小清单。</p>
+<p>内容融合了公开研究范式与<strong>某企业级实现的真实工程经验（已做匿名化与通用化处理，不指向任何具体系统）</strong>。文末附参考资料与事实核查说明。</p>
+</blockquote>
+<h2 id="一先说清楚什么才叫自改进">一、先说清楚：什么才叫「自改进」</h2>
+<p>我们对工具有一个朴素期待：<strong>越用越好用</strong>。</p>
+<p>但今天绝大多数 Agent 不是这样。你用了三个月的 Agent，和第一天用它，感觉差不多。它不记得上周你纠正过它三次的同一个错误，不记得哪条路走过是死胡同。每次对话都像重新认识。</p>
+<p>自改进要解决的就是这件事，一句话概括：</p>
+<blockquote>
+<p><strong>让 Agent 把「这次是怎么做成 / 做砸的」变成下次的先验。</strong></p>
+</blockquote>
+<p>Warp 团队把这个问题的根因说得更精准——<strong>反馈是无状态的（stateless）</strong>：会话结束后，人给 Agent 的反馈就消失了，那些最关键的上下文被直接踢出了 agentic loop。</p>
+<p>他们还给出了一个很传神的症状描述：<strong>「80% 正确」陷阱</strong>。一次性写好的 prompt 能把任务做对约 80%，但剩下的 20% 会产生大量噪音，体验反而很差。而靠人工不断重写 prompt 来补那 20%，<strong>根本无法规模化</strong>。</p>
+<p>它是一个闭环，六步：</p>
+<p><img alt="Agent 自改进闭环" loading="lazy" src="/self-improving-blog-img/01-closed-loop.svg"></p>
+<p><em>图 1：六步闭环。注意三种颜色的分工——运行/留痕/注入在在线路径，反思/归纳在离线路径，而激活是人在环的显式决策。这个分工是整套架构最重要的决定。</em></p>
+<p>学术上这个闭环被抽象为四个要素：<strong>System Inputs / Agent System / Environment / Optimiser</strong>（综述 arXiv:2508.07407）。你要优化的是前两者，信号来自环境，而&quot;反思器&quot;就是那个 Optimiser。</p>
+<p>先划清一条边界，避免一开始就跑偏：</p>
+<table>
+	<thead>
+			<tr>
+					<th>这<strong>是</strong>自改进</th>
+					<th>这<strong>不是</strong>自改进</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>沉淀「这类任务该先查再答」这样的<strong>方法论</strong></td>
+					<td>记住「用户叫张三、住北京」这样的<strong>用户事实</strong></td>
+			</tr>
+			<tr>
+					<td>经验归 <strong>Agent</strong>，跨用户复用</td>
+					<td>用户画像、个性化人设</td>
+			</tr>
+			<tr>
+					<td>提炼可复用的规则</td>
+					<td>把原始日志堆进 prompt</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>经验归 Agent，不归用户</strong>——这是最容易做错也最关键的一条立场，第四节第 1 步会详细展开为什么。</p>
+<h2 id="二第一性问题改什么">二、第一性问题：改什么？</h2>
+<p>自改进不是一个动作，而是四个不同层级的动作。选错层级，项目基本就废了。</p>
+<p><img alt="自改进的四个可改层级" loading="lazy" src="/self-improving-blog-img/02-four-layers.svg"></p>
+<p><em>图 2：四层选型。越往上能力上限越高，但风险、成本和不可逆性也越高。</em></p>
+<table>
+	<thead>
+			<tr>
+					<th>层级</th>
+					<th>改什么</th>
+					<th>代表工作</th>
+					<th>见效</th>
+					<th>风险</th>
+					<th>回滚</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>L1 上下文/经验</strong></td>
+					<td>prompt、memory、经验手册、Skill 文件</td>
+					<td>ACE、ExpeL、Reflexion、GEPA；工业界：<strong>Warp</strong></td>
+					<td>快</td>
+					<td>低</td>
+					<td>改一行文本</td>
+			</tr>
+			<tr>
+					<td><strong>L2 技能/工具</strong></td>
+					<td>技能库、自建工具</td>
+					<td>Voyager、SkillOpt</td>
+					<td>中</td>
+					<td>中</td>
+					<td>删掉技能</td>
+			</tr>
+			<tr>
+					<td><strong>L3 架构/工作流</strong></td>
+					<td>拓扑、节点，甚至自改代码</td>
+					<td>ADAS、Darwin Gödel Machine、AWM</td>
+					<td>慢</td>
+					<td><strong>高</strong></td>
+					<td>难</td>
+			</tr>
+			<tr>
+					<td><strong>L4 权重</strong></td>
+					<td>SFT / RL / 蒸馏</td>
+					<td>SEAL</td>
+					<td>慢且贵</td>
+					<td>高</td>
+					<td>需重训</td>
+			</tr>
+	</tbody>
+</table>
+<p><strong>结论很明确：绝大多数团队应该只做 L1，而且应该先只做 L1。</strong></p>
+<p>这不是保守。有一个很强的实证支撑：GEPA（arXiv:2507.19457，ICLR 2026 Oral）用纯 L1 的<strong>反思式提示词进化</strong>，平均比 GRPO 这类 L4 强化学习方法<strong>高约 10%（最高 20%），而 rollout 少到 1/35</strong>。</p>
+<p>L1 的另一个隐性优势是<strong>可解释</strong>。规则是人类可读的自然语言，出问题时你能直接看到&quot;它学到了什么错东西&quot;，然后删掉。L4 权重更新出了问题，你只能重训。</p>
+<blockquote>
+<p><strong>关于 L3 的一句提醒</strong>：Darwin Gödel Machine（arXiv:2505.22954）让 Agent 改写自己的代码库，学术上极其漂亮，把 Schmidhuber 2003 年的思想实验落成了工程。但<strong>自动改代码不该出现在你的第一版生产系统里</strong>。前述那套企业级实现在&quot;非目标&quot;里明确写了：不自动改写子 Agent 描述、不自动改代码。</p>
+</blockquote>
+<h2 id="三第二性问题什么时候改">三、第二性问题：什么时候改？</h2>
+<table>
+	<thead>
+			<tr>
+					<th>时机</th>
+					<th>做法</th>
+					<th>代价</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>任务内</strong>（test-time）</td>
+					<td>Reflexion 式：失败 → 口头反思 → 立刻重试</td>
+					<td>直接推高当前请求时延</td>
+			</tr>
+			<tr>
+					<td><strong>任务间</strong>（offline / sleep-time）</td>
+					<td>运行结束后离线反思，下次生效</td>
+					<td>对话时延<strong>零影响</strong></td>
+			</tr>
+	</tbody>
+</table>
+<p>生产系统几乎都选第二种。学界称之为 <strong>sleep-time compute</strong>（arXiv:2504.13171）——让模型在&quot;睡觉&quot;时预先思考。这个隐喻和人类睡眠巩固记忆是一致的：白天经历，夜里整理。</p>
+<p>这条切分落到架构上，就是整套系统最重要的一条纪律：</p>
+<p><img alt="在线与离线的职责切分" loading="lazy" src="/self-improving-blog-img/03-online-offline.svg"></p>
+<p><em>图 3：在线只做三件轻活（读经验、运行、写证据并入队），重加工全部离线。两侧只通过数据库解耦。</em></p>
+<blockquote>
+<p><strong>在线路径只做三件轻活：读已激活经验 + 写证据 + 入队。</strong></p>
+</blockquote>
+<p>由此得到两条必须写进设计文档的降级语义：</p>
+<ol>
+<li><strong>没有已激活经验时，prompt 里的经验块为空</strong>——这是预期降级，不是采集失败。</li>
+<li><strong>存储层故障时，整条自改进链路降级，主对话照常可用。</strong></li>
+</ol>
+<h2 id="四落地蓝图七步">四、落地蓝图：七步</h2>
+<h3 id="第-1-步定义经验的载体与归属">第 1 步：定义经验的载体与归属</h3>
+<p>先定数据分层。只需两段，别搞三层四层：</p>
+<table>
+	<thead>
+			<tr>
+					<th>段</th>
+					<th>内容</th>
+					<th>带 user_id？</th>
+					<th>用途</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>证据段</strong></td>
+					<td>消息、生命周期事件</td>
+					<td>✅ 带</td>
+					<td>唯一用途是把轨迹读回来</td>
+			</tr>
+			<tr>
+					<td><strong>经验段</strong></td>
+					<td>候选经验、规范规则</td>
+					<td>❌ <strong>不带</strong></td>
+					<td>按 Agent + 作用域归属</td>
+			</tr>
+	</tbody>
+</table>
+<p>作用域只需两个值，不要更多：</p>
+<ul>
+<li><code>agent</code>：只约束某一个目标 Agent</li>
+<li><code>global</code>：隔离域内全局生效</li>
+</ul>
+<p><strong>注意这里没有任何以用户为维度的作用域。</strong> 想跨用户共享，只能通过 <code>global</code> 或 Agent 级规则实现——<strong>绝不能把 user_id 写进经验层，再靠放宽查询条件来实现共享</strong>。这条一旦破防，隐私和复用都会一起崩。</p>
+<h3 id="第-2-步采集要克制">第 2 步：采集要克制</h3>
+<p>新手最容易犯的错：把所有事件都写库。流式输出一个 token 一条 INSERT，数据库直接被打爆。</p>
+<p>正确做法是<strong>白名单</strong>，只持久化重建轨迹<strong>必需</strong>的那几类事件：</p>
+<table>
+	<thead>
+			<tr>
+					<th>落库（白名单）</th>
+					<th>为什么必需</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>运行成功终态</td>
+					<td>完整终态 + 最终回答</td>
+			</tr>
+			<tr>
+					<td>运行失败终态</td>
+					<td>失败信号，反思的高价值输入</td>
+			</tr>
+			<tr>
+					<td>子 Agent 调用开始</td>
+					<td>证明调过子 Agent</td>
+			</tr>
+			<tr>
+					<td>子 Agent 调用结束</td>
+					<td>携带子会话标识</td>
+			</tr>
+			<tr>
+					<td>子轨迹快照</td>
+					<td>子 Agent 内部过程</td>
+			</tr>
+	</tbody>
+</table>
+<table>
+	<thead>
+			<tr>
+					<th>不落库（仅进文件日志）</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>流式文本分片、推理过程、工具调用明细、心跳、运行开始</td>
+			</tr>
+	</tbody>
+</table>
+<p>匿名案例里的实测数据很有说服力：相比&quot;每条事件都 INSERT&quot;的旧行为，<strong>典型长请求的写入量只剩原来的 0.5%–2%</strong>。</p>
+<p>而且过滤要放在<strong>两处</strong>：写库函数入口直接返回，以及异步派发前就跳过（避免白建一堆任务对象）。</p>
+<blockquote>
+<p><strong>可观测性靠文件日志，不靠数据库。</strong> 这条想清楚了，采集就能放心地克制。</p>
+</blockquote>
+<h3 id="第-3-步门控先问值不值得反思">第 3 步：门控——先问&quot;值不值得反思&quot;</h3>
+<p>不是每条轨迹都有信息量。反思一条&quot;你好 / 你好，有什么可以帮您&quot;的对话，纯属浪费 token 并污染经验库。</p>
+<p>跳过条件：</p>
+<table>
+	<thead>
+			<tr>
+					<th>skip_reason</th>
+					<th>条件</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>trajectory_incomplete</code></td>
+					<td>没有终态事件，或轨迹被截断</td>
+			</tr>
+			<tr>
+					<td><code>no_messages</code></td>
+					<td>轨迹没有任何消息</td>
+			</tr>
+			<tr>
+					<td><code>trivial_interaction</code></td>
+					<td>消息数 ≤ 2，<strong>且</strong>无子 Agent、无重试、无错误、无反馈</td>
+			</tr>
+	</tbody>
+</table>
+<p>反过来说，<strong>有反馈、有重试、有错误、有子 Agent 链路</strong>的轨迹才值得反思——因为那里才有&quot;哪里做对了、哪里踩坑了&quot;的信号。</p>
+<p>这一步直接决定整个经验库的信噪比，别省。</p>
+<h3 id="第-4-步轻反思单轨迹原子提取">第 4 步：轻反思——单轨迹原子提取</h3>
+<p><img alt="轻反思与深反思的分层" loading="lazy" src="/self-improving-blog-img/04-two-tier-reflection.svg"></p>
+<p><em>图 4：轻反思对每条轨迹 1:1 提取候选；深反思跨轨迹 N:1 归纳成规则。两者的信息密度完全不同，必须分开。</em></p>
+<p>轻反思的处理单元是<strong>一次完整运行</strong>（用 <code>会话ID + 运行ID</code> 定位），做三件事：</p>
+<ol>
+<li>按标识重建轨迹（如有子 Agent，补全子轨迹，首次结果落快照、重放复用，别反复回源）</li>
+<li>通读全文，提炼 <strong>3–5 条</strong>关键要点，<strong>不臆造</strong>——原文没有的不写</li>
+<li>幂等写入候选表</li>
+</ol>
+<p><strong>幂等键必须足够完整</strong>，建议包含：<code>隔离域 + 来源运行ID + 目标Agent + 内容指纹 + 反思器版本</code>。加上反思器版本，是为了让你升级 prompt 后能重新反思同一批轨迹而不冲突。</p>
+<p><strong>置信度分流</strong>：低于阈值（如 0.6）的候选进 <code>review</code> 而不是直接可用。</p>
+<p>经验分类建议固定枚举，别让模型自由发挥（否则标签会漂移到无法分组）。可参考这九类：路由、规划、工具选择、知识使用、查询生成、答案质量、校验、重试与兜底、效率。<strong>未知标签一律归一为空串</strong>，避免污染后续分组。</p>
+<p>信号只需三值：<code>helpful</code> / <code>harmful</code> / <code>neutral</code>。</p>
+<h3 id="第-5-步深反思跨轨迹归纳">第 5 步：深反思——跨轨迹归纳</h3>
+<p><img alt="深反思归纳流水线" loading="lazy" src="/self-improving-blog-img/05-deep-pipeline.svg"></p>
+<p><em>图 5：领取候选 → 分组 → 聚类 → 归纳 → 写规则 → 写证据边 → 留痕，整个处理块加锁串行。</em></p>
+<p>深反思消费的是轻反思积累的 <code>pending</code> 候选，流水线七步：</p>
+<ol>
+<li><strong>领取</strong>：<code>status=pending</code>，用跳过已锁行的方式并发安全地取</li>
+<li><strong>分组</strong>：按 <code>作用域 + 目标Agent + 经验类型</code></li>
+<li><strong>聚类</strong>：文本相似度，如 bigram Jaccard ≥ 0.4</li>
+<li><strong>归纳</strong>：<strong>簇大小 ≥ 2 才归纳</strong>——孤例不成规则</li>
+<li><strong>写规则</strong>：状态固定为 <code>candidate</code></li>
+<li><strong>写证据边</strong>：规则 ↔ 来源候选，保证可回溯</li>
+<li><strong>留痕</strong>：记录本次运行的状态与摘要</li>
+</ol>
+<p>产出的规则应该带<strong>适用条件</strong>和<strong>例外</strong>，而不只是一句干瘪的结论：</p>
+<pre tabindex="0"><code>- {规则标题}: {规范化表述}
+  - applicability: 什么场景下适用
+  - exceptions: 什么情况下不适用
+</code></pre><blockquote>
+<p><strong>深反思应该默认关闭。</strong> 理由非常实际：<strong>没有轻反思的稳定产出，开深反思几乎无产出。</strong> 先让浅层跑稳、有量，再开归纳。这个顺序反了会浪费大量调试时间。</p>
+</blockquote>
+<h3 id="第-6-步激活整套系统的安全阀">第 6 步：激活——整套系统的安全阀</h3>
+<p><img alt="经验规则的状态机" loading="lazy" src="/self-improving-blog-img/06-pattern-lifecycle.svg"></p>
+<p><em>图 6：状态机。只有 active 参与注入，激活与下线都是显式动作。</em></p>
+<p>这是我认为最重要的一条设计：</p>
+<blockquote>
+<p><strong>机器唯一能自动写入的终态是 <code>candidate</code>。从 <code>candidate</code> 到 <code>active</code> 必须经过一次显式决策。</strong></p>
+</blockquote>
+<p><strong>没有自动晋升。</strong> 为什么值得如此保守？</p>
+<ul>
+<li>反思是 LLM 生成的，会有幻觉。一条错误规则被自动激活，会<strong>污染此后所有请求</strong>，而且很难归因。</li>
+<li>经验注入是全局影响，不像单次回答错了那么容易发现。</li>
+<li>激活前需要人确认一件事：<strong>规则里不含用户事实或可识别个人信息</strong>。</li>
+</ul>
+<p>那套企业级实现甚至主动<strong>放弃</strong>了早期版本设计的自动质量门禁和灰度晋升链，改回人工激活。在没有可靠自动评估之前，这是更诚实的选择。</p>
+<p><code>conflicted</code> 是个有用的中间态：与已有规则矛盾的规则，<strong>既不注入也不归档</strong>，挂起等人裁决。不要让机器自己选边。</p>
+<h3 id="第-7-步注入让经验真正生效">第 7 步：注入——让经验真正生效</h3>
+<ul>
+<li><strong>加载</strong>：按隔离域取 <code>status=active</code>，且作用域为 <code>global</code> 或匹配当前 Agent</li>
+<li><strong>限量</strong>：如最多 50 条，按 <code>置信度 → 证据数 → 更新时间</code> 排序</li>
+<li><strong>渲染</strong>：拼成 Markdown 块，进 system prompt，按文本预算截断（如 2000）</li>
+<li><strong>稳定性</strong>：⭐ <strong>单次运行内这份上下文必须不变</strong>，新激活的规则从下一次运行才可见</li>
+</ul>
+<p>最后一条容易被忽略但很重要：如果同一次运行的不同节点（比如分类、规划、反思三个节点）加载到了不同版本的经验，行为会漂移，问题也将无法复现。</p>
+<h2 id="五另一条路线把经验写进文件用-pr-审核">五、另一条路线：把经验写进文件，用 PR 审核</h2>
+<p>上面七步是「<strong>经验存数据库</strong>」的路线：候选表、规则表、改状态激活。但还有一条同样成立、而且更轻的路线——<strong>把经验写成文件，让改进走标准代码评审流程</strong>。</p>
+<p>Warp（AI 终端 / agentic 开发环境）的公开实践是这条路线的一个很好的样本。规模上有参考价值：<strong>80 万月活开发者</strong>、财富 500 强中 <strong>56%</strong> 在用、每周 <strong>40 万+</strong> Claude Code 会话在其中运行。他们最初的痛点也很具体——内部的<strong>代码评审 Agent</strong> 被工程师抱怨&quot;评论无用&quot;。</p>
+<h3 id="双层-skill-循环">双层 Skill 循环</h3>
+<p><img alt="双层 Skill 自改进循环" loading="lazy" src="/self-improving-blog-img/07-dual-skill-loop.svg"></p>
+<p><em>图 7：内层 Skill 按任务干活，人在原有工作流里给反馈，外层 Improver Skill 定时把反馈转化成对内层的最小修改，走 PR 审核后合并。</em></p>
+<table>
+	<thead>
+			<tr>
+					<th>组件</th>
+					<th>角色</th>
+					<th>运行时机</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>内层 Base Skill</strong></td>
+					<td>承载领域知识与指令，实际干活</td>
+					<td><strong>每个任务</strong>都执行</td>
+			</tr>
+			<tr>
+					<td><strong>人类反馈</strong></td>
+					<td>循环的关键环节</td>
+					<td>任务产出后，就地给出</td>
+			</tr>
+			<tr>
+					<td><strong>外层 Improver Skill</strong></td>
+					<td>观察者 Agent，打磨内层 Skill</td>
+					<td><strong>定时执行</strong>，不按任务</td>
+			</tr>
+	</tbody>
+</table>
+<p>对照我们前面的结构，映射关系相当清晰：</p>
+<table>
+	<thead>
+			<tr>
+					<th>本文的说法</th>
+					<th>Warp 的对应物</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>轻反思（单轨迹提取）</td>
+					<td>内层 Skill 的单次产出 + 就地反馈</td>
+			</tr>
+			<tr>
+					<td>深反思（跨轨迹归纳）</td>
+					<td>外层 Improver Skill 的定时归纳</td>
+			</tr>
+			<tr>
+					<td>候选经验 → 规则</td>
+					<td>Improver 提出的<strong>最小 diff</strong></td>
+			</tr>
+			<tr>
+					<td><strong>激活是显式决策</strong></td>
+					<td><strong>开 PR → 人工 review → merge</strong></td>
+			</tr>
+			<tr>
+					<td>证据可回溯</td>
+					<td>Git 历史天然可 diff</td>
+			</tr>
+	</tbody>
+</table>
+<blockquote>
+<p>Zach Lloyd（Warp CEO）的原话很值得记：<strong>&ldquo;框架其实非常简单：一个领域特定的 base skill，加一个用来打磨它的 improver skill。这种简单性就是这个方案的美感所在。&rdquo;</strong></p>
+</blockquote>
+<p><strong>最值得注意的一点</strong>：机器在这里<strong>只提建议（开 PR），从不直接改生效内容</strong>。这和第六节的不变量 I-4「未激活不注入」是<strong>完全同构</strong>的设计——只是把&quot;改数据库状态&quot;换成了&quot;合并 PR&quot;。两条路线在这条红线上不约而同。</p>
+<h3 id="skills-与-memory-不是一回事">Skills 与 Memory 不是一回事</h3>
+<p>这个区分很锋利，也是很多人混淆的地方：</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th>Skills</th>
+					<th>Memory</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>性质</td>
+					<td><strong>程序性</strong>——&ldquo;如何做 X&rdquo;</td>
+					<td>事实性上下文</td>
+			</tr>
+			<tr>
+					<td>稳定性</td>
+					<td><strong>稳定</strong>，与单次运行无关</td>
+					<td><strong>永不停止变化</strong></td>
+			</tr>
+			<tr>
+					<td>谁改</td>
+					<td><strong>刻意变更</strong>（走审核）</td>
+					<td>Agent 推理时<strong>自动写入</strong></td>
+			</tr>
+	</tbody>
+</table>
+<p>本文第四节讲的那套（候选 → 规则 → 激活）本质上是在构建 <strong>Skills</strong>，而不是 Memory。这也解释了为什么&quot;未激活不注入&quot;如此重要：<strong>程序性知识一旦出错，影响是全局且持续的。</strong></p>
+<h3 id="编写自改进-skill-的-6-条准则">编写自改进 Skill 的 6 条准则</h3>
+<table>
+	<thead>
+			<tr>
+					<th>#</th>
+					<th>准则</th>
+					<th>要点</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>1</td>
+					<td><strong>写原则，而非规则</strong></td>
+					<td>&ldquo;像在指导一个聪明的人，而不是在给计算机编程&rdquo;。写&quot;寻找重复代码&quot;优于穷举命名规则</td>
+			</tr>
+			<tr>
+					<td>2</td>
+					<td><strong>解释「为什么」</strong></td>
+					<td>给出规则背后的理由，Agent 才能推理，泛化更好</td>
+			</tr>
+			<tr>
+					<td>3</td>
+					<td><strong>让反馈毫不费力</strong></td>
+					<td>在人<strong>已有的工作流</strong>中采集（直接在 PR/Issue 下评论），无额外提交步骤。&ldquo;低摩擦才能保持信号流动&rdquo;</td>
+			</tr>
+			<tr>
+					<td>4</td>
+					<td><strong>Skill 要小 + 渐进披露</strong></td>
+					<td>好的 Skill 文件不大，它<strong>引用</strong>资源文件和脚本，而不是一次性塞满上下文</td>
+			</tr>
+			<tr>
+					<td>5</td>
+					<td><strong>质量 &gt; 数量，但数量有帮助</strong></td>
+					<td>资深工程师的少量详细反馈，胜过大量草率反馈——二元 👍/👎 说不出&quot;为什么&quot;</td>
+			</tr>
+			<tr>
+					<td>6</td>
+					<td><strong>在 Improver Skill 上多投入</strong></td>
+					<td>它<strong>跨用例高度可复用</strong>：除领域知识部分，各 Agent 的 improver 差别不大</td>
+			</tr>
+	</tbody>
+</table>
+<blockquote>
+<p><strong>第 3 条是本文前面缺的一环。</strong> 我们讲了&quot;有反馈的轨迹才值得反思&quot;，但没讲<strong>反馈从哪来</strong>。答案是：<strong>不要新建一个反馈系统</strong>，而是去人已经在做事的地方（PR 评论、Issue 回复）把信号捡起来。让人为了喂 Agent 而多做一步操作，信号就会枯竭。</p>
+</blockquote>
+<h3 id="落地案例issue-triage-agent">落地案例：Issue Triage Agent</h3>
+<p>Warp 开源了一个完整示例（<code>warpdotdev/warp-agents-demo-github-issue-triage</code>），链路值得抄：</p>
+<ol>
+<li><strong>触发</strong>：有人提新 Issue → CI 启动 Agent → 分析复杂度与可行性 → 打标签、建议修复方向</li>
+<li><strong>发现缺口</strong>：首轮表现不错，但<strong>漏掉了 <code>ready to spec</code> 标签</strong></li>
+<li><strong>就地反馈</strong>：维护者<strong>直接在该 Issue 下留言</strong>，同时说明&quot;期望什么 + 为什么&quot;</li>
+<li><strong>外层运行</strong>：定时 Agent 认证 → 跑 <strong>Skill 内捆绑的脚本</strong>拉取近期带反馈的 Issue → 汇总为结构化文件 → 读回上下文</li>
+<li><strong>最小修改</strong>：开 PR 修改内层 Skill——当 Issue 描述了真实问题时即应用该标签，<strong>即使 UI 形态尚未确定</strong>；PR 描述里写明哪些信号触发了改动</li>
+<li><strong>闭环</strong>：人 review → merge → 下次运行继承</li>
+</ol>
+<p>注意第 4 步的&quot;<strong>捆绑脚本</strong>&quot;——这正是准则 4 的体现：Skill 引用脚本，避免每次运行都让模型重新写一遍取数代码。</p>
+<p>Warp 现在把这套模式跑在整个开源仓库上，有独立的 <strong>spec 撰写 Agent、评审 Agent、triage Agent</strong>，每个都带自己的自改进循环。</p>
+<h3 id="两条路线怎么选">两条路线怎么选</h3>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th>存数据库（第四节）</th>
+					<th>存文件走 PR（本节）</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>适合</td>
+					<td>面向终端用户的<strong>在线业务 Agent</strong></td>
+					<td><strong>研发流程内</strong>的 Agent（评审、triage、spec）</td>
+			</tr>
+			<tr>
+					<td>经验载体</td>
+					<td>候选表 / 规则表</td>
+					<td>Skill 文件</td>
+			</tr>
+			<tr>
+					<td>激活方式</td>
+					<td>改状态为 active</td>
+					<td>merge PR</td>
+			</tr>
+			<tr>
+					<td>审核工具</td>
+					<td>需自建审核台</td>
+					<td><strong>直接复用代码评审</strong></td>
+			</tr>
+			<tr>
+					<td>可回滚性</td>
+					<td>需自己实现</td>
+					<td><strong>Git 原生</strong></td>
+			</tr>
+			<tr>
+					<td>轨迹重建</td>
+					<td>需自建证据表</td>
+					<td>大多已在 PR/Issue 里</td>
+			</tr>
+	</tbody>
+</table>
+<p>如果你的 Agent 本来就工作在代码仓库里，<strong>优先选文件路线</strong>——你能白捡 diff、review、回滚、历史四件套。如果是面向用户的在线对话 Agent（轨迹在数据库里、没有天然的 PR 载体），那就是第四节那套。</p>
+<h2 id="六八条不变量破坏即事故">六、八条不变量（破坏即事故）</h2>
+<p>这是评审任何改动的第一标尺。我把匿名案例的八条红线抽象成了通用形式：</p>
+<table>
+	<thead>
+			<tr>
+					<th>#</th>
+					<th>不变量</th>
+					<th>落地机制</th>
+					<th>怎么验证</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>I-1</strong></td>
+					<td>隔离域不可跨越</td>
+					<td>查询显式带隔离域；归纳按域加锁</td>
+					<td>域 A 的规则不被域 B 读到</td>
+			</tr>
+			<tr>
+					<td><strong>I-2</strong></td>
+					<td>经验不按用户召回</td>
+					<td>经验表无 user_id</td>
+					<td>断言加载 SQL 不含用户条件</td>
+			</tr>
+			<tr>
+					<td><strong>I-3</strong></td>
+					<td>证据可回溯</td>
+					<td>保留完整标识；规则连回候选</td>
+					<td>写入后能完整重建轨迹</td>
+			</tr>
+			<tr>
+					<td><strong>I-4</strong></td>
+					<td><strong>未激活不注入</strong></td>
+					<td>只写 candidate，只读 active</td>
+					<td>新规则不出现在 prompt</td>
+			</tr>
+			<tr>
+					<td><strong>I-5</strong></td>
+					<td>采集克制</td>
+					<td>白名单；派发前就跳过</td>
+					<td>断言流式事件不落库</td>
+			</tr>
+			<tr>
+					<td><strong>I-6</strong></td>
+					<td><strong>主路径不依赖反思成功</strong></td>
+					<td>入队/worker 失败不阻断回答</td>
+					<td>断开存储后主对话仍返回</td>
+			</tr>
+			<tr>
+					<td><strong>I-7</strong></td>
+					<td>单轨迹幂等</td>
+					<td>幂等键含运行ID与指纹</td>
+					<td>同一轨迹重放不产生重复行</td>
+			</tr>
+			<tr>
+					<td><strong>I-8</strong></td>
+					<td>轨迹可序列化</td>
+					<td>统一处理时间类型</td>
+					<td>用真实游标读出的行走完全链路</td>
+			</tr>
+	</tbody>
+</table>
+<p>如果只能记两条，记 <strong>I-6</strong>（自改进永远不能拖垮主业务）和 <strong>I-4</strong>（未验证的东西永远不上线）。</p>
+<h2 id="七一个真实的静默故障">七、一个真实的静默故障</h2>
+<p>这是匿名案例里最有价值的一段记录，建议原样贴到你团队的复盘文档里。</p>
+<p><strong>现象</strong>：测试环境轻反思<strong>全部失败</strong>，任务队列进 <code>failed</code>，候选表始终为空。</p>
+<p><strong>根因</strong>：序列化轨迹时没处理数据库游标读出的时间类型：</p>
+<pre tabindex="0"><code>Object of type datetime is not JSON serializable
+</code></pre><p><strong>为什么没被测出来</strong>：本地单测用 <code>None</code> 和 ISO 字符串手搓轨迹对象，<strong>从没覆盖真实游标读出的数据形状</strong>。</p>
+<p>修复很简单——序列化时统一把时间类型转 ISO 字符串。但教训有三条，价值远超这个 bug 本身：</p>
+<h3 id="-任务-completed--写出了经验">① 任务 <code>completed</code> ≠ 写出了经验</h3>
+<p>跳过反思时任务照样标记 <code>completed</code>。所以监控<strong>必须同时看产物表</strong>，不能只看任务表：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> status, <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> <span style="color:#960050;background-color:#1e0010">任务队列</span>   <span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> status, <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> <span style="color:#960050;background-color:#1e0010">候选经验表</span> <span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> status, <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> <span style="color:#960050;background-color:#1e0010">规则表</span>     <span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span> <span style="color:#ae81ff">1</span>;
+</span></span></code></pre></div><p>队列全绿而候选表为空，就是这个故障的特征信号。</p>
+<h3 id="-测试要用真实数据形状">② 测试要用真实数据形状</h3>
+<p>用真库 + 真实游标读出的行跑端到端，而不是手搓理想对象。整条链路里最容易碎的地方，恰恰是<strong>跨系统边界的数据形状转换</strong>。</p>
+<h3 id="-测行为不测实现">③ 测行为，不测实现</h3>
+<p>断言&quot;未激活不注入&quot;&ldquo;跨域读不到&quot;&ldquo;白名单外不落库&quot;这些<strong>意图</strong>，而不是断言 SQL 文本。否则测试会固化实现，反过来阻碍演进。</p>
+<p><strong>另外</strong>：历史 <code>failed</code> 任务通常不会自动重跑。部署修复后要手动把它们打回 <code>queued</code>，再观察候选表是否开始增长。</p>
+<h2 id="八还有一条战略级教训">八、还有一条战略级教训</h2>
+<p>那套企业级实现的 1.0 版本，设计了一份相当宏大的蓝图：用户画像、策略手册 + 版本化发布链、灰度分桶、自动晋升与回滚、软遗忘、向量检索……</p>
+<p><strong>结果几乎全部未落地。</strong> 2.0 果断砍掉，收敛为<strong>单一产品线</strong>：只做 Agent 经验。</p>
+<table>
+	<thead>
+			<tr>
+					<th>1.0 设计</th>
+					<th>2.0 现状</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>用户记忆（原子/人设/场景）</td>
+					<td>未实现，不按用户召回</td>
+			</tr>
+			<tr>
+					<td>策略手册 + 发布链 + 回滚</td>
+					<td>未实现</td>
+			</tr>
+			<tr>
+					<td>多组件存储（关系库 + 缓存 + 对象存储 + Git）</td>
+					<td>收敛为单库</td>
+			</tr>
+			<tr>
+					<td>自动晋升 + 质量门禁</td>
+					<td>人工激活</td>
+			</tr>
+			<tr>
+					<td>向量检索</td>
+					<td>不做</td>
+			</tr>
+	</tbody>
+</table>
+<blockquote>
+<p><strong>自改进系统最常见的死法，是一次性设计太多层。</strong></p>
+</blockquote>
+<p>先把&quot;一条轨迹 → 一条经验 → 注入生效&quot;这条最小闭环打通并跑稳，再考虑加东西。</p>
+<h2 id="九从零复现的最小清单">九、从零复现的最小清单</h2>
+<p>不需要向量库，不需要多组件存储。一个关系库 + 两个 worker 就能起步。</p>
+<h3 id="数据骨架">数据骨架</h3>
+<pre tabindex="0"><code>证据段
+├── messages          # 用户输入与最终回答
+└── events            # 白名单生命周期事件（含子轨迹快照）
+
+任务段
+└── offline_queue     # 反思任务：入队/领取/回收/完成/失败
+
+经验段
+├── candidates        # 浅层：单轨迹原子经验（分类/信号/置信度）
+├── patterns          # 深层：规范规则（适用条件/例外）
+├── pattern_evidence  # 证据边：规则 ↔ 来源候选
+└── reflect_runs      # 留痕：每次归纳运行的状态与摘要
+</code></pre><h3 id="实施顺序">实施顺序</h3>
+<ol>
+<li><strong>建证据段 + 采集</strong>：白名单过滤，终态事件<strong>先于</strong>入队落库</li>
+<li><strong>建队列 + 轻反思 worker</strong>：门控 → 重建 → 提炼 → 幂等写候选</li>
+<li><strong>建注入</strong>：加载 active（一开始手工插一条测试规则验证链路）</li>
+<li><strong>验证最小闭环</strong>：手工规则能进 prompt，且断开存储时主对话仍可用</li>
+<li><strong>跑量</strong>：让轻反思稳定产出一段时间，观察候选表增长与质量</li>
+<li><strong>再开深反思</strong>：分组 → 聚类 → 归纳 → 写 candidate</li>
+<li><strong>建激活流程</strong>：人工审核台（哪怕先是一条 SQL + 一个 checklist）</li>
+</ol>
+<p>注意第 3、4 步的顺序：<strong>先打通注入链路再做深反思</strong>。这样你能尽早验证&quot;经验真的能影响行为&quot;这件最核心的事。</p>
+<h3 id="避坑对照表">避坑对照表</h3>
+<table>
+	<thead>
+			<tr>
+					<th>陷阱</th>
+					<th>正确做法</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>每条流式事件都写库</td>
+					<td>白名单，只留重建轨迹必需的几类</td>
+			</tr>
+			<tr>
+					<td>反思失败阻断主回答</td>
+					<td>入队与 worker 失败一律不阻断</td>
+			</tr>
+			<tr>
+					<td>把 user_id 写进经验层</td>
+					<td>经验按 Agent + 作用域归属</td>
+			</tr>
+			<tr>
+					<td>机器自动激活规则</td>
+					<td>只写 candidate，激活是显式决策</td>
+			</tr>
+			<tr>
+					<td>幂等键只用运行ID</td>
+					<td>加内容指纹与反思器版本</td>
+			</tr>
+			<tr>
+					<td>孤例直接升级成规则</td>
+					<td>成簇 ≥ 2 才归纳</td>
+			</tr>
+			<tr>
+					<td>只监控任务队列状态</td>
+					<td>必须同时看候选表与规则表</td>
+			</tr>
+			<tr>
+					<td>单测手搓理想数据对象</td>
+					<td>用真库真实游标形状跑端到端</td>
+			</tr>
+			<tr>
+					<td>一次运行内热加载新规则</td>
+					<td>单次运行内注入集保持不变</td>
+			</tr>
+			<tr>
+					<td>让人为了喂 Agent 而多做一步操作</td>
+					<td>在人已有的工作流里就地采集反馈</td>
+			</tr>
+			<tr>
+					<td>无条件相信人类反馈</td>
+					<td><strong>假定反馈会出错</strong>，做合理性校验并筛选来源</td>
+			</tr>
+			<tr>
+					<td>把 Skill 写成穷举规则清单</td>
+					<td>写原则 + 解释为什么，让 Agent 能推理</td>
+			</tr>
+			<tr>
+					<td>一上来就做自改代码（L3）</td>
+					<td>先把 L1 做透</td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="十怎么知道它真的有效">十、怎么知道它真的有效</h2>
+<p>这是最容易被忽略的一环。两条腿都要有：</p>
+<p><strong>学术侧</strong>：固定 benchmark 上的通过率/准确率对比。GEPA、ACE 这些工作都是这么验证的。</p>
+<p><strong>生产侧</strong>：</p>
+<ul>
+<li>三张表状态分布的日常巡检（上面那三条 SQL）</li>
+<li><strong>有/无经验注入的 A/B</strong>——这是唯一能真正回答&quot;值不值得&quot;的手段</li>
+<li>失败原因的可查性：失败任务要把错误写进 payload，方便 grep</li>
+</ul>
+<p>值得强调的是：在你有可靠自动评估之前，<strong>别开自动激活</strong>。人工审核慢，但错误规则污染全局的代价更高。</p>
+<h3 id="五个治理问题来自-warp-的实践问答">五个治理问题（来自 Warp 的实践问答）</h3>
+<p>这几条把&quot;怎么评估&quot;从原则推进到了可操作层面：</p>
+<table>
+	<thead>
+			<tr>
+					<th>问题</th>
+					<th>答案</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>反馈本身是错的怎么办？</strong></td>
+					<td><strong>假定它一定会出错。</strong> 不要让 Agent 盲目接受反馈——给它上下文做合理性校验、<strong>筛选谁的意见算数</strong>，并在筛选阶段或最终评审阶段保留人在环</td>
+			</tr>
+			<tr>
+					<td><strong>你的领域可验证吗？</strong></td>
+					<td>可验证就<strong>先建验证 harness，再让 Agent 对着它调优</strong>：生成参考语料 → 对比输出与参考 → 修正 → 重复</td>
+			</tr>
+			<tr>
+					<td><strong>不可验证怎么办？</strong></td>
+					<td>尽量依赖针对 <strong>golden outputs</strong> 的确定性 evals；必须用人类反馈时，<strong>限定为领域专家</strong>——不要开闸放水</td>
+			</tr>
+			<tr>
+					<td><strong>一个 Improver 还是每个 Agent 一个？</strong></td>
+					<td>折中：用<strong>模板化的 base loop</strong> 捕捉共性，再叠加领域特定权重。少数几个 → 各自独立；上百个 → 共享</td>
+			</tr>
+			<tr>
+					<td><strong>怎么知道整个系统在变好？</strong></td>
+					<td>追踪人本就在看的<strong>全局指标</strong>（合并耗时、贡献者数量、成本），并把这些指标<strong>回灌给 Improver Agent</strong></td>
+			</tr>
+	</tbody>
+</table>
+<p>最后一条尤其值得抄：<strong>把业务指标回灌给改进器</strong>，让它知道自己的修改到底有没有让整体变好，而不是只盯着单条反馈。</p>
+<p>部署节奏上，推荐 <strong>crawl-walk-run</strong>（爬 → 走 → 跑）：先小范围只读观察，再半自动，最后才扩大自动化范围。</p>
+<h2 id="十一一句话总结">十一、一句话总结</h2>
+<p>自改进的门槛并不在算法，而在<strong>纪律</strong>：</p>
+<ul>
+<li>在线只做轻活，重加工离线 → 主链路永不被拖慢</li>
+<li>采集克制 → 系统扛得住</li>
+<li>浅层与深层分离 → 信噪比可控</li>
+<li><strong>机器只提建议，人做最终决定</strong> → 错误不会全局扩散</li>
+<li>证据可回溯、操作幂等 → 出问题能查、能重放</li>
+<li>反馈就地采集、零额外摩擦 → 信号不会枯竭</li>
+</ul>
+<p>把这几条守住，剩下的就是让时间和使用量替你积累复利。<strong>Agent 会不会越用越会做事，取决于你有没有把&quot;这次的经验&quot;稳稳地存下来、审好、再喂回去。</strong></p>
+<p>而且如 Warp 的结论所说：任何 Agent，只要<strong>从一开始</strong>就内建&quot;捕获反馈 → 转化为知识更新 → 沉淀复用&quot;这个循环，就能从一次性的小助手，长成<strong>在组织内复利增长的能力系统</strong>。</p>
+<hr>
+<h2 id="参考资料与事实核查说明">参考资料与事实核查说明</h2>
+<p><strong>综述与课程</strong></p>
+<ol>
+<li><em>A Comprehensive Survey of Self-Evolving AI Agents</em>：<a href="https://arxiv.org/abs/2508.07407">https://arxiv.org/abs/2508.07407</a>（提出 System Inputs / Agent System / Environment / Optimiser 统一反馈环框架）</li>
+<li><em>A Survey of Self-Evolving Agents: On the Path to Artificial Super Intelligence</em>：<a href="https://arxiv.org/abs/2507.21046">https://arxiv.org/abs/2507.21046</a></li>
+<li>Stanford <strong>CS329A《Self-Improving AI Agents》</strong>（2025 秋季研究生研讨课）：<a href="https://cs329a.stanford.edu/">https://cs329a.stanford.edu/</a></li>
+</ol>
+<p><strong>L1 上下文/经验层</strong></p>
+<ol start="4">
+<li><em>Reflexion: Language Agents with Verbal Reinforcement Learning</em>（NeurIPS 2023）：<a href="https://arxiv.org/abs/2303.11366">https://arxiv.org/abs/2303.11366</a></li>
+<li><em>ExpeL: LLM Agents Are Experiential Learners</em>（AAAI 2024）：<a href="https://arxiv.org/abs/2308.10144">https://arxiv.org/abs/2308.10144</a></li>
+<li><em>Agentic Context Engineering (ACE): Evolving Contexts for Self-Improving Language Models</em>：<a href="https://arxiv.org/abs/2510.04618">https://arxiv.org/abs/2510.04618</a>（Generator–Reflector–Curator 三角色，把上下文当作不断演化的 playbook）</li>
+<li><em>GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning</em>（ICLR 2026 Oral）：<a href="https://arxiv.org/abs/2507.19457">https://arxiv.org/abs/2507.19457</a></li>
+</ol>
+<p><strong>L3 架构层 / L4 权重层</strong></p>
+<ol start="8">
+<li><em>Automated Design of Agentic Systems (ADAS)</em>（ICLR 2025，Meta Agent Search）：<a href="https://arxiv.org/abs/2408.08435">https://arxiv.org/abs/2408.08435</a></li>
+<li><em>Darwin Gödel Machine: Open-Ended Evolution of Self-Improving Agents</em>：<a href="https://arxiv.org/abs/2505.22954">https://arxiv.org/abs/2505.22954</a></li>
+<li><em>SEAL: Self-Adapting Language Models</em>：<a href="https://arxiv.org/abs/2506.10943">https://arxiv.org/abs/2506.10943</a></li>
+</ol>
+<p><strong>离线计算范式</strong></p>
+<ol start="11">
+<li><em>Sleep-time Compute: Beyond Inference Scaling at Test-time</em>：<a href="https://arxiv.org/abs/2504.13171">https://arxiv.org/abs/2504.13171</a></li>
+</ol>
+<p><strong>工业界实践</strong></p>
+<ol start="12">
+<li><em>How Warp builds self-improving agents on Claude</em>（Anthropic 官方博客，Michael Segner，2026-08-26）：<a href="https://claude.com/blog/how-warp-builds-self-improving-agents-on-claude">https://claude.com/blog/how-warp-builds-self-improving-agents-on-claude</a>（双层 Skill 循环、6 条 Skill 编写准则、治理问答）</li>
+<li>Warp 开源示例：GitHub Issue Triage Agent — <code>github.com/warpdotdev/warp-agents-demo-github-issue-triage</code></li>
+</ol>
+<p><strong>事实核查说明</strong></p>
+<ul>
+<li>上述 arXiv 编号、会议归属（Reflexion NeurIPS 2023、ExpeL AAAI 2024、ADAS ICLR 2025、GEPA ICLR 2026 Oral）与 Stanford CS329A 课程信息均经公开来源检索核对。</li>
+<li>GEPA 的&quot;平均超出 GRPO 约 10%、最高 20%、rollout 少至 1/35&quot;来自其论文摘要的自述结果，<strong>适用于其评测设置</strong>，不应外推为普适结论。</li>
+<li>第五节的 Warp 案例（双层 Skill 架构、6 条准则、Issue Triage 链路、治理问答、80 万月活 / 财富 500 强 56% / 每周 40 万+ 会话等规模数据、Zach Lloyd 引语）均来自上述 Anthropic 官方博客一文，属<strong>公开可引用信息</strong>。其中规模数据为该文发布时（2026-08）的口径。</li>
+<li>第四、七、八节的工程细节（白名单五类事件、写入量降至 0.5%–2%、置信度阈值 0.6、聚类 Jaccard 0.4、成簇 ≥ 2、最多 50 条 active、渲染预算 2000、时间类型序列化故障等）来自<strong>某企业级实现的内部架构文档，已做匿名化与通用化处理</strong>，去除了全部内部平台名、仓库标识、环境变量名与表名，不指向任何具体系统。这些数值是<strong>该系统的经验取值，不是通用最优值</strong>，请结合自身场景调参。</li>
+<li>&ldquo;轻反思 / 深反思&quot;是对该实现分层设计的通用化描述；睡眠巩固记忆的隐喻属于业界通用类比，另可参见 sleep-time compute 一文。</li>
+<li>第五节末尾&quot;两条路线怎么选&quot;的对比表是<strong>本文作者的归纳</strong>，用于串联两个来源不同的案例，不出自任何单一原始资料。</li>
+</ul>
+]]></content:encoded></item></channel></rss>

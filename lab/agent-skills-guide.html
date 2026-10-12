@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skills 使用指南</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{--primary:#6366F1;--primary-light:#8B5CF6;--primary-pink:#EC4899;--bg-deep:#0F172A;--bg-card:#1E293B;--bg-elevated:#334155;--text-primary:#F8FAFC;--text-secondary:#CBD5E1;--text-muted:#94A3B8;--green:#10B981;--amber:#F59E0B;--red:#EF4444;--blue:#3B82F6;--sidebar-w:280px;--header-h:64px;--radius:12px;--radius-sm:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--header-h) + 24px)}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg-deep);color:var(--text-primary);line-height:1.7;font-size:16px;overflow-x:hidden}
+.header{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:rgba(15,23,42,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(99,102,241,.15);display:flex;align-items:center;justify-content:space-between;padding:0 32px;z-index:1000}
+.header-brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--primary-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-link{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-card);border:1px solid rgba(99,102,241,.2);border-radius:var(--radius-sm);color:var(--text-muted);cursor:pointer;font-size:14px;transition:all .2s;text-decoration:none}
+.header-link:hover{border-color:var(--primary);color:var(--text-secondary)}
+.sidebar{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);background:rgba(15,23,42,.95);border-right:1px solid rgba(99,102,241,.1);overflow-y:auto;padding:24px 16px;z-index:900}
+.sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-thumb{background:var(--bg-elevated);border-radius:2px}
+.nav-section{margin-bottom:24px}.nav-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:8px;padding-left:12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);color:var(--text-secondary);text-decoration:none;font-size:14px;font-weight:450;transition:all .2s;cursor:pointer;margin-bottom:2px}
+.nav-item:hover{background:rgba(99,102,241,.08);color:var(--text-primary)}
+.nav-item.active{background:rgba(99,102,241,.15);color:var(--primary-light);font-weight:500}
+.nav-badge{margin-left:auto;font-size:11px;padding:1px 6px;border-radius:10px;background:rgba(99,102,241,.2);color:var(--primary-light)}
+.main{margin-top:var(--header-h);margin-left:max(var(--sidebar-w), calc(var(--sidebar-w) + (100vw - var(--sidebar-w) - 1100px) / 2));margin-right:auto;padding:48px 64px;max-width:1100px}
+.hero{text-align:center;padding:80px 0 60px;position:relative}
+.hero::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.08) 0%,transparent 70%);pointer-events:none}
+.hero h1{font-size:48px;font-weight:800;background:linear-gradient(135deg,#F8FAFC 0%,#CBD5E1 50%,#8B5CF6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;letter-spacing:-1px}
+.hero .subtitle{font-size:18px;color:var(--text-muted);max-width:640px;margin:0 auto 40px}
+.stats-bar{display:flex;justify-content:center;gap:40px;flex-wrap:wrap}
+.stat-item{text-align:center}.stat-number{font-size:32px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:13px;color:var(--text-muted);margin-top:4px}
+.arch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:32px 0}
+.arch-card{position:relative;background:var(--bg-card);border:1px solid rgba(99,102,241,.12);border-radius:var(--radius);padding:28px 24px;transition:all .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.arch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-pink));opacity:0;transition:opacity .3s}
+.arch-card:hover{transform:translateY(-4px);border-color:rgba(99,102,241,.4);box-shadow:0 20px 40px rgba(0,0,0,.3),0 0 40px rgba(99,102,241,.08)}
+.arch-card:hover::before{opacity:1}
+.card-layer{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--primary-light);margin-bottom:8px}
+.arch-card h3{font-size:17px;font-weight:600;margin-bottom:8px}
+.arch-card p{font-size:13px;color:var(--text-muted);line-height:1.6}
+.card-files{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.file-tag{font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 8px;background:rgba(99,102,241,.1);border-radius:4px;color:var(--text-muted)}
+.section{margin-bottom:80px;scroll-margin-top:calc(var(--header-h) + 32px)}
+.section-header{margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid rgba(99,102,241,.1)}
+.section-header h2{font-size:32px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.section-icon{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--primary-pink));border-radius:var(--radius-sm);font-size:18px}
+.section-desc{font-size:16px;color:var(--text-muted);max-width:760px}
+.concept-block{background:var(--bg-card);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius);padding:28px;margin-bottom:24px}
+.concept-block h3{font-size:18px;font-weight:600;margin-bottom:12px}
+.concept-block h4{font-size:15px;font-weight:600;margin:16px 0 8px;color:var(--text-secondary)}
+.concept-block p,.concept-block li{color:var(--text-secondary);font-size:15px;line-height:1.8}
+.concept-block ul,.concept-block ol{padding-left:20px;margin:8px 0}
+.concept-block li{margin-bottom:6px}
+.concept-block code{font-family:'JetBrains Mono',monospace;font-size:13px;background:rgba(99,102,241,.1);padding:2px 6px;border-radius:4px;color:var(--primary-light)}
+.code-block{position:relative;background:#0D1117;border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-sm);margin:16px 0;overflow:hidden}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(99,102,241,.06);border-bottom:1px solid rgba(99,102,241,.1)}
+.code-block-file{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text-muted)}
+.copy-btn{padding:4px 10px;background:transparent;border:1px solid rgba(99,102,241,.2);border-radius:4px;color:var(--text-muted);font-size:12px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.copy-btn:hover{background:var(--primary);color:white;border-color:var(--primary)}
+.code-block pre{padding:16px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;color:#E6EDF3;white-space:pre}
+.code-block pre::-webkit-scrollbar{height:6px}.code-block pre::-webkit-scrollbar-thumb{background:var(--bg-elevated);border-radius:3px}
+.kw{color:#FF7B72}.fn{color:#D2A8FF}.str{color:#A5D6FF}.cm{color:#8B949E;font-style:italic}.tp{color:#79C0FF}.num{color:#79C0FF}.attr{color:#7EE787}
+.collapsible{background:var(--bg-card);border:1px solid rgba(99,102,241,.1);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.collapsible-trigger{display:flex;align-items:center;gap:12px;width:100%;padding:16px 24px;background:transparent;border:none;color:var(--text-primary);font-size:15px;font-weight:500;cursor:pointer;text-align:left;transition:background .2s;font-family:'Inter',sans-serif}
+.collapsible-trigger:hover{background:rgba(99,102,241,.05)}
+.collapsible-trigger .arrow{width:20px;height:20px;display:flex;align-items:center;justify-content:center;transition:transform .3s;color:var(--text-muted)}
+.collapsible.open .collapsible-trigger .arrow{transform:rotate(90deg)}
+.collapsible-content{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
+.collapsible.open .collapsible-content{max-height:6000px}
+.collapsible-inner{padding:0 24px 24px}
+.fd-svg{width:100%;display:block;margin:20px 0;font-family:Inter,-apple-system,sans-serif}
+.svg-wrap{background:#0D1117;border:1px solid rgba(99,102,241,.15);border-radius:var(--radius-sm);padding:24px;margin:16px 0;overflow-x:auto}
+.svg-caption{font-size:13px;color:var(--text-muted);text-align:center;margin-top:8px}
+.info-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+.info-table th{text-align:left;padding:10px 16px;background:rgba(99,102,241,.08);color:var(--text-primary);font-weight:600;border-bottom:1px solid rgba(99,102,241,.15)}
+.info-table td{padding:10px 16px;color:var(--text-secondary);border-bottom:1px solid rgba(99,102,241,.06);vertical-align:top}
+.info-table tr:hover td{background:rgba(99,102,241,.03)}
+.info-table code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary-light)}
+.highlight-box{padding:16px 20px;border-radius:var(--radius-sm);margin:16px 0;font-size:14px}
+.highlight-box.info{background:rgba(59,130,246,.08);border-left:3px solid var(--blue);color:var(--text-secondary)}
+.highlight-box.warning{background:rgba(245,158,11,.08);border-left:3px solid var(--amber);color:var(--text-secondary)}
+.highlight-box.danger{background:rgba(239,68,68,.08);border-left:3px solid var(--red);color:var(--text-secondary)}
+.highlight-box.success{background:rgba(16,185,129,.08);border-left:3px solid var(--green);color:var(--text-secondary)}
+.highlight-box code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px}
+.back-to-top{position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:var(--primary);border:none;border-radius:50%;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(20px);transition:all .3s;box-shadow:0 4px 20px rgba(99,102,241,.4);z-index:800;font-size:20px}
+.back-to-top.visible{opacity:1;transform:translateY(0)}
+.back-to-top:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(99,102,241,.6)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;margin-right:6px}
+.pill.green{background:rgba(16,185,129,.15);color:#34D399}.pill.amber{background:rgba(245,158,11,.15);color:#FBBF24}.pill.red{background:rgba(239,68,68,.15);color:#F87171}.pill.blue{background:rgba(59,130,246,.15);color:#60A5FA}
+@media(max-width:1024px){.sidebar{transform:translateX(-100%)}.main{margin-left:0;padding:32px 24px}.arch-grid{grid-template-columns:1fr}.hero h1{font-size:36px}}
+@media(max-width:640px){.stats-bar{gap:20px}.main{padding:24px 16px}.hero h1{font-size:30px}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeInUp .5s ease forwards;opacity:0}
+.animate-in:nth-child(2){animation-delay:.1s}.animate-in:nth-child(3){animation-delay:.2s}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-brand">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#hg)" stroke-width="2"><defs><linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+    Agent Skills 使用指南
+  </div>
+</header>
+
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <div class="nav-section-title">概览</div>
+    <a class="nav-item active" href="#hero">🏠 首页</a>
+    <a class="nav-item" href="#what">💡 Skill 是怎么回事</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">概念篇</div>
+    <a class="nav-item" href="#anatomy">🧩 一个 Skill 的构成</a>
+    <a class="nav-item" href="#sources">🌐 三种来源 <span class="nav-badge">3</span></a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">使用篇</div>
+    <a class="nav-item" href="#structure">📁 目录结构</a>
+    <a class="nav-item" href="#write">✍️ 编写 SKILL.md</a>
+    <a class="nav-item" href="#fields">📋 字段速查 <span class="nav-badge">12</span></a>
+    <a class="nav-item" href="#shell">⚡ 内嵌 Shell</a>
+    <a class="nav-item" href="#scripts">📜 配套脚本</a>
+    <a class="nav-item" href="#invoke">🎯 两种调用方式</a>
+    <a class="nav-item" href="#paths">🔔 条件触发 paths</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">注意事项</div>
+    <a class="nav-item" href="#cautions">⚠️ 安全 / 性能 / 陷阱</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">原理补充</div>
+    <a class="nav-item" href="#internals">⚙️ 加载全流程</a>
+  </div>
+</nav>
+
+<main class="main">
+<!-- HERO -->
+<section class="hero" id="hero">
+  <h1>Agent Skills 使用指南</h1>
+  <p class="subtitle">用一个 Markdown 文件，就能给 AI Agent 注入领域能力。本指南讲清 Skill 是怎么回事、怎么用，以及哪些坑必须避开。</p>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-number">3</div><div class="stat-label">技能来源</div></div>
+    <div class="stat-item"><div class="stat-number">12</div><div class="stat-label">可配置字段</div></div>
+    <div class="stat-item"><div class="stat-number">2</div><div class="stat-label">调用方式</div></div>
+    <div class="stat-item"><div class="stat-number">0</div><div class="stat-label">编程门槛</div></div>
+  </div>
+</section>
+
+<!-- WHAT IS SKILL -->
+<section class="section" id="what">
+  <div class="section-header">
+    <h2><span class="section-icon">💡</span> Skill 是怎么回事</h2>
+    <p class="section-desc">一句话：Skill（技能）= 一份带 YAML 元数据的 Markdown 文档（外加可选的 Shell 命令），用来把"某个领域怎么做事"的知识与流程，按需注入到 Agent 的上下文里。</p>
+  </div>
+
+  <div class="concept-block">
+    <h3>它解决什么问题？</h3>
+    <p>大模型很聪明，但它<strong>不知道你的项目约定、不知道你团队的发布流程、也不知道某个内部工具怎么用</strong>。Skill 就是把这些"私有知识 + 标准操作流程（SOP）"打包成文件，让 Agent 在合适的时机自动读取、按章办事。</p>
+    <h4>和"直接写进 Prompt"有什么区别？</h4>
+    <ul>
+      <li><strong>按需加载</strong>：不是把所有知识塞满上下文，而是模型判断需要时才调入对应 Skill，避免认知过载与 token 浪费。</li>
+      <li><strong>可复用、可分享</strong>：一个 Skill 就是一个文件夹，可以提交进仓库、跨项目复用、团队共享。</li>
+      <li><strong>零编程门槛</strong>：写 Markdown 就行，不需要写一行 TypeScript / Python。</li>
+      <li><strong>能带实时状态</strong>：Skill 里可以内嵌 Shell 命令，调用时先在你机器上执行，把真实的 <code>git status</code>、目录列表等"现场信息"一起喂给模型。</li>
+    </ul>
+    <div class="highlight-box info">把 Skill 想象成给 Agent 的一张"操作卡片"：卡片上写着"遇到这类任务时，按这些步骤、用这些工具、注意这些事项"。Agent 抽到对应卡片，就照着做。</div>
+  </div>
+</section>
+
+<!-- ANATOMY -->
+<section class="section" id="anatomy">
+  <div class="section-header">
+    <h2><span class="section-icon">🧩</span> 一个 Skill 的构成</h2>
+    <p class="section-desc">每个 Skill 的核心是一个名为 <code>SKILL.md</code> 的文件，由三部分组成：YAML 元数据头、Markdown 正文、可选的内嵌 Shell 命令。此外，文件夹里还能放<strong>独立的配套脚本</strong>（<code>scripts/*.sh</code> 等），由模型在执行时按需调用——这与内嵌 Shell 不同，<a href="#scripts" style="color:var(--primary-light)">详见后文对比</a>。</p>
+  </div>
+
+  <div class="svg-wrap">
+    <svg class="fd-svg" viewBox="0 0 760 300" role="img" aria-label="SKILL.md 三段式结构图">
+      <defs>
+        <linearGradient id="gA" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>
+        <linearGradient id="gB" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#EC4899"/></linearGradient>
+        <linearGradient id="gC" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#EC4899"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>
+      </defs>
+      <!-- file frame -->
+      <rect x="20" y="20" width="720" height="260" rx="12" fill="#161B22" stroke="#30363D" stroke-width="1.5"/>
+      <text x="40" y="48" fill="#8B949E" font-size="13" font-family="JetBrains Mono">SKILL.md</text>
+      <line x1="20" y1="60" x2="740" y2="60" stroke="#30363D" stroke-width="1"/>
+      <!-- part 1: frontmatter -->
+      <rect x="40" y="78" width="680" height="58" rx="8" fill="rgba(99,102,241,0.08)" stroke="url(#gA)" stroke-width="1.5"/>
+      <text x="56" y="103" fill="#A5D6FF" font-size="14" font-family="JetBrains Mono" font-weight="600">--- YAML Frontmatter ---</text>
+      <text x="56" y="124" fill="#8B949E" font-size="12">元数据：name / description / when_to_use / allowed_tools / paths …</text>
+      <circle cx="700" cy="107" r="13" fill="url(#gA)"/><text x="700" y="112" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">1</text>
+      <!-- part 2: markdown body -->
+      <rect x="40" y="146" width="680" height="58" rx="8" fill="rgba(139,92,246,0.08)" stroke="url(#gB)" stroke-width="1.5"/>
+      <text x="56" y="171" fill="#D2A8FF" font-size="14" font-family="JetBrains Mono" font-weight="600"># Markdown 正文</text>
+      <text x="56" y="192" fill="#8B949E" font-size="12">给模型看的指令、步骤、注意事项 —— 调用时整段注入上下文</text>
+      <circle cx="700" cy="175" r="13" fill="url(#gB)"/><text x="700" y="180" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">2</text>
+      <!-- part 3: embedded shell -->
+      <rect x="40" y="214" width="680" height="50" rx="8" fill="rgba(236,72,153,0.08)" stroke="url(#gC)" stroke-width="1.5"/>
+      <text x="56" y="237" fill="#F0883E" font-size="14" font-family="JetBrains Mono" font-weight="600">!`command`  （可选内嵌 Shell）</text>
+      <text x="56" y="255" fill="#8B949E" font-size="12">调用前在宿主机执行，把实时输出回填进正文</text>
+      <circle cx="700" cy="239" r="13" fill="url(#gC)"/><text x="700" y="244" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">3</text>
+    </svg>
+    <div class="svg-caption">图 1：SKILL.md 的三段式结构 —— 元数据头、Markdown 正文、可选内嵌 Shell</div>
+  </div>
+</section>
+
+<!-- SOURCES -->
+<section class="section" id="sources">
+  <div class="section-header">
+    <h2><span class="section-icon">🌐</span> 三种来源</h2>
+    <p class="section-desc">同样一个 Skill，可能来自三种渠道。来源不同，可信度与能力边界也不同 —— 这是后面"安全注意事项"的基础。</p>
+  </div>
+
+  <div class="arch-grid">
+    <div class="arch-card animate-in">
+      <div class="card-layer">本地文件 · 最常用</div>
+      <h3>📂 File-based</h3>
+      <p>放在本地 <code>.claude/skills/</code> 目录下的 SKILL.md。由你或团队编写，可信度最高，<strong>允许执行内嵌 Shell</strong>。</p>
+      <div class="card-files"><span class="file-tag">~/.claude/skills/</span><span class="file-tag">项目/.claude/skills/</span></div>
+    </div>
+    <div class="arch-card animate-in">
+      <div class="card-layer">内建打包</div>
+      <h3>📦 Bundled</h3>
+      <p>随 Agent 程序一起打包分发的官方内建技能，开箱即用，无需安装。属于受信任来源。</p>
+      <div class="card-files"><span class="file-tag">bundledSkills</span></div>
+    </div>
+    <div class="arch-card animate-in">
+      <div class="card-layer">协议映射 · 远程</div>
+      <h3>🔌 MCP</h3>
+      <p>来自外部 MCP Server 的能力，被映射成 Skill。来源不可控，出于安全<strong>不会执行内嵌 Shell</strong>。</p>
+      <div class="card-files"><span class="file-tag">loadedFrom: 'mcp'</span></div>
+    </div>
+  </div>
+
+  <div class="svg-wrap">
+    <svg class="fd-svg" viewBox="0 0 760 320" role="img" aria-label="三种来源汇聚为统一 Command 的全景图">
+      <defs>
+        <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8B5CF6"/></marker>
+        <marker id="arrR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#EF4444"/></marker>
+        <linearGradient id="gHub" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#EC4899"/></linearGradient>
+      </defs>
+      <!-- three sources -->
+      <g>
+        <rect x="30" y="40" width="180" height="56" rx="10" fill="rgba(16,185,129,0.1)" stroke="#10B981" stroke-width="1.5"/>
+        <text x="120" y="65" fill="#34D399" font-size="14" text-anchor="middle" font-weight="600">📂 File-based</text>
+        <text x="120" y="84" fill="#8B949E" font-size="11" text-anchor="middle">本地 .claude/skills/</text>
+      </g>
+      <g>
+        <rect x="30" y="132" width="180" height="56" rx="10" fill="rgba(99,102,241,0.1)" stroke="#6366F1" stroke-width="1.5"/>
+        <text x="120" y="157" fill="#818CF8" font-size="14" text-anchor="middle" font-weight="600">📦 Bundled</text>
+        <text x="120" y="176" fill="#8B949E" font-size="11" text-anchor="middle">内建打包技能</text>
+      </g>
+      <g>
+        <rect x="30" y="224" width="180" height="56" rx="10" fill="rgba(239,68,68,0.08)" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="120" y="249" fill="#F87171" font-size="14" text-anchor="middle" font-weight="600">🔌 MCP</text>
+        <text x="120" y="268" fill="#8B949E" font-size="11" text-anchor="middle">远程协议映射</text>
+      </g>
+      <!-- arrows to hub -->
+      <path d="M210 68 C300 68, 300 150, 360 158" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr)"/>
+      <path d="M210 160 L356 160" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr)"/>
+      <path d="M210 252 C300 252, 300 172, 360 164" fill="none" stroke="#EF4444" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrR)"/>
+      <!-- hub -->
+      <rect x="360" y="120" width="180" height="80" rx="12" fill="url(#gHub)"/>
+      <text x="450" y="150" fill="#fff" font-size="15" text-anchor="middle" font-weight="700">统一 Command</text>
+      <text x="450" y="172" fill="rgba(255,255,255,0.85)" font-size="11" text-anchor="middle">去重 · 缓存 · 挂入命令系统</text>
+      <text x="450" y="189" fill="rgba(255,255,255,0.7)" font-size="10" text-anchor="middle">三种来源归一</text>
+      <!-- to agent -->
+      <path d="M540 160 L600 160" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr)"/>
+      <rect x="600" y="120" width="130" height="80" rx="12" fill="#161B22" stroke="#30363D" stroke-width="1.5"/>
+      <text x="665" y="150" fill="#F8FAFC" font-size="14" text-anchor="middle" font-weight="600">🤖 Agent</text>
+      <text x="665" y="172" fill="#8B949E" font-size="11" text-anchor="middle">按需调用</text>
+      <!-- shell cut note -->
+      <text x="120" y="306" fill="#F87171" font-size="11" text-anchor="middle">虚线 = 不执行内嵌 Shell（防 RCE）</text>
+    </svg>
+    <div class="svg-caption">图 2：三种来源被归一成统一的 Command 对象供 Agent 调用；MCP 来源的 Shell 执行被切断</div>
+  </div>
+</section>
+
+<!-- STRUCTURE -->
+<section class="section" id="structure">
+  <div class="section-header">
+    <h2><span class="section-icon">📁</span> 目录结构</h2>
+    <p class="section-desc">想新建一个技能，只需在约定目录下建一个文件夹，里面放一个 <code>SKILL.md</code>。Agent 启动时会自动扫描发现它。</p>
+  </div>
+
+  <div class="svg-wrap">
+    <svg class="fd-svg" viewBox="0 0 760 300" role="img" aria-label="技能目录树形结构">
+      <defs><linearGradient id="gDir" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+      <g font-family="JetBrains Mono" font-size="14">
+        <text x="40" y="44" fill="#F0883E">📁 .claude/</text>
+        <line x1="56" y1="54" x2="56" y2="250" stroke="#30363D" stroke-width="1.5"/>
+        <line x1="56" y1="78" x2="76" y2="78" stroke="#30363D" stroke-width="1.5"/>
+        <text x="84" y="83" fill="#F0883E">📁 skills/</text>
+        <line x1="100" y1="92" x2="100" y2="250" stroke="#30363D" stroke-width="1.5"/>
+
+        <line x1="100" y1="118" x2="120" y2="118" stroke="#30363D" stroke-width="1.5"/>
+        <text x="128" y="123" fill="#7EE787">📁 git-helper/</text>
+        <line x1="146" y1="132" x2="146" y2="186" stroke="#30363D" stroke-width="1.5"/>
+        <line x1="146" y1="156" x2="166" y2="156" stroke="#30363D" stroke-width="1.5"/>
+        <text x="174" y="161" fill="#A5D6FF">📄 SKILL.md</text>
+        <text x="320" y="161" fill="#8B949E" font-size="12">← 必需，技能主文件</text>
+        <line x1="146" y1="182" x2="166" y2="182" stroke="#30363D" stroke-width="1.5"/>
+        <text x="174" y="187" fill="#F0883E">📁 scripts/</text>
+        <text x="320" y="187" fill="#8B949E" font-size="12">← 可选，配套脚本（模型按需调用）</text>
+
+        <line x1="100" y1="222" x2="120" y2="222" stroke="#30363D" stroke-width="1.5"/>
+        <text x="128" y="227" fill="#7EE787">📁 deploy-flow/</text>
+        <line x1="146" y1="236" x2="166" y2="236" stroke="#30363D" stroke-width="1.5"/>
+        <text x="174" y="241" fill="#A5D6FF">📄 SKILL.md</text>
+      </g>
+    </svg>
+    <div class="svg-caption">图 3：技能目录结构 —— 每个技能一个文件夹，文件夹名即技能名，内含必需的 SKILL.md</div>
+  </div>
+
+  <div class="concept-block">
+    <h3>三个可放置的位置（按优先级与作用域）</h3>
+    <table class="info-table">
+      <thead><tr><th>位置</th><th>作用域</th><th>典型用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>~/.claude/skills/</code></td><td>用户级（全局）</td><td>个人通用技能，所有项目共享</td></tr>
+        <tr><td><code>&lt;项目&gt;/.claude/skills/</code></td><td>项目级</td><td>随仓库提交，团队共享的项目专属技能</td></tr>
+        <tr><td>策略管理目录</td><td>组织/策略级</td><td>企业统一下发、不可随意修改的技能</td></tr>
+      </tbody>
+    </table>
+    <div class="highlight-box info">Agent 会<strong>并行扫描</strong>所有位置，并按真实路径（inode）<strong>去重</strong>，软链接到同一文件不会重复加载；扫描结果会被缓存，同一工作目录只发现一次。</div>
+  </div>
+</section>
+
+<!-- WRITE -->
+<section class="section" id="write">
+  <div class="section-header">
+    <h2><span class="section-icon">✍️</span> 编写 SKILL.md</h2>
+    <p class="section-desc">下面是一个完整可用的示例：一个帮你检查 Git 状态并给出建议的技能。注意它如何用内嵌 Shell 携带真实现场信息。</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-block-file">.claude/skills/git-helper/SKILL.md</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+    <pre><span class="cm">---</span>
+<span class="attr">name</span>: git-status-helper
+<span class="attr">description</span>: 查看当前 Git 状态并给出提交建议
+<span class="attr">when_to_use</span>: 当用户询问代码改动、是否该提交、或想了解仓库状态时
+<span class="attr">allowed_tools</span>: [Bash, Read]
+<span class="attr">effort</span>: low
+<span class="cm">---</span>
+
+<span class="kw"># Git 状态助手</span>
+
+当前分支与最近提交：
+<span class="str">!`git log --oneline -5`</span>
+
+未提交的变更：
+<span class="str">!`git status --short`</span>
+
+请根据以上<span class="kw">真实</span>信息，帮我判断：
+1. 这些改动是否应该拆成多个 commit？
+2. 给出建议的 commit message。</pre>
+  </div>
+
+  <div class="concept-block">
+    <h3>逐段解读</h3>
+    <ul>
+      <li><strong>YAML 头（<code>---</code> 之间）</strong>：声明元数据。<code>name</code> 是技能名，<code>description</code> 让模型知道"这个技能干什么"，<code>when_to_use</code> 告诉模型"什么时候该用我"。</li>
+      <li><strong>Markdown 正文</strong>：就是你想喂给模型的指令。可以写步骤、规则、模板、示例。</li>
+      <li><strong>内嵌 Shell <code>!`...`</code></strong>：调用技能时，这两条 <code>git</code> 命令会先在你机器上执行，命令本身被替换成真实输出。于是模型拿到的是"此刻仓库的真实状态"，而不是空泛的占位符。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- FIELDS -->
+<section class="section" id="fields">
+  <div class="section-header">
+    <h2><span class="section-icon">📋</span> Frontmatter 字段速查</h2>
+    <p class="section-desc">YAML 头里可用的全部字段。除 <code>name</code> 外大多可选，但 <code>description</code> / <code>when_to_use</code> 强烈建议写，它们决定模型能否在正确时机找到你的技能。</p>
+  </div>
+
+  <div class="concept-block">
+    <table class="info-table">
+      <thead><tr><th>字段</th><th>类型</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>string</td><td>技能名，也是用户调用时的 <code>/name</code></td></tr>
+        <tr><td><code>description</code></td><td>string | string[]</td><td>技能简介，帮助模型理解用途</td></tr>
+        <tr><td><code>when_to_use</code></td><td>string</td><td>触发时机描述，模型据此自主选择是否调用</td></tr>
+        <tr><td><code>allowed_tools</code></td><td>string[]</td><td>限定该技能可用的工具集合（白名单）</td></tr>
+        <tr><td><code>model</code></td><td>string</td><td>指定运行该技能使用的模型</td></tr>
+        <tr><td><code>effort</code></td><td>low | medium | high</td><td>任务估时/算力档位</td></tr>
+        <tr><td><code>user_invocable</code></td><td>boolean</td><td><code>false</code> = 仅供模型内部调用，不出现在 <code>/</code> 命令列表</td></tr>
+        <tr><td><code>paths</code></td><td>string[]</td><td>条件触发的 glob：匹配文件变更时自动激活</td></tr>
+        <tr><td><code>version</code></td><td>string</td><td>技能版本号</td></tr>
+        <tr><td><code>context</code></td><td>inline | fork</td><td>注入当前上下文，还是派生子上下文执行</td></tr>
+        <tr><td><code>agent</code></td><td>string</td><td>绑定到指定 agent 类型</td></tr>
+        <tr><td><code>shell</code></td><td>bash | powershell</td><td>内嵌 Shell 使用的解释器</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SHELL -->
+<section class="section" id="shell">
+  <div class="section-header">
+    <h2><span class="section-icon">⚡</span> 内嵌 Shell：让 Prompt 携带实时状态</h2>
+    <p class="section-desc">这是 Skill 最强大的特性。Markdown 里嵌入的命令在技能被调用前先执行，输出回填正文，于是模型拿到的永远是"现场"而非"快照"。</p>
+  </div>
+
+  <div class="concept-block">
+    <h3>两种语法</h3>
+    <h4>内联式</h4>
+    <div class="code-block"><div class="code-block-header"><span class="code-block-file">inline</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div><pre>当前目录文件：!`ls -la`</pre></div>
+    <h4>代码块式</h4>
+    <div class="code-block"><div class="code-block-header"><span class="code-block-file">block</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div><pre>```!
+git diff --stat
+```</pre></div>
+  </div>
+
+  <div class="svg-wrap">
+    <svg class="fd-svg" viewBox="0 0 760 220" role="img" aria-label="内嵌 Shell 执行与回填流程">
+      <defs><marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8B5CF6"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="20" y="80" width="140" height="60" rx="10" fill="rgba(236,72,153,0.1)" stroke="#EC4899" stroke-width="1.5"/>
+        <text x="90" y="105" fill="#F472B6" text-anchor="middle" font-family="JetBrains Mono" font-size="13">!`git status`</text>
+        <text x="90" y="125" fill="#8B949E" text-anchor="middle">正文里的命令</text>
+
+        <rect x="210" y="80" width="140" height="60" rx="10" fill="rgba(245,158,11,0.1)" stroke="#F59E0B" stroke-width="1.5"/>
+        <text x="280" y="105" fill="#FBBF24" text-anchor="middle" font-weight="600">🔐 权限校验</text>
+        <text x="280" y="125" fill="#8B949E" text-anchor="middle">统一权限体系</text>
+
+        <rect x="400" y="80" width="140" height="60" rx="10" fill="rgba(59,130,246,0.1)" stroke="#3B82F6" stroke-width="1.5"/>
+        <text x="470" y="105" fill="#60A5FA" text-anchor="middle" font-weight="600">💻 宿主机执行</text>
+        <text x="470" y="125" fill="#8B949E" text-anchor="middle">获得真实输出</text>
+
+        <rect x="590" y="80" width="150" height="60" rx="10" fill="rgba(16,185,129,0.1)" stroke="#10B981" stroke-width="1.5"/>
+        <text x="665" y="105" fill="#34D399" text-anchor="middle" font-weight="600">📝 回填正文</text>
+        <text x="665" y="125" fill="#8B949E" text-anchor="middle">替换后喂给模型</text>
+
+        <path d="M160 110 L206 110" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr2)"/>
+        <path d="M350 110 L396 110" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr2)"/>
+        <path d="M540 110 L586 110" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr2)"/>
+      </g>
+    </svg>
+    <div class="svg-caption">图 4：内嵌 Shell 的执行链 —— 命令 → 权限校验 → 宿主机执行 → 输出回填进 Prompt</div>
+  </div>
+
+  <div class="highlight-box danger"><strong>安全红线：</strong>命令在<strong>你的真机上真实执行</strong>。每条命令执行前都会走与普通工具相同的权限校验（可被 deny/ask 拦截）；并且<strong>来自 MCP 的技能完全不执行内嵌 Shell</strong>，以防远程服务器注入恶意命令（RCE）。</div>
+</section>
+
+<!-- SCRIPTS -->
+<section class="section" id="scripts">
+  <div class="section-header">
+    <h2><span class="section-icon">📜</span> 配套脚本 ≠ 内嵌 Shell</h2>
+    <p class="section-desc">技能文件夹里除了 <code>SKILL.md</code>，还能放独立的脚本文件（<code>.sh</code> / <code>.py</code> / <code>.js</code> …）。它们和正文里的内嵌 Shell 是<strong>两种完全不同的东西</strong>——最容易混淆，这里专门讲清。</p>
+  </div>
+
+  <div class="concept-block">
+    <h3>一句话区分</h3>
+    <ul>
+      <li><strong>内嵌 Shell <code>!`...`</code></strong>：写在 SKILL.md 正文里，技能<strong>加载/调用前由框架自动执行</strong>，输出回填进 Prompt。目的是给模型喂"现场状态"。它一定会跑，模型管不着。</li>
+      <li><strong>配套脚本 <code>scripts/xxx.sh</code></strong>：是文件夹里<strong>独立的可执行文件</strong>，模型在<strong>执行任务时</strong>按 SKILL.md 的指示、通过 <code>Bash</code> 工具<strong>主动调用</strong>。目的是封装可复用、确定性强的复杂逻辑。跑不跑、怎么传参，由模型决定。</li>
+    </ul>
+  </div>
+
+  <div class="concept-block">
+    <h3>逐维对比</h3>
+    <table class="info-table">
+      <thead><tr><th>维度</th><th>内嵌 Shell <code>!`...`</code></th><th>配套脚本 <code>scripts/*.sh</code></th></tr></thead>
+      <tbody>
+        <tr><td>位置</td><td>SKILL.md 正文内</td><td>独立文件，与 SKILL.md 同目录</td></tr>
+        <tr><td>执行时机</td><td>技能<strong>加载/调用前</strong>，自动执行</td><td>任务<strong>执行中</strong>，模型主动调用</td></tr>
+        <tr><td>谁决定运行</td><td>框架（一定会跑）</td><td>模型（按正文指示判断）</td></tr>
+        <tr><td>目的</td><td>把实时状态回填进 Prompt</td><td>封装可复用、确定性的逻辑</td></tr>
+        <tr><td>如何引用</td><td>直接写命令</td><td>用 <code>${CLAUDE_SKILL_DIR}/scripts/xx.sh</code> 定位</td></tr>
+        <tr><td>能否传参</td><td>固定命令，不便传参</td><td>可像普通脚本一样传参、循环、复用</td></tr>
+        <tr><td>MCP 来源</td><td><strong>不执行</strong>（防 RCE）</td><td>仍可由模型调用（走 Bash 工具权限）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="svg-wrap">
+    <svg class="fd-svg" viewBox="0 0 760 250" role="img" aria-label="内嵌 Shell 与配套脚本的执行时机对比">
+      <defs><marker id="arrS" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8B5CF6"/></marker></defs>
+      <g font-size="12.5" font-family="Inter">
+        <!-- main timeline nodes -->
+        <rect x="30" y="20" width="200" height="46" rx="9" fill="#161B22" stroke="#30363D" stroke-width="1.5"/>
+        <text x="130" y="40" fill="#C9D1D9" text-anchor="middle" font-weight="600">① 加载 / 解析 Skill</text>
+        <text x="130" y="57" fill="#8B949E" text-anchor="middle" font-size="11">展开变量、回填内嵌 Shell</text>
+
+        <rect x="280" y="20" width="200" height="46" rx="9" fill="#161B22" stroke="#30363D" stroke-width="1.5"/>
+        <text x="380" y="40" fill="#C9D1D9" text-anchor="middle" font-weight="600">② 注入 Prompt</text>
+        <text x="380" y="57" fill="#8B949E" text-anchor="middle" font-size="11">含现场状态，喂给模型</text>
+
+        <rect x="530" y="20" width="200" height="46" rx="9" fill="#161B22" stroke="#30363D" stroke-width="1.5"/>
+        <text x="630" y="40" fill="#C9D1D9" text-anchor="middle" font-weight="600">③ 模型执行任务</text>
+        <text x="630" y="57" fill="#8B949E" text-anchor="middle" font-size="11">按指示调用工具/脚本</text>
+
+        <path d="M230 43 L278 43" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arrS)"/>
+        <path d="M480 43 L528 43" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arrS)"/>
+
+        <!-- embedded shell band -->
+        <path d="M130 66 L130 110" stroke="#EC4899" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <rect x="30" y="110" width="450" height="46" rx="9" fill="rgba(236,72,153,0.08)" stroke="#EC4899" stroke-width="1.5"/>
+        <text x="50" y="131" fill="#F472B6" font-weight="600" font-family="JetBrains Mono" font-size="12">!`...`  内嵌 Shell</text>
+        <text x="50" y="149" fill="#8B949E" font-size="11">发生在 ①→② · 框架自动执行 · 一定会跑</text>
+
+        <!-- script band -->
+        <path d="M630 66 L630 184" stroke="#3FB950" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <rect x="280" y="184" width="450" height="46" rx="9" fill="rgba(63,185,80,0.08)" stroke="#3FB950" stroke-width="1.5"/>
+        <text x="300" y="205" fill="#56D364" font-weight="600" font-family="JetBrains Mono" font-size="12">scripts/*.sh  配套脚本</text>
+        <text x="300" y="223" fill="#8B949E" font-size="11">发生在 ③ · 模型经 Bash 工具主动调用 · 可不跑</text>
+      </g>
+    </svg>
+    <div class="svg-caption">图 5：两者执行时机完全不同 —— 内嵌 Shell 在"加载期"自动跑；配套脚本在"执行期"由模型按需调用</div>
+  </div>
+
+  <div class="concept-block">
+    <h3>正确写法：让模型去调用脚本</h3>
+    <p style="color:var(--text-secondary);margin:0 0 12px">注意下面正文里的命令<strong>没有 <code>!</code> 前缀</strong>——它不是内嵌 Shell，而是写给模型看的<strong>指令</strong>。模型读到后会用 <code>Bash</code> 工具去执行这个脚本。</p>
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-block-file">.claude/skills/release-helper/SKILL.md</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+      <pre><span class="cm">---</span>
+<span class="attr">name</span>: release-helper
+<span class="attr">description</span>: 发布前自动化检查
+<span class="attr">allowed_tools</span>: [Bash, Read]
+<span class="cm">---</span>
+
+<span class="kw"># 发布助手</span>
+
+发布前，请用 Bash 运行项目自带的预检脚本：
+
+    bash <span class="str">${CLAUDE_SKILL_DIR}</span>/scripts/preflight.sh
+
+根据脚本输出的检查结果，告诉我是否可以安全发布；
+若有失败项，定位到对应文件并给出修复建议。</pre>
+    </div>
+    <div class="highlight-box success"><strong>何时把逻辑放进脚本？</strong>当流程<strong>步骤多、需要传参、要复用、且结果确定</strong>时，把它写成脚本，让 SKILL.md 只负责"告诉模型何时跑、怎么看输出"。这样既稳定可测，又能让正文保持简洁。反之，只是想抓一条实时状态喂给模型，用内嵌 Shell 更直接。</div>
+    <div class="highlight-box warning"><strong>别把脚本当内嵌 Shell。</strong>给脚本命令加上 <code>!</code> 前缀（<code>!`bash …`</code>）会让它在<strong>加载期就被框架自动执行</strong>，脱离模型控制，也无法根据上下文传参——这通常不是你想要的。</div>
+  </div>
+</section>
+
+<!-- INVOKE -->
+<section class="section" id="invoke">
+  <div class="section-header">
+    <h2><span class="section-icon">🎯</span> 两种调用方式</h2>
+    <p class="section-desc">写好的技能有两种被触发的途径：你手动调用，或模型自主判断后调用。</p>
+  </div>
+
+  <div class="arch-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="arch-card">
+      <div class="card-layer">显式 · 由你触发</div>
+      <h3>⌨️ 用户调用 <code>/name</code></h3>
+      <p>在对话框输入斜杠命令，例如 <code>/git-status-helper</code>，直接调起对应技能。可携带参数，正文里的占位符会被展开。</p>
+    </div>
+    <div class="arch-card">
+      <div class="card-layer">隐式 · 模型决定</div>
+      <h3>🤖 模型自主选择</h3>
+      <p>模型读取所有技能的 <code>description</code> 与 <code>when_to_use</code>，在合适时机自动调用。这正是 <code>when_to_use</code> 要写清楚的原因。</p>
+    </div>
+  </div>
+
+  <div class="concept-block">
+    <h3>调用时正文会被加工</h3>
+    <p>无论哪种方式，技能被调用时，正文都会经过几步处理后才交给模型：</p>
+    <ul>
+      <li><strong>展开参数占位符</strong>：把你传入的 CLI 参数填进正文。</li>
+      <li><strong>替换内置变量</strong>：<code>${CLAUDE_SKILL_DIR}</code>（技能所在目录）、<code>${CLAUDE_SESSION_ID}</code>（当前会话 ID）会被替换成真实值，方便引用配套脚本。</li>
+      <li><strong>执行内嵌 Shell</strong>：把 <code>!`...`</code> 替换成真实输出（仅受信任来源）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- PATHS -->
+<section class="section" id="paths">
+  <div class="section-header">
+    <h2><span class="section-icon">🔔</span> 条件触发：paths 字段</h2>
+    <p class="section-desc">声明了 <code>paths</code> 的技能叫"条件技能"。当用户操作或修改了匹配该 glob 的文件时，技能会<strong>自动激活</strong>并注入上下文 —— 一种精准的 Hook 订阅模式。</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-block-header"><span class="code-block-file">条件技能示例</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+    <pre><span class="cm">---</span>
+<span class="attr">name</span>: migration-reminder
+<span class="attr">description</span>: 改动数据库 schema 时提醒同步迁移脚本
+<span class="attr">paths</span>: [<span class="str">"**/schema.prisma"</span>, <span class="str">"**/migrations/**"</span>]
+<span class="cm">---</span>
+
+检测到你正在改动数据库 schema，请记得：
+1. 运行迁移生成命令
+2. 检查是否影响线上数据</pre>
+  </div>
+
+  <div class="svg-wrap">
+    <svg class="fd-svg" viewBox="0 0 760 180" role="img" aria-label="条件技能 paths 触发流程">
+      <defs><marker id="arr3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8B5CF6"/></marker></defs>
+      <g font-size="12.5">
+        <rect x="30" y="60" width="160" height="60" rx="10" fill="rgba(99,102,241,0.1)" stroke="#6366F1" stroke-width="1.5"/>
+        <text x="110" y="85" fill="#818CF8" text-anchor="middle" font-weight="600">✏️ 文件被改动</text>
+        <text x="110" y="105" fill="#8B949E" text-anchor="middle" font-family="JetBrains Mono" font-size="11">schema.prisma</text>
+
+        <rect x="270" y="60" width="160" height="60" rx="10" fill="rgba(245,158,11,0.1)" stroke="#F59E0B" stroke-width="1.5"/>
+        <text x="350" y="85" fill="#FBBF24" text-anchor="middle" font-weight="600">🎯 glob 匹配</text>
+        <text x="350" y="105" fill="#8B949E" text-anchor="middle" font-family="JetBrains Mono" font-size="11">paths 命中</text>
+
+        <rect x="510" y="60" width="220" height="60" rx="10" fill="rgba(16,185,129,0.1)" stroke="#10B981" stroke-width="1.5"/>
+        <text x="620" y="85" fill="#34D399" text-anchor="middle" font-weight="600">⚡ 技能自动注入上下文</text>
+        <text x="620" y="105" fill="#8B949E" text-anchor="middle">无需手动调用</text>
+
+        <path d="M190 90 L266 90" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr3)"/>
+        <path d="M430 90 L506 90" fill="none" stroke="#8B5CF6" stroke-width="1.6" marker-end="url(#arr3)"/>
+      </g>
+    </svg>
+    <div class="svg-caption">图 6：条件技能通过 paths 订阅文件变更，命中时自动激活，避免无关技能常驻占用上下文</div>
+  </div>
+</section>
+
+<!-- CAUTIONS -->
+<section class="section" id="cautions">
+  <div class="section-header">
+    <h2><span class="section-icon">⚠️</span> 注意事项</h2>
+    <p class="section-desc">Skill 强大，也意味着它能在你机器上执行命令、能左右模型行为。下面分安全、性能、易踩的陷阱三类，逐条避坑。</p>
+  </div>
+
+  <div class="concept-block">
+    <h3><span class="pill red">安全</span>谨防代码执行与来源信任</h3>
+    <div class="highlight-box danger"><strong>① 内嵌 Shell = 真实 RCE 能力。</strong>任何 <code>!`...`</code> 都会在你机器上真实运行。<strong>不要直接安装来源不明的第三方 Skill</strong>，使用前务必通读其 SKILL.md，确认内嵌命令无害。</div>
+    <div class="highlight-box danger"><strong>② MCP 来源默认不执行 Shell。</strong>这是一道关键防线：远程 MCP Server 提供的技能即使写了 <code>!`...`</code> 也不会执行，防止远程注入。不要试图绕过它。</div>
+    <div class="highlight-box info"><strong>③ 命令走统一权限体系。</strong>内嵌命令和普通工具一样受 deny/ask 权限约束。合理配置权限规则，对危险命令（删除、网络外发）保持 ask 或 deny。</div>
+    <div class="highlight-box success"><strong>最佳实践：</strong>用 <code>allowed_tools</code> 给技能配最小工具白名单，遵循最小权限原则。</div>
+  </div>
+
+  <div class="concept-block">
+    <h3><span class="pill amber">性能</span>别让技能拖慢或塞爆上下文</h3>
+    <div class="highlight-box warning"><strong>① 正文别写太长。</strong>技能正文会整段注入上下文，啰嗦的技能既费 token 又稀释注意力。保持精炼，把长流程拆成步骤要点。</div>
+    <div class="highlight-box warning"><strong>② 内嵌命令要快且无副作用。</strong>命令在调用前同步执行，慢命令（大规模扫描、网络请求）会拖慢响应；只读、秒级返回最佳。</div>
+    <div class="highlight-box info"><strong>③ 善用 <code>effort</code> 与 <code>context</code>。</strong>重任务标 <code>effort: high</code>；需要隔离、不污染主上下文的，用 <code>context: fork</code> 派生子上下文执行。</div>
+  </div>
+
+  <div class="concept-block">
+    <h3><span class="pill blue">陷阱</span>容易忽略的隐藏行为</h3>
+    <table class="info-table">
+      <thead><tr><th>陷阱</th><th>说明与对策</th></tr></thead>
+      <tbody>
+        <tr><td><code>when_to_use</code> 写得含糊</td><td>模型据此判断是否调用。写不清就会"该用的时候不用、不该用的时候乱用"。要具体描述触发场景。</td></tr>
+        <tr><td><code>user_invocable: false</code> 的隐身技能</td><td>设为 false 后技能不出现在 <code>/</code> 列表，只能由模型内部调用。排查"命令找不到"时先看这个字段。</td></tr>
+        <tr><td><code>paths</code> glob 过宽</td><td>范围太大会导致技能频繁自动激活、造成认知过载。glob 要尽量精确。</td></tr>
+        <tr><td>同名技能与缓存</td><td>发现结果会被缓存，且按真实路径去重。改了技能没生效时，检查是否命中缓存或被同名技能覆盖。</td></tr>
+        <tr><td>特殊字符替换污染</td><td>内嵌命令输出若含 <code>$&amp;</code> 等替换符号，需注意被正确转义（实现已用函数式替换规避）。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- INTERNALS -->
+<section class="section" id="internals" style="margin-bottom:120px">
+  <div class="section-header">
+    <h2><span class="section-icon">⚙️</span> 原理补充：加载全流程</h2>
+    <p class="section-desc">想深入了解底层机制？下面是从"发现技能文件"到"把最终 Prompt 交给模型"的完整流水线。日常使用无需关心，感兴趣可展开。</p>
+  </div>
+
+  <div class="collapsible">
+    <button class="collapsible-trigger" onclick="toggleCollapsible(this)">
+      <span class="arrow">▶</span> 展开：技能加载五阶段时序
+    </button>
+    <div class="collapsible-content"><div class="collapsible-inner">
+      <div class="svg-wrap">
+        <svg class="fd-svg" viewBox="0 0 760 470" role="img" aria-label="技能加载全流程时序图">
+          <defs>
+            <marker id="arr4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#8B5CF6"/></marker>
+            <linearGradient id="gStep" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>
+          </defs>
+          <g font-size="13">
+            <!-- step 1 -->
+            <rect x="180" y="20" width="400" height="56" rx="10" fill="url(#gStep)"/>
+            <text x="380" y="44" fill="#fff" text-anchor="middle" font-weight="700">① 发现 · getSkillDirCommands(cwd)</text>
+            <text x="380" y="63" fill="rgba(255,255,255,0.85)" text-anchor="middle" font-size="11">并行扫描全部技能目录 · memoize 缓存 · realpath 去重</text>
+            <path d="M380 76 L380 100" stroke="#8B5CF6" stroke-width="1.8" marker-end="url(#arr4)"/>
+            <!-- step 2 -->
+            <rect x="180" y="104" width="400" height="56" rx="10" fill="#161B22" stroke="#6366F1" stroke-width="1.5"/>
+            <text x="380" y="128" fill="#818CF8" text-anchor="middle" font-weight="600">② 解析 · parseFrontmatter</text>
+            <text x="380" y="147" fill="#8B949E" text-anchor="middle" font-size="11">读取 SKILL.md · 提取 name/paths/effort 等字段</text>
+            <path d="M380 160 L380 184" stroke="#8B5CF6" stroke-width="1.8" marker-end="url(#arr4)"/>
+            <!-- step 3 -->
+            <rect x="180" y="188" width="400" height="56" rx="10" fill="#161B22" stroke="#8B5CF6" stroke-width="1.5"/>
+            <text x="380" y="212" fill="#A78BFA" text-anchor="middle" font-weight="600">③ 实例化 · createSkillCommand</text>
+            <text x="380" y="231" fill="#8B949E" text-anchor="middle" font-size="11">封装为统一 Command 对象 · 挂入命令系统</text>
+            <path d="M380 244 L380 268" stroke="#8B5CF6" stroke-width="1.8" marker-end="url(#arr4)"/>
+            <!-- step 4 -->
+            <rect x="180" y="272" width="400" height="56" rx="10" fill="#161B22" stroke="#EC4899" stroke-width="1.5"/>
+            <text x="380" y="296" fill="#F472B6" text-anchor="middle" font-weight="600">④ 调用 · getPromptForCommand</text>
+            <text x="380" y="315" fill="#8B949E" text-anchor="middle" font-size="11">展开参数 → 替换内置变量 → 执行内嵌 Shell</text>
+            <path d="M380 328 L380 352" stroke="#8B5CF6" stroke-width="1.8" marker-end="url(#arr4)"/>
+            <!-- step 5 -->
+            <rect x="180" y="356" width="400" height="56" rx="10" fill="rgba(16,185,129,0.12)" stroke="#10B981" stroke-width="1.5"/>
+            <text x="380" y="380" fill="#34D399" text-anchor="middle" font-weight="600">⑤ 注入 · 最终 Prompt 交给模型</text>
+            <text x="380" y="399" fill="#8B949E" text-anchor="middle" font-size="11">含实时系统状态的完整提示词</text>
+            <!-- side note -->
+            <text x="380" y="445" fill="#F87171" text-anchor="middle" font-size="11">④ 中：loadedFrom === 'mcp' 时跳过内嵌 Shell 执行</text>
+          </g>
+        </svg>
+        <div class="svg-caption">图 6：Skill 从发现到注入的五阶段流水线</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-block-header"><span class="code-block-file">src/skills/loadSkillsDir.ts（精简）</span><button class="copy-btn" onclick="copyCode(this)">复制</button></div>
+        <pre><span class="kw">export const</span> <span class="fn">getSkillDirCommands</span> = <span class="fn">memoize</span>(<span class="kw">async</span> (cwd) => {
+  <span class="cm">// 并行加载所有来源：策略级 / 用户级 / 项目级 / --add-dir / 旧版命令</span>
+  <span class="kw">const</span> [managed, user, project, extra, legacy] = <span class="kw">await</span> Promise.<span class="fn">all</span>([...])
+  <span class="cm">// inode 级去重，防软链重复</span>
+  <span class="kw">return</span> <span class="fn">deduplicateByRealpath</span>([...managed, ...user, ...project, ...extra, ...legacy])
+})</pre>
+      </div>
+      <p style="color:var(--text-muted);font-size:13px;margin-top:8px">完整逐行剖析见配套文档 <a href="claude-code-learning.html#skills" style="color:var(--primary-light)">架构深度解析 · Skills 章节</a>。</p>
+    </div></div>
+  </div>
+</section>
+</main>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// Collapsible
+function toggleCollapsible(btn){btn.parentElement.classList.toggle('open')}
+
+// Copy code
+function copyCode(btn){
+  const pre=btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(()=>{btn.textContent='已复制!';setTimeout(()=>btn.textContent='复制',2000)})
+}
+
+// Smooth scroll for nav (native via CSS scroll-behavior; ensure anchor works)
+function goToSection(sel){document.querySelector(sel)?.scrollIntoView({behavior:'smooth'})}
+
+// Back to top visibility
+const btt=document.getElementById('backToTop');
+window.addEventListener('scroll',()=>{btt.classList.toggle('visible',window.scrollY>400)})
+
+// Active nav tracking
+const sections=document.querySelectorAll('.section,.hero');
+const navItems=document.querySelectorAll('.nav-item');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){
+    navItems.forEach(n=>n.classList.remove('active'));
+    const active=document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+    if(active)active.classList.add('active');
+  }})
+},{rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>

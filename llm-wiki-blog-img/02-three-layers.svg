@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 520" role="img" aria-labelledby="t2 d2">
+  <title id="t2">LLM Wiki 三层架构</title>
+  <desc id="d2">自下而上三层：第一层 Raw 原始资料（源代码，不可变），第二层 Wiki 编译产物（LLM 拥有），第三层 Schema 规则/系统提示词（语言规范，最关键）。数据自下而上流动，Schema 约束编译过程。</desc>
+  <style>
+    :root{
+      --bg:#f6f3eb;--fg:#1d2935;--muted:#66727c;--line:#7b8790;--border:#c8c8bd;
+      --in:#3e6fa7;--in-fill:#dde7f3;--out:#397b68;--out-fill:#d6e8df;--acc:#8a5a2b;--acc-fill:#f3e6cf;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#1b2023;--fg:#eef1eb;--muted:#b1b9b6;--line:#9ca9a6;--border:#596463;
+        --in:#8eb9e4;--in-fill:#2c3d52;--out:#80c6aa;--out-fill:#2b4a41;--acc:#e2b16d;--acc-fill:#4a3b23;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .l-raw{fill:var(--in-fill);stroke:var(--in);stroke-width:1.6;}
+    .l-wiki{fill:var(--out-fill);stroke:var(--out);stroke-width:1.6;}
+    .l-schema{fill:var(--acc-fill);stroke:var(--acc);stroke-width:2.4;}
+    .flow{fill:none;stroke:var(--line);stroke-width:3;marker-end:url(#a2);}
+    .gov{fill:none;stroke:var(--acc);stroke-width:2.2;stroke-dasharray:5 5;marker-end:url(#ag);}
+    .eyebrow{fill:var(--muted);font:700 13px/1.3 ui-monospace,monospace;letter-spacing:2px;}
+    .title{fill:var(--fg);font:700 25px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .idx{fill:var(--fg);font:800 20px/1 ui-monospace,monospace;}
+    .name{fill:var(--fg);font:700 20px/1.2 ui-sans-serif,system-ui,sans-serif;}
+    .sub{fill:var(--muted);font:14px/1.4 ui-sans-serif,system-ui,sans-serif;}
+    .ann{fill:var(--muted);font:13px/1.5 ui-sans-serif,system-ui,sans-serif;}
+    .badge{fill:var(--acc);font:700 13px/1 ui-sans-serif,system-ui,sans-serif;}
+    .flow-lbl{fill:var(--line);font:600 13px/1.3 ui-sans-serif,system-ui,sans-serif;}
+  </style>
+  <defs>
+    <marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L8 4 L0 8 z" fill="var(--line)"/></marker>
+    <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L9 4.5 L0 9 z" fill="var(--acc)"/></marker>
+  </defs>
+
+  <rect class="bg" width="1080" height="520"/>
+  <text class="eyebrow" x="44" y="44">ARCHITECTURE / THREE LAYERS</text>
+  <text class="title" x="44" y="78">三层架构：数据自下而上流动</text>
+
+  <!-- upward flow arrow (left rail) -->
+  <path class="flow" d="M150 440 V 150"/>
+  <text class="flow-lbl" x="118" y="300" transform="rotate(-90 118 300)">数据自下而上流动</text>
+
+  <!-- Layer 3 Schema (top) -->
+  <rect class="l-schema" x="200" y="120" width="600" height="96" rx="10"/>
+  <text class="idx" x="228" y="162">③</text>
+  <text class="name" x="264" y="160">Schema · 规则 / 系统提示词</text>
+  <text class="sub" x="264" y="188">语言规范 + 编译选项 · 定义页面类型、frontmatter、工作流与红线</text>
+  <text class="badge" x="264" y="208">★ 最关键：把普通 LLM 变成守纪律的编译器</text>
+
+  <!-- Layer 2 Wiki (middle) -->
+  <rect class="l-wiki" x="200" y="240" width="600" height="88" rx="10"/>
+  <text class="idx" x="228" y="282">②</text>
+  <text class="name" x="264" y="280">Wiki · 编译产物</text>
+  <text class="sub" x="264" y="308">LLM 生成的结构化 Markdown 页面（.o / a.out）· LLM 完全拥有</text>
+
+  <!-- Layer 1 Raw (bottom) -->
+  <rect class="l-raw" x="200" y="352" width="600" height="88" rx="10"/>
+  <text class="idx" x="228" y="394">①</text>
+  <text class="name" x="264" y="392">Raw · 原始资料</text>
+  <text class="sub" x="264" y="420">文档 / 代码 / 网页存档（源代码 .c/.java）· 不可变，事实基准</text>
+
+  <!-- governs arrow: schema -> compile boundary -->
+  <path class="gov" d="M812 264 C 872 264 872 340 812 356"/>
+  <text class="badge" x="828" y="314" transform="rotate(90 828 314)">约束编译</text>
+
+  <!-- right annotations -->
+  <text class="ann" x="882" y="150">谁拥有</text>
+  <text class="ann" x="882" y="172">提示词本身</text>
+  <text class="ann" x="882" y="270">谁拥有</text>
+  <text class="ann" x="882" y="292">LLM Agent</text>
+  <text class="ann" x="882" y="382">谁拥有</text>
+  <text class="ann" x="882" y="404">拉取脚本（只读）</text>
+</svg>

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" role="img" aria-labelledby="title desc">
+  <title id="title">Deep Agents 执行拓扑图</title>
+  <desc id="desc">用户目标进入主 agent，主 agent 规划任务、写入工作区、委派子代理，并在需要时请求人工批准，最后生成交付物。</desc>
+  <style>
+    :root {
+      --bg: #f6f3eb;
+      --fg: #1d2935;
+      --muted: #66727c;
+      --line: #7b8790;
+      --border: #c8c8bd;
+      --input: #f6d7c9;
+      --process: #d9e1f1;
+      --storage: #d5e8df;
+      --external: #f5e4b8;
+      --output: #d8e8d1;
+      --zone: #e9e6dc;
+      --accent: #476d7c;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1b2023;
+        --fg: #eef1eb;
+        --muted: #b1b9b6;
+        --line: #9ca9a6;
+        --border: #596463;
+        --input: #69493f;
+        --process: #344b60;
+        --storage: #31554b;
+        --external: #665535;
+        --output: #385437;
+        --zone: #252c2f;
+        --accent: #9bc3cf;
+      }
+    }
+    .bg { fill: var(--bg); }
+    .zone { fill: var(--zone); stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 8 7; }
+    .edge { fill: none; stroke: var(--line); stroke-width: 2.5; marker-end: url(#arrow); }
+    .edge-dashed { fill: none; stroke: var(--line); stroke-width: 2.2; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+    .node { stroke: var(--border); stroke-width: 1.5; }
+    .input { fill: var(--input); }
+    .process { fill: var(--process); }
+    .storage { fill: var(--storage); }
+    .external { fill: var(--external); }
+    .output { fill: var(--output); }
+    .eyebrow { fill: var(--accent); font: 700 14px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 2px; }
+    .title { fill: var(--fg); font: 700 29px/1.2 ui-sans-serif, system-ui, sans-serif; }
+    .label { fill: var(--fg); font: 700 21px/1.3 ui-sans-serif, system-ui, sans-serif; }
+    .small { fill: var(--muted); font: 16px/1.45 ui-sans-serif, system-ui, sans-serif; }
+    .code { fill: var(--accent); font: 600 15px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .zone-label { fill: var(--muted); font: 700 14px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: 1.3px; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="780" />
+  <text class="eyebrow" x="56" y="54">DEEP AGENTS / EXECUTION MAP</text>
+  <text class="title" x="56" y="91">复杂任务如何从目标变成可验收的交付物</text>
+
+  <rect class="zone" x="54" y="126" width="1092" height="596" rx="12" />
+  <text class="zone-label" x="78" y="158">AGENT WORKSPACE / 受控执行边界</text>
+
+  <!-- Connectors are drawn before nodes so they stay behind the boxes. -->
+  <path class="edge" d="M 270 236 H 355" />
+  <path class="edge" d="M 520 328 V 420" />
+  <path class="edge" d="M 685 225 H 790" />
+  <path class="edge" d="M 790 225 H 755 V 282 H 685" />
+  <path class="edge" d="M 685 270 H 755 V 354 H 790" />
+  <path class="edge-dashed" d="M 355 486 H 270" />
+  <path class="edge-dashed" d="M 270 542 H 355" />
+  <path class="edge" d="M 685 486 H 790" />
+
+  <rect class="node input" x="80" y="178" width="190" height="116" rx="10" />
+  <text class="code" x="104" y="208">INPUT</text>
+  <text class="label" x="104" y="244">用户目标</text>
+  <text class="small" x="104" y="271">“研究一个主题并写报告”</text>
+
+  <rect class="node process" x="355" y="160" width="330" height="168" rx="10" />
+  <text class="code" x="381" y="194">COORDINATOR</text>
+  <text class="label" x="381" y="230">主 Agent</text>
+  <text class="small" x="381" y="259">规划、选择工具、合并结果</text>
+  <text class="code" x="381" y="298">write_todos  ·  task  ·  tools</text>
+
+  <rect class="node storage" x="355" y="420" width="330" height="132" rx="10" />
+  <text class="code" x="381" y="454">CONTEXT OFFLOAD</text>
+  <text class="label" x="381" y="490">文件工作区</text>
+  <text class="small" x="381" y="518">/notes  ·  /drafts  ·  /outputs</text>
+
+  <rect class="node external" x="80" y="456" width="190" height="112" rx="10" />
+  <text class="code" x="104" y="486">HITL</text>
+  <text class="label" x="104" y="521">人工批准</text>
+  <text class="small" x="104" y="548">写入、发送、删除</text>
+
+  <rect class="zone" x="790" y="160" width="300" height="238" rx="10" />
+  <text class="zone-label" x="814" y="190">SUBAGENTS / 上下文隔离</text>
+  <rect class="node process" x="814" y="211" width="252" height="70" rx="8" />
+  <text class="label" x="838" y="243">Researcher</text>
+  <text class="small" x="838" y="267">搜集资料，返回摘要</text>
+  <rect class="node process" x="814" y="305" width="252" height="70" rx="8" />
+  <text class="label" x="838" y="337">Critic</text>
+  <text class="small" x="838" y="361">检查事实与遗漏</text>
+
+  <rect class="node output" x="790" y="430" width="300" height="122" rx="10" />
+  <text class="code" x="814" y="462">OUTPUT</text>
+  <text class="label" x="814" y="498">交付物</text>
+  <text class="small" x="814" y="526">报告、代码、结构化 JSON</text>
+
+  <text class="small" x="56" y="760">读图顺序：目标 → 主 Agent → 中间产物 → 子代理 / 审批 → 交付物</text>
+</svg>
